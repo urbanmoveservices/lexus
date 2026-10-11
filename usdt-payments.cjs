@@ -18,6 +18,7 @@ function createUsdtPayments({registry,persist,audit,fetchImpl=fetch,now=Date.now
  const owner=(actor,id)=>{const o=registry.usdtOrders.find(o=>o.id===id);if(!o||(actor.role!=='admin'&&o.sellerId!==actor.id))throw Error('Payment request not found');return o;};
  async function json(url,options={}){const r=await fetchImpl(url,{...options,signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('Payment provider unavailable ('+r.status+'); retry later');return r.json();}
  async function rate(){
+  const fixed=Number(registry.usdtSettings.fixedRate);if(Number.isFinite(fixed)&&fixed>=1&&fixed<=10000)return{value:fixed,updatedAt:now(),source:'Admin fixed rate'};
   if(rateCache&&now()-rateCache.fetchedAt<60000&&now()-rateCache.updatedAt<600000)return rateCache;
   const headers={};if(process.env.LEXUS_COINGECKO_API_KEY)headers['x-cg-demo-api-key']=process.env.LEXUS_COINGECKO_API_KEY;
   const data=await json('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=inr&include_last_updated_at=true',{headers});
@@ -26,7 +27,7 @@ function createUsdtPayments({registry,persist,audit,fetchImpl=fetch,now=Date.now
   rateCache={value,updatedAt,fetchedAt:now(),source:'CoinGecko'};return rateCache;
  }
  function list(actor){return registry.usdtOrders.filter(o=>actor.role==='admin'||o.sellerId===actor.id).map(publicOrder);}
- async function settings(actor){const s=registry.usdtSettings;return{settings:{enabled:s.enabled,address:s.address,qr:s.qr,network:'TRC20',verification:'automatic',rateSource:'CoinGecko',providerKeyConfigured:actor.role==='admin'?!!process.env.LEXUS_TRONGRID_API_KEY:undefined},orders:list(actor)};}
+ async function settings(actor){const s=registry.usdtSettings;return{settings:{enabled:s.enabled,address:s.address,qr:s.qr,network:'TRC20',verification:'automatic',fixedRate:s.fixedRate||0,rateSource:s.fixedRate?'Admin fixed rate':'CoinGecko',providerKeyConfigured:actor.role==='admin'?!!process.env.LEXUS_TRONGRID_API_KEY:undefined},orders:list(actor)};}
  async function configure(actor,b){
   if(actor.role!=='admin')throw Error('Administrator required');const address=String(b.address||'').trim();addressHex(address);
   // Uploaded QR must decode to the exact receiving address; persist a fresh canonical QR.
@@ -36,7 +37,8 @@ function createUsdtPayments({registry,persist,audit,fetchImpl=fetch,now=Date.now
    if(decoded.width>1600||decoded.height>1600)throw Error('QR image dimensions exceed 1600 pixels');const result=require('jsqr')(new Uint8ClampedArray(decoded.data),decoded.width,decoded.height);if(result?.data!==address)throw Error('Uploaded QR must contain exactly the receiving TRON address');
   }
   const qr=await QRCode.toDataURL(address,{errorCorrectionLevel:'M',margin:2,width:280});
-  registry.usdtSettings={address,qr,enabled:b.enabled===true};audit(actor,'usdt-settings-updated',null,{address,enabled:b.enabled===true});persist();return settings(actor);
+  const fixedRate=Number(b.fixedRate||0);if(!Number.isFinite(fixedRate)||fixedRate<0||fixedRate>10000||fixedRate>0&&fixedRate<1)throw Error('Enter a rate between 1 and 10000, or leave blank for live rate');
+  registry.usdtSettings={address,qr,enabled:b.enabled===true,fixedRate};audit(actor,'usdt-settings-updated',null,{address,enabled:b.enabled===true,fixedRate});persist();return settings(actor);
  }
  async function quote(actor,b){
   if(actor.role!=='seller')throw Error('Seller required');const s=registry.usdtSettings;if(!s.enabled)throw Error('USDT payments are not enabled by admin');addressHex(s.address);
