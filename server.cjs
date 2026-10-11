@@ -4,6 +4,8 @@ const path = require('path');
 const Module = require('module');
 const root = path.resolve(__dirname, 'app');
 const port = Number(process.env.LEXUS_WEB_PORT || 8081);
+const allowedOrigins = new Set([`http://127.0.0.1:${port}`, `http://localhost:${port}`,
+  ...String(process.env.LEXUS_ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean)]);
 const licenseService = require('./licensing.cjs').createLicensing({directory:process.env.LEXUS_LICENSE_DATA || path.join(__dirname,'license-data'),adminPassword:process.env.LEXUS_ADMIN_PASSWORD,port});
 setInterval(()=>licenseService.pollPayments().catch(()=>{}),30000).unref();
 const storeFile = path.join(root, 'profile-store.js');
@@ -58,7 +60,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
   try {
     const url=new URL(req.url,`http://127.0.0.1:${port}`);
     res.setHeader('Cache-Control','no-store');
-    if(req.headers.origin && ![`http://127.0.0.1:${port}`,`http://localhost:${port}`].includes(req.headers.origin)){res.writeHead(403);return res.end();}
+    if(req.headers.origin && !allowedOrigins.has(req.headers.origin)){res.writeHead(403,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'This origin is not allowed'}));}
     const downloadManifestPath=path.join(__dirname,'releases','manifest.json');
     if(req.method==='GET'&&(url.pathname==='/api/portal/downloads'||url.pathname.startsWith('/downloads/'))){
       const manifest=fs.existsSync(downloadManifestPath)?JSON.parse(fs.readFileSync(downloadManifestPath,'utf8')):{version:'0.1.0'};
