@@ -48,6 +48,7 @@ function navigatePage(){
  for(const link of sidebar.querySelectorAll('.section-link')){const current=(new URL(link.href).searchParams.get('page')||'overview')===(pageSlug||'overview');link.classList.toggle('current',current);if(current)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
  el('page-title').textContent=titles[pageId]||'Overview';document.title='LEXUS · '+(titles[pageId]||'Overview');
  if(smallScreen.matches)setNavigation(false);
+ document.dispatchEvent(new Event('lexus-page-changed'));
 }
 navigatePage();
 window.addEventListener('popstate',navigatePage);
