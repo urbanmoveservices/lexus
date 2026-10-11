@@ -19,12 +19,12 @@ function createLicensing({ directory = path.join(__dirname, 'license-data'), adm
   const sessions = new Map(), attempts = new Map(), activationAttempts = new Map(), requestAttempts = new Map();
   function persist() { fs.writeFileSync(file + '.tmp', JSON.stringify(registry, null, 2), { mode: 0o600 }); fs.renameSync(file + '.tmp', file); }
   const publicKey = item => { const { keyHash, devices, ...rest } = item; return { ...rest, hint:String(item.hint||'').slice(-3), devicesUsed: devices.length, status: item.revoked ? 'REVOKED' : item.pending ? 'PENDING' : item.paid===false ? 'UNPAID' : !hierarchy.activeOwner(item) ? 'SELLER_DISABLED' : Date.parse(item.expiresAt) <= Date.now() ? 'EXPIRED' : 'ACTIVE' }; };
-  function login(password, remote = 'local') {
+  function login(password, remote = 'local', username = '') {
     const attempt = attempts.get(remote);
     if (attempt?.count >= 8 && Date.now() - attempt.since < 15 * 60 * 1000) throw Error('Too many attempts. Try again in 15 minutes.');
-    if (!safeEqual(crypto.scryptSync(String(password || ''), registry.salt, 64).toString('hex'), registry.passwordHash)) {
+    if ((registry.adminUsername && !safeEqual(String(username || '').trim(), registry.adminUsername)) || !safeEqual(crypto.scryptSync(String(password || ''), registry.salt, 64).toString('hex'), registry.passwordHash)) {
       const current = !attempt || Date.now() - attempt.since >= 15 * 60 * 1000 ? { count: 0, since: Date.now() } : attempt;
-      current.count++; attempts.set(remote, current); throw Error('Invalid administrator password');
+      current.count++; attempts.set(remote, current); throw Error('Invalid administrator credentials');
     }
     attempts.delete(remote);
     const token = crypto.randomBytes(32).toString('base64url'); sessions.set(token, Date.now() + 8 * 60 * 60 * 1000); return token;
@@ -105,7 +105,7 @@ function createLicensing({ directory = path.join(__dirname, 'license-data'), adm
       let text = ''; for await (const chunk of req) { text += chunk; if (text.length > 16384) { json(413, { error: 'Request too large' }); return true; } }
       const body = text ? JSON.parse(text) : {};
       switch (url.pathname) {
-        case '/api/admin/login': { const token = login(body.password, req.socket.remoteAddress); res.setHeader('Set-Cookie', `lexus_admin=${token}; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=28800`); json(200, { ok: true }); break; }
+        case '/api/admin/login': { const token = login(body.password, req.socket.remoteAddress, body.username); res.setHeader('Set-Cookie', `lexus_admin=${token}; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=28800`); json(200, { ok: true }); break; }
         case '/api/admin/logout': sessions.delete(auth); res.setHeader('Set-Cookie', 'lexus_admin=; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=0'); json(200, { ok: true }); break;
         case '/api/admin/issue': json(200, issue({customer:body.customer,days:body.days,maxDevices:body.maxDevices,preferredKey:body.preferredKey})); break;
         case '/api/admin/revoke': json(200, revoke(body.id)); break;
