@@ -72,3 +72,6 @@ body[data-role="admin"] .portal-sidebar{left:0;right:auto;border-left:0;border-r
 body[data-role="admin"].nav-closed .portal-sidebar{transform:translateX(-100%)}
 body[data-role="admin"] .portal-sidebar .section-link.current{box-shadow:inset 3px 0 #2563eb}
 @media(min-width:901px){body[data-role="admin"] main{margin:0 0 0 260px}body[data-role="admin"].nav-closed main{margin-left:0}}
+
+body[data-role="seller"] .seller-logout{display:block;flex-shrink:0;width:100%;margin-top:16px;background:#fff1f2;color:#a1243b;border-color:#f0cad1;font-weight:600}body[data-role="seller"] .seller-logout:hover{background:#ffe4e8}
+body[data-role="seller"] #logout{color:#a1243b;border-color:#f0cad1;background:#fff1f2}
