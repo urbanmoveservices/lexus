@@ -95,4 +95,4 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     if(relative==='/renderer.js') content=content.toString().replace("toast('Export/Import — baad me');", "await window.ocean.webBackup(action); refreshLists();").replace("toast('Cleanup stub');", "if(action==='cleanup-forms'){clearJourneyEditor();clearCredentialEditor();clearPaymentEditor();toast('Editor forms cleared; saved profiles retained');}else if(action==='cleanup-cache'){location.reload();}else{toast('No desktop runs active in this browser workspace');}");
     res.setHeader('Content-Type',mime[path.extname(file)]);res.end(content);
   }catch(e){res.writeHead(e.code==='ENOENT'?404:400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:e.message}));}
-}).listen(port,'127.0.0.1',()=>console.log(`LEXUS web ready at http://127.0.0.1:${port}`))).catch(e=>{console.error(e.message);process.exit(1)});
+}).listen(port,process.env.LEXUS_WEB_HOST || '127.0.0.1',()=>console.log(`LEXUS web ready at http://127.0.0.1:${port}`))).catch(e=>{console.error(e.message);process.exit(1)});

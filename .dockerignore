@@ -1,0 +1,11 @@
+.git
+node_modules
+**/node_modules
+runtime
+desktop-data
+license-data
+web-data
+qa
+releases
+*.log
+.env*
