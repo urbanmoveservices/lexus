@@ -1,0 +1,4 @@
+lexus.vaidya-gpt.com {
+    encode zstd gzip
+    reverse_proxy lexus-service:8081
+}
