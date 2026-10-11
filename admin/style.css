@@ -67,3 +67,8 @@ body[data-role="admin"] .admin-header-left{display:flex;align-items:center;gap:1
 body[data-role="admin"] .admin-header-left>div{min-width:0}
 body[data-role="admin"] .admin-header-left .hamburger{background:white;border-color:#dae3ee;color:#405775}
 @media(max-width:560px){body[data-role="admin"] .portal-topbar{flex-wrap:wrap;gap:12px}body[data-role="admin"] .admin-header-left{flex-basis:100%;gap:12px}body[data-role="admin"] .header-right{margin-left:52px;max-width:none;justify-content:flex-start}}
+
+body[data-role="admin"] .portal-sidebar{left:0;right:auto;border-left:0;border-right:1px solid #dce5f0;box-shadow:6px 0 26px #28426305}
+body[data-role="admin"].nav-closed .portal-sidebar{transform:translateX(-100%)}
+body[data-role="admin"] .portal-sidebar .section-link.current{box-shadow:inset 3px 0 #2563eb}
+@media(min-width:901px){body[data-role="admin"] main{margin:0 0 0 260px}body[data-role="admin"].nav-closed main{margin-left:0}}
