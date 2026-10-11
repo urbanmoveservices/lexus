@@ -62,3 +62,8 @@ body.signed-out main{margin:0 auto!important;width:100%!important;max-width:520p
 .usdt-qr{width:220px;height:220px;object-fit:contain;background:white;border:1px solid #cbd8ef;border-radius:12px;margin:16px 0}#usdt-orders input{min-width:220px}#usdt-orders form{display:flex;gap:8px;align-items:center}#usdt-invoice-details{overflow-wrap:anywhere;line-height:1.9}.payment-nav{display:block;padding:14px;color:#174799;text-decoration:none}#usdt-payment-status{margin:16px 0;overflow-wrap:anywhere}
 
 body.session-checking #login-panel{visibility:hidden}
+
+body[data-role="admin"] .admin-header-left{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+body[data-role="admin"] .admin-header-left>div{min-width:0}
+body[data-role="admin"] .admin-header-left .hamburger{background:white;border-color:#dae3ee;color:#405775}
+@media(max-width:560px){body[data-role="admin"] .portal-topbar{flex-wrap:wrap;gap:12px}body[data-role="admin"] .admin-header-left{flex-basis:100%;gap:12px}body[data-role="admin"] .header-right{margin-left:52px;max-width:none;justify-content:flex-start}}
