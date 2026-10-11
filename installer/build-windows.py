@@ -12,14 +12,14 @@ shutil.copytree(releases/'build-cache/chrome/chrome-win64',stage/'browsers/chrom
 for name in ['install-integration.ps1','uninstall.ps1']:
  shutil.copy2(root/'installer'/name,stage/name)
 csc=Path('C:/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe')
-subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/out:'+str(stage/'LEXUS.exe'),str(root/'installer/Launcher.cs')],check=True)
+subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/win32icon:'+str(root/'installer/lexus.ico'),'/out:'+str(stage/'LEXUS.exe'),str(root/'installer/Launcher.cs')],check=True)
 zip_path=releases/'build-cache'/'payload.zip'
 with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
  for file in stage.rglob('*'):
   if file.is_file(): z.write(file,file.relative_to(stage).as_posix())
 print('Bundled package created:',zip_path.stat().st_size,flush=True)
 setup=releases/f'LEXUS-Setup-{version}.exe'
-subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll','/resource:'+str(zip_path)+',payload.zip','/out:'+str(setup),str(root/'installer/Setup.cs')],check=True)
+subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll','/resource:'+str(zip_path)+',payload.zip','/out:'+str(setup),'/win32icon:'+str(root/'installer/lexus.ico'),'/resource:'+str(root/'app/assets/lexus-logo.jpeg')+',lexus.logo','/resource:'+str(root/'installer/lexus.ico')+',lexus.icon',str(root/'installer/InstallerTheme.cs'),str(root/'installer/Setup.cs')],check=True)
 updater=releases/f'LEXUS-Updater-{version}.zip'
 with zipfile.ZipFile(updater,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
  for file in stage.rglob('*'):
