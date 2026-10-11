@@ -49,7 +49,7 @@ function invoke(store, channel, args) {
     case 'profiles:addProxy': { const proxies=store.addProxyFromString(p.host); return {ok:true,proxies,count:proxies.length}; }
     case 'profiles:deleteProxies': { const proxies=store.deleteProxiesByIds(p.ids||[]); return {ok:true,proxies,count:proxies.length}; }
     case 'app:get-info': return {name:'LEXUS',version:'1.1.1',maxParallelRuns:4};
-    case 'license:get-about': case 'license:refresh-about': return {appVersion:'1.1.1',subtitle:'Local browser workspace; license service not connected'};
+    case 'license:get-about': case 'license:refresh-about': return {appVersion:require('./package.json').version,subtitle:'LEXUS browser workspace · licensing service connected'};
     case 'runs:list': return {runs:[]};
     case 'irctc:get-status': return {open:false,runs:[]};
     default: throw Error('This action needs the original desktop or external service: '+channel);
@@ -78,7 +78,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     if(req.method==='GET'&&adminFiles[url.pathname]){const [file,type]=adminFiles[url.pathname];res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");res.setHeader('Content-Type',type);return res.end(fs.readFileSync(path.join(__dirname,'admin',file)));}
     if(req.method==='POST' && url.pathname==='/api/invoke') {
       if(!licenseService.licensedRequest(req)){res.writeHead(401,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'Activate a valid LEXUS key to use the workspace'}));}
-      if(req.headers.origin && req.headers.origin!==`http://127.0.0.1:${port}` && req.headers.origin!==`http://localhost:${port}`) {res.writeHead(403);return res.end();}
+      if(req.headers.origin && !allowedOrigins.has(req.headers.origin)) {res.writeHead(403,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'This origin is not allowed'}));}
       let body=''; for await(const chunk of req) {body+=chunk;if(body.length>1024*1024)throw Error('Request too large');}
       const {channel,args=[]}=JSON.parse(body);
       const license=licenseService.requestLicense(req);if(!license){res.writeHead(401);return res.end();}

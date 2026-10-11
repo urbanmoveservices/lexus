@@ -25,7 +25,7 @@ for kind in ['updater','setup']:
     for name in names:
      p=Path(folder)/name;z.write(p,'LEXUS/runtime/'+p.relative_to(runtime).as_posix())
    # Node runtime is already included in the local runtime directory.
-  z.writestr('LEXUS/READ-ME-FIRST.txt','LEXUS portable distribution\nFirst install: extract into a writable folder, open Launch LEXUS.cmd.\nUpdater: close desktop and local server, back up your folder, then extract over your install.\nUser data and credentials are never included in this package.\nLicensing defaults to localhost; other computers need a configured hosted licensing service.\n')
+  z.writestr('LEXUS/READ-ME-FIRST.txt','LEXUS portable distribution\nFirst install: extract into a writable folder, open Launch LEXUS.cmd.\nUpdater: close desktop and local server, back up your folder, then extract over your install.\nUser data and credentials are never included in this package.\nLicensing connects to https://lexus.vaidya-gpt.com. Internet and an issued key are required.\n')
  sha=hashlib.sha256()
  with archive.open('rb') as f:
   for block in iter(lambda:f.read(1024*1024),b''):sha.update(block)

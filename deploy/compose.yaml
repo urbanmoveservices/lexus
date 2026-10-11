@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     environment:
       LEXUS_ALLOWED_ORIGINS: https://lexus.vaidya-gpt.com
+      LEXUS_PUBLIC_URL: https://lexus.vaidya-gpt.com
       LEXUS_RELEASES_DIR: /downloads
     volumes:
       - /srv/lexus-data:/data

@@ -14,7 +14,7 @@ function createLicensing({ directory = path.join(__dirname, 'license-data'), adm
     const salt = crypto.randomBytes(16).toString('hex');
     registry = { salt, passwordHash: crypto.scryptSync(password, salt, 64).toString('hex'), signingKey: crypto.randomBytes(32).toString('hex'), keys: [] };
     fs.writeFileSync(file, JSON.stringify(registry, null, 2), { mode: 0o600 });
-    if (!adminPassword) fs.writeFileSync(path.join(directory, 'admin-access.txt'), `LEXUS local administrator\nURL: http://127.0.0.1:${port}/admin\nPassword: ${password}\nKeep this file private.\n`, { mode: 0o600 });
+    if (!adminPassword) fs.writeFileSync(path.join(directory, 'admin-access.txt'), `LEXUS administrator\nURL: ${process.env.LEXUS_PUBLIC_URL || `http://127.0.0.1:${port}`}/admin\nPassword: ${password}\nKeep this file private.\n`, { mode: 0o600 });
   }
   const sessions = new Map(), attempts = new Map(), activationAttempts = new Map(), requestAttempts = new Map();
   function persist() { fs.writeFileSync(file + '.tmp', JSON.stringify(registry, null, 2), { mode: 0o600 }); fs.renameSync(file + '.tmp', file); }

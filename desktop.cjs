@@ -2,7 +2,7 @@ const { app, ipcMain, shell, nativeImage, BrowserWindow } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const distributionConfig = require('./distribution-config.cjs');
-if (distributionConfig.licenseUrl && !process.env.LEXUS_LICENSE_URL) process.env.LEXUS_LICENSE_URL = distributionConfig.licenseUrl;
+if (!process.env.LEXUS_LICENSE_URL) process.env.LEXUS_LICENSE_URL = distributionConfig.licenseUrl || 'https://lexus.vaidya-gpt.com';
 if (distributionConfig.bundledChrome && !process.env.OCEAN_CHROME_PATH) process.env.OCEAN_CHROME_PATH = path.join(__dirname, 'browsers', 'chrome', 'chrome.exe');
 const braveCandidates=[process.env.LEXUS_BRAVE_PATH,path.join(process.env.LOCALAPPDATA||'', 'BraveSoftware','Brave-Browser','Application','brave.exe'),'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe','C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'].filter(Boolean);
 const installedBrave=braveCandidates.find(candidate=>fs.existsSync(candidate));
@@ -24,7 +24,7 @@ app.on('browser-window-created',(_event,window)=>{
  window.webContents.on('render-process-gone',(_event,details)=>console.error('LEXUS renderer exited:',details.reason));
 });
 
-ipcMain.handle('lexus:open-client',()=>shell.openExternal(process.env.LEXUS_LICENSE_URL?process.env.LEXUS_LICENSE_URL+'/client':'http://127.0.0.1:8081/client'));
+ipcMain.handle('lexus:open-client',()=>shell.openExternal(process.env.LEXUS_LICENSE_URL?process.env.LEXUS_LICENSE_URL+'/client':'https://lexus.vaidya-gpt.com/client'));
 app.on('browser-window-created', (_event, window) => window.setIcon(nativeImage.createFromPath(path.join(__dirname, 'app', 'assets', 'lexus-logo.jpeg'))));
 require('./app/main.js');
 
