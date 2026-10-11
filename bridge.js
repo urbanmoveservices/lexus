@@ -12,7 +12,7 @@ async function ensureActivation(){
       const dialog=document.createElement('dialog');dialog.className='lexus-activation';
       const heading=document.createElement('h2');heading.textContent='Activate LEXUS';dialog.append(heading);
       const text=document.createElement('p');text.textContent='Enter an activation key issued by your LEXUS administrator.';dialog.append(text);
-      const form=document.createElement('form');const input=document.createElement('input');input.placeholder='LEXUS activation key';input.required=true;input.setAttribute('aria-label','LEXUS activation key');form.append(input);
+      const form=document.createElement('form');const input=document.createElement('input');input.type='password';input.placeholder='LEXUS activation key';input.required=true;input.setAttribute('aria-label','LEXUS activation key');form.append(input);
       const button=document.createElement('button');button.textContent='Activate';button.type='submit';form.append(button);const feedback=document.createElement('p');feedback.setAttribute('role','status');form.append(feedback);dialog.append(form);
       const link=document.createElement('a');link.href='/admin';link.target='_blank';link.rel='noopener';link.textContent='Open admin panel';dialog.append(link);
       const clientLink=document.createElement('a');clientLink.href='/client';clientLink.target='_blank';clientLink.rel='noopener';clientLink.textContent='Personalize your key after admin activation';dialog.append(clientLink);

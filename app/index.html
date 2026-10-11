@@ -10,7 +10,7 @@
     <title>LEXUS</title>
     <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./lexus-theme.css">
-</head>
+<link rel="stylesheet" href="./password-fields.css"><script src="./password-fields.js" defer></script></head>
   <body>
     <div id="appRoot" class="ocean-app">
       <form id="oceanForm" autocomplete="off" class="ocean-form">
@@ -293,7 +293,7 @@
               </label>
               <label class="field accounts-field-pass" id="accountsSinglePassWrap">
                 <span>Password</span>
-                <input type="text" id="irctc-password" name="irctc-password" placeholder="Password" autocomplete="off" spellcheck="false" />
+                <input type="password" id="irctc-password" name="irctc-password" placeholder="Password" autocomplete="off" spellcheck="false" />
               </label>
               <button type="button" class="btn btn-primary accounts-add-btn" id="saveCredentialBtn">Add IRCTC</button>
             </div>
@@ -307,7 +307,7 @@
               <textarea id="accountsBulkText" class="accounts-bulk-text" rows="8" placeholder="userid:password&#10;userid2:password2" spellcheck="false"></textarea>
               <div class="accounts-bulk-common">
                 <label for="accountsBulkCommonPass">Common Password:</label>
-                <input type="text" id="accountsBulkCommonPass" placeholder="optional" autocomplete="off" spellcheck="false" />
+                <input type="password" id="accountsBulkCommonPass" placeholder="optional" autocomplete="off" spellcheck="false" />
               </div>
               <button type="button" class="btn btn-primary accounts-bulk-save" id="accountsBulkSaveBtn">SAVE ALL IDs</button>
             </div>
