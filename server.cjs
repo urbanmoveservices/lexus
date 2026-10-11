@@ -21,7 +21,7 @@ async function clientStore(licenseId){
   }
   return stores.get(licenseId);
 }
-function invoke(store, channel, args) {
+function invoke(store, channel, args, license = null) {
   const p = args[0] || {};
   const direct = {
     'profiles:list':'listSummaries', 'profiles:saveJourney':'saveJourney',
@@ -48,8 +48,8 @@ function invoke(store, channel, args) {
     case 'profiles:listProxies': return {proxies:store.listProxies()};
     case 'profiles:addProxy': { const proxies=store.addProxyFromString(p.host); return {ok:true,proxies,count:proxies.length}; }
     case 'profiles:deleteProxies': { const proxies=store.deleteProxiesByIds(p.ids||[]); return {ok:true,proxies,count:proxies.length}; }
-    case 'app:get-info': return {name:'LEXUS',version:'1.1.1',maxParallelRuns:4};
-    case 'license:get-about': case 'license:refresh-about': return {appVersion:require('./package.json').version,subtitle:'LEXUS browser workspace · licensing service connected'};
+    case 'app:get-info': return {name:'LEXUS',version:require('./package.json').version,maxParallelRuns:4};
+    case 'license:get-about': case 'license:refresh-about': return {version:require('./package.json').version,appVersion:require('./package.json').version,key:license?.hint?'…'+license.hint:'',leftDays:license?Math.max(0,Math.ceil((Date.parse(license.expiresAt)-Date.now())/86400000)):null,subtitle:'LEXUS browser workspace · licensing service connected'};
     case 'runs:list': return {runs:[]};
     case 'irctc:get-status': return {open:false,runs:[]};
     default: throw Error('This action needs the original desktop or external service: '+channel);
@@ -84,7 +84,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
       const license=licenseService.requestLicense(req);if(!license){res.writeHead(401);return res.end();}
       if(req.headers['x-lexus-workspace']&&req.headers['x-lexus-workspace']!==license.id){res.writeHead(409,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'Activation user changed; reload this workspace'}));}
       const store=await clientStore(license.id);
-      const data=await invoke(store,channel,args);
+      const data=await invoke(store,channel,args,license);
       res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({data:data??null}));
     }
     if(req.method!=='GET'){res.writeHead(405);return res.end();}
