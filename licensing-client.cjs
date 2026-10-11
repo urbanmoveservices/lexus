@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),os=require('node:os');
 const {app}=require('electron');
-const BASE=process.env.LEXUS_LICENSE_URL||'http://127.0.0.1:8081';
+const BASE=process.env.LEXUS_LICENSE_URL||require('./distribution-config.cjs').licenseUrl||'http://127.0.0.1:8081';
 function directory(){const dir=process.env.LEXUS_ACTIVATION_HOME||path.join(app.getPath('userData'),'lexus-license');fs.mkdirSync(dir,{recursive:true});return dir;}
 function localKey(){const file=path.join(directory(),'.key');if(!fs.existsSync(file))fs.writeFileSync(file,crypto.randomBytes(32),{mode:0o600});return fs.readFileSync(file);}
 function getSavedLicense(){try{const data=JSON.parse(fs.readFileSync(path.join(directory(),'activation.json'),'utf8'));const decipher=crypto.createDecipheriv('aes-256-gcm',localKey(),Buffer.from(data.iv,'hex'));decipher.setAuthTag(Buffer.from(data.tag,'hex'));return JSON.parse(Buffer.concat([decipher.update(Buffer.from(data.value,'hex')),decipher.final()]).toString());}catch{return {key:'',name:''};}}

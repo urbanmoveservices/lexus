@@ -61,15 +61,15 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     const url=new URL(req.url,`http://127.0.0.1:${port}`);
     res.setHeader('Cache-Control','no-store');
     if(req.headers.origin && !allowedOrigins.has(req.headers.origin)){res.writeHead(403,{'Content-Type':'application/json'});return res.end(JSON.stringify({error:'This origin is not allowed'}));}
-    const downloadManifestPath=path.join(__dirname,'releases','manifest.json');
+      const downloadManifestPath=path.join(process.env.LEXUS_RELEASES_DIR || path.join(__dirname,'releases'),'manifest.json');
     if(req.method==='GET'&&(url.pathname==='/api/portal/downloads'||url.pathname.startsWith('/downloads/'))){
       const manifest=fs.existsSync(downloadManifestPath)?JSON.parse(fs.readFileSync(downloadManifestPath,'utf8')):{version:'0.1.0'};
       if(url.pathname==='/api/portal/downloads'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(manifest));}
       const item=[manifest.setup,manifest.updater].filter(Boolean).find(item=>item.url===url.pathname);
       if(!item){res.writeHead(404);return res.end('Download not found');}
-      const name=path.basename(item.url);const archive=path.join(__dirname,'releases',name);
+      const name=path.basename(item.url);const archive=path.join(process.env.LEXUS_RELEASES_DIR || path.join(__dirname,'releases'),name);
       if(!fs.existsSync(archive)){res.writeHead(404);return res.end('Package unavailable');}
-      res.setHeader('Content-Type','application/zip');res.setHeader('Content-Disposition',`attachment; filename="${name}"`);res.setHeader('Content-Length',fs.statSync(archive).size);fs.createReadStream(archive).on('error',()=>res.destroy()).pipe(res);return;
+      res.setHeader('Content-Type',name.endsWith('.exe')?'application/vnd.microsoft.portable-executable':'application/zip');res.setHeader('Content-Disposition',`attachment; filename="${name}"`);res.setHeader('Content-Length',fs.statSync(archive).size);fs.createReadStream(archive).on('error',()=>res.destroy()).pipe(res);return;
     }
     if(await licenseService.handle(req,res,url))return;
     const adminFiles={'/portal':['portal.html','text/html'],'/signup':['signup.html','text/html'],'/downloads':['downloads.html','text/html'],'/public/portal.css':['public.css','text/css'],'/public/portal.js':['public.js','application/javascript'],'/seller':['seller.html','text/html'],'/seller/':['seller.html','text/html'],'/admin/usdt.js':['usdt.js','application/javascript'],'/admin/portal.js':['portal.js','application/javascript'],'/admin':['index.html','text/html'],'/admin/':['index.html','text/html'],'/admin/admin.js':['admin.js','application/javascript'],'/admin/style.css':['style.css','text/css'],'/client':['client.html','text/html'],'/client/':['client.html','text/html'],'/client/client.js':['client.js','application/javascript']};

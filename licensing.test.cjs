@@ -32,7 +32,7 @@ test('desktop client activates, persists encrypted key, verifies, and rejects re
   const filename=path.join(__dirname,'licensing-client.cjs'),clientModule=new Module(filename,module);
   clientModule.filename=filename;clientModule.paths=Module._nodeModulePaths(__dirname);
   const realRequire=clientModule.require.bind(clientModule);clientModule.require=name=>name==='electron'?{app:{getPath:()=>path.join(data,'desktop'),getVersion:()=> '0.1.0'}}:realRequire(name);
-  const source=fs.readFileSync(filename,'utf8').replace("const BASE=process.env.LEXUS_LICENSE_URL||'http://127.0.0.1:8081';",`const BASE='http://127.0.0.1:${server.address().port}';`);
+  const source=fs.readFileSync(filename,'utf8').replace(/^const BASE=.*;$/m,`const BASE='http://127.0.0.1:${server.address().port}';`);
   clientModule._compile(source,filename);const client=clientModule.exports;
   const result=await client.verifyLicense({key:issued.key});assert.equal(result.ok,true);assert.equal(result.raw.name,'DESKTOP TEST');assert.equal(client.getSavedLicense().key,issued.key);
   assert(!fs.readFileSync(path.join(data,'desktop','lexus-license','activation.json'),'utf8').includes(issued.key));

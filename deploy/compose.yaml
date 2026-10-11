@@ -7,8 +7,10 @@ services:
     restart: unless-stopped
     environment:
       LEXUS_ALLOWED_ORIGINS: https://lexus.vaidya-gpt.com
+      LEXUS_RELEASES_DIR: /downloads
     volumes:
       - /srv/lexus-data:/data
+      - /srv/lexus-releases:/downloads:ro
     networks:
       - edge
     healthcheck:

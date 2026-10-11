@@ -1,12 +1,15 @@
 const { app, ipcMain, shell, nativeImage, BrowserWindow } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const distributionConfig = require('./distribution-config.cjs');
+if (distributionConfig.licenseUrl && !process.env.LEXUS_LICENSE_URL) process.env.LEXUS_LICENSE_URL = distributionConfig.licenseUrl;
+if (distributionConfig.bundledChrome && !process.env.OCEAN_CHROME_PATH) process.env.OCEAN_CHROME_PATH = path.join(__dirname, 'browsers', 'chrome', 'chrome.exe');
 const braveCandidates=[process.env.LEXUS_BRAVE_PATH,path.join(process.env.LOCALAPPDATA||'', 'BraveSoftware','Brave-Browser','Application','brave.exe'),'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe','C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'].filter(Boolean);
 const installedBrave=braveCandidates.find(candidate=>fs.existsSync(candidate));
 if(installedBrave)process.env.OCEAN_BRAVE_PATH=installedBrave;
 process.env.NODE_PATH = path.join(__dirname, 'node_modules');
 require('node:module').Module._initPaths();
-process.env.LEXUS_DESKTOP_ROOT=path.join(__dirname,'desktop-data');
+process.env.LEXUS_DESKTOP_ROOT=distributionConfig.installed ? path.join(process.env.LOCALAPPDATA || app.getPath('appData'),'LEXUS','data') : path.join(__dirname,'desktop-data');
 process.env.LEXUS_ACTIVATION_HOME=path.join(process.env.LEXUS_DESKTOP_ROOT,'lexus-license');
 app.setPath('userData',process.env.LEXUS_DESKTOP_ROOT);
 // Keep cache outside OneDrive and separate from older still-running processes.
