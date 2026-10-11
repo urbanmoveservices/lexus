@@ -1,0 +1,1 @@
+const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('lexusLicense',{bootstrap:()=>ipcRenderer.invoke('license:bootstrap'),activate:payload=>ipcRenderer.invoke('license:activate',payload),quit:()=>ipcRenderer.invoke('app:quit'),openClient:()=>ipcRenderer.invoke('lexus:open-client')});

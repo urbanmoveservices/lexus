@@ -1,0 +1,59 @@
+/* LEXUS right rail: distinct layout and blue / white / teal palette. */
+:root{--lexus-blue:#2458c4;--lexus-teal:#087f8c;--lexus-ink:#18304e;--lexus-border:#d2dfef;--shadow:0 12px 34px rgba(34,69,110,.12)}
+body{background:#edf3fa;color:var(--lexus-ink)}
+.ocean-toolbar,body.view-toolbar .ocean-toolbar{position:fixed;left:auto;right:12px;top:12px;bottom:12px;width:208px;height:auto;max-height:none;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:22px;padding:18px 12px;background:#fff;border:1px solid var(--lexus-border);border-radius:16px;box-shadow:var(--shadow);overflow:visible}
+.tb-main{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px;width:100%;flex:1;min-height:0}
+.tb-actions{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;justify-content:flex-start!important;gap:12px!important;width:100%!important;flex:1;min-height:0}.tb-actions>.tb-btn,.tb-actions>.tb-settings-menu{flex-shrink:0}
+.tb-btn .label,.tb-brand-name,.tb-pro{display:inline!important}.tb-brand{justify-content:flex-start!important;gap:8px!important}.tb-brand-mark{background:#2458c4!important;color:white!important;box-shadow:none!important}.tb-pro{background:#dcf6f0!important;color:#096653!important;border-color:#b3ded5!important;font-size:9px!important}.tb-clock{background:#f3f7fd!important;border:1px solid var(--lexus-border)!important;box-shadow:none!important}
+.tb-brand,.tb-brand-menu,.tb-settings-menu{width:100%;max-width:none}
+.tb-brand{background:#f0f6ff!important;color:var(--lexus-ink)!important;border:1px solid var(--lexus-border)!important;box-shadow:none!important;justify-content:center;border-radius:10px!important}
+.tb-brand-name{color:var(--lexus-blue)!important;letter-spacing:2px}.tb-brand-badge{background:#dcf6f0!important;color:#096653!important}
+.tb-btn,.tb-btn-blue,.tb-btn-orange,.tb-btn-purple,.tb-btn-green{width:100%;min-height:48px;padding:12px 14px!important;justify-content:flex-start!important;border-radius:10px!important;background:#edf4ff!important;color:#214e9a!important;border:1px solid #d5e2f5!important;box-shadow:none!important;text-shadow:none!important;font-weight:600}
+.tb-btn:hover{background:#dbeafe!important;border-color:#a4c0ed!important}.tb-btn.is-active{background:var(--lexus-blue)!important;color:white!important;border-color:var(--lexus-blue)!important}
+.tb-btn .label{color:inherit!important;font-size:13px}.tb-chevron{color:inherit!important;margin-left:auto}
+.tb-meta{margin-top:auto;display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 2px 0;border-top:1px solid var(--lexus-border);gap:8px}.tb-clock{color:#58708e!important;font-size:12px}.tb-close{background:#eaf0f8!important;color:#365477!important;border:1px solid var(--lexus-border)!important;box-shadow:none!important}
+body.view-toolbar{background:transparent;display:block;-webkit-app-region:drag}body.view-toolbar .ocean-app,body.view-toolbar .ocean-form{display:block;overflow:visible;height:100%;min-height:0}body.view-toolbar .ocean-toolbar{right:0;top:0;bottom:0;width:220px;border-radius:16px}
+.dropdown-card{background:#fff!important;color:var(--lexus-ink)!important;border:1px solid var(--lexus-border)!important;box-shadow:var(--shadow)!important}.dropdown-card button,.dropdown-card strong,.dropdown-card label,.dropdown-card span{color:var(--lexus-ink)!important}.dropdown-card button:hover{background:#e8f2ff!important}
+body.view-toolbar .dropdown-card{position:absolute!important;left:auto!important;right:calc(100% + 14px)!important;top:0!important;bottom:auto!important;width:290px!important;max-height:620px;overflow:auto}.dropdown-item{background:transparent!important}
+body:not(.view-toolbar):not(.view-modal) .modal-layer{right:244px;bottom:16px;top:16px;left:16px;width:auto;height:auto;max-height:none}
+.modal-panel{background:#fff!important;color:var(--lexus-ink)!important;border:1px solid var(--lexus-border)!important;box-shadow:var(--shadow)!important}.modal-panel h2,.modal-panel h3,.modal-panel label,.modal-panel .modal-head,.modal-panel .modal-title,.modal-panel .section-title{color:var(--lexus-ink)!important}.modal-panel input,.modal-panel select,.modal-panel textarea{background:#f4f8fd!important;color:var(--lexus-ink)!important;border-color:#c8d8eb!important}.modal-panel input::placeholder{color:#7f93ad!important}.modal-panel button{box-shadow:none!important}.modal-close{background:#eaf1fa!important;color:var(--lexus-ink)!important}
+body.view-modal{background:#eef4fb}.toast{background:#164f72!important;color:#fff!important;border:1px solid #72b2c5!important;box-shadow:var(--shadow)!important;right:244px!important;left:auto!important;bottom:20px!important}body.view-toolbar .toast{right:12px!important;bottom:24px!important}
+@media(max-height:620px){.ocean-toolbar,body.view-toolbar .ocean-toolbar{padding:12px 10px;gap:12px}.tb-main{gap:7px}.tb-btn{min-height:39px;padding:8px 12px!important}.tb-meta{padding-top:10px}}
+@media(max-height:620px){.tb-actions{gap:7px!important}}
+@media(max-width:720px){body:not(.view-toolbar):not(.view-modal) .ocean-toolbar{width:152px;right:8px;top:8px;bottom:8px;padding:12px 8px}body:not(.view-toolbar):not(.view-modal) .modal-layer{right:172px;left:8px;top:8px;bottom:8px}.tb-btn .label{font-size:11px}.tb-brand-name{font-size:14px;letter-spacing:1px}.toast{right:176px!important}}
+
+/* Complete light-theme contrast, including the copied modal's dark-theme rules. */
+:root{--text:#18304e;--muted:#506680;--panel:#fff;--panel-2:#f4f8fd;--line:#c8d8eb;--line-strong:#9db5d2;--purple:#2458c4;--purple-2:#1748aa}
+body .modal-panel,body.view-modal .modal-panel.is-active{color:#18304e!important;background:#fff!important;color-scheme:light}
+body .modal-panel :is(h1,h2,h3,h4,p,label,span,small,strong,th,td,li,legend),body.view-modal .modal-panel :is(.field span,.field-hint,.muted,.psg-head,.psg-sno,.toggle-line,.yn-line,.card-head .muted){color:#18304e!important}
+body .modal-panel :is(.field-hint,.muted,small){color:#506680!important}
+body .modal-panel :is(.card,.book-section,.book-footer-bar,.accounts-table-card,.table-row,.about-stat,.license-card,.yn-group),body .dropdown-card :is(.about-stat,.license-card,.dropdown-check,.dropdown-item){background:#f4f8fd!important;border-color:#c8d8eb!important;color:#18304e!important}
+body .modal-panel :is(input,select,textarea,option),body.view-modal .modal-panel .field select option{background:#fff!important;color:#18304e!important;border-color:#b4c8df!important;-webkit-text-fill-color:#18304e!important}
+body .modal-panel :is(input,textarea)::placeholder{color:#526b88!important;-webkit-text-fill-color:#526b88!important;opacity:1!important}
+body .modal-panel :is(input,select,textarea):focus{outline:2px solid #8fb5ee!important;outline-offset:1px;border-color:#2458c4!important;background:#fff!important}
+body .modal-panel button,body.view-modal .modal-panel :is(.btn-secondary,.btn-ghost,.icon-btn,.swap-btn,.psg-remove){background:#edf4ff!important;color:#214e9a!important;border-color:#b8cdea!important;text-shadow:none!important;box-shadow:none!important}
+body.view-modal .modal-panel .btn-add-psg{background:#e5f5f1!important;color:#11634f!important;border-color:#91cabb!important}
+body .modal-panel :is(.btn-primary,.btn-launch),body.view-modal .modal-panel #startRunBtn.btn-secondary{background:#2458c4!important;color:#fff!important;border-color:#2458c4!important}
+body .modal-panel :is(.btn-primary,.btn-launch) :is(span,strong),body.view-modal .modal-panel #startRunBtn.btn-secondary :is(span,strong){color:#fff!important}
+body.view-modal .modal-panel :is(.btn-cancel,.btn.danger,.btn-secondary.danger),body .modal-panel button.danger{background:#fff0f0!important;color:#a02c35!important;border-color:#dba7ad!important}
+body .modal-panel button:disabled{background:#e7edf5!important;color:#52657b!important;border-color:#c2cfdf!important;opacity:1!important}
+body .modal-panel .yn{background:#edf3fa!important;color:#38516f!important}body .modal-panel .yn:has(input:checked),body .modal-panel .yn:has(input:checked) span{background:#2458c4!important;color:#fff!important}
+body .modal-panel .toggle-ui{background:#9aabc0!important}body .modal-panel .toggle-input:checked+.toggle-ui{background:#087f8c!important}
+body .modal-panel .section-title svg{fill:#087f8c!important}body .modal-panel .modal-logo{background:#2458c4!important;color:white!important;box-shadow:none!important}
+body .dropdown-card :is(span,strong,label,p,a){color:#18304e!important}body .dropdown-card .support-btn{background:#edf4ff!important;color:#2458c4!important;border-color:#b8cdea!important}
+body.view-modal .modal-panel.is-active{scrollbar-color:#8aa8ce #edf3fa}body.view-modal .modal-panel.is-active::-webkit-scrollbar-track{background:#edf3fa}body.view-modal .modal-panel.is-active::-webkit-scrollbar-thumb{background:#8aa8ce}
+.lexus-ticket-detail{background:#fff;color:#18304e;border:1px solid #a9c0df;border-radius:12px;padding:24px;max-width:560px;box-shadow:var(--shadow)}.lexus-ticket-detail::backdrop{background:rgba(24,48,78,.35)}.lexus-ticket-detail p{color:#38516f;line-height:1.6}.lexus-ticket-detail button{background:#2458c4;color:white;border:1px solid #2458c4;padding:10px 16px;border-radius:8px}
+
+/* About cards and table headers must override the original dark surfaces too. */
+body .dropdown-about .about-grid,body .modal-about .about-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body .dropdown-about .about-stat:first-child,body .modal-about .about-stat:first-child{grid-column:1/-1}
+body.view-toolbar .dropdown-card .about-stat,body .dropdown-about .about-stat,body .modal-panel .about-stat,body .modal-panel .license-card{background:#f0f6ff!important;background-image:none!important;border:1px solid #c8d8eb!important;color:#18304e!important;min-width:0;box-shadow:none!important}
+body .dropdown-about .about-stat span,body .modal-panel .about-stat span,body .modal-panel .license-card span{color:#506680!important;font-size:10px;line-height:1.5}
+body .dropdown-about .about-stat strong,body .modal-panel .about-stat strong,body .modal-panel .license-card strong{color:#18304e!important;overflow-wrap:anywhere;word-break:normal;line-height:1.4}
+body .dropdown-about .about-license-key{font-size:12px!important;max-width:100%}
+body .dropdown-card .support-btn{background:#e5efff!important;color:#2458c4!important;border:1px solid #b8cdea!important;box-shadow:none!important}
+body .dropdown-card .support-btn svg{fill:#2458c4!important}
+body.view-modal .modal-panel .table-head,body.view-modal .modal-panel .list-header,body.view-modal .modal-panel .accounts-list-header,body .modal-panel .table-head.table-ticket{background:#e5efff!important;background-image:none!important;color:#18304e!important;border-color:#c8d8eb!important}
+body .modal-panel .table-head span,body .modal-panel .list-header span{color:#18304e!important}
+
+body .tb-brand-mark.lexus-logo-mark,body .modal-panel .modal-logo.lexus-logo-mark{background:#fff url("assets/lexus-logo.jpeg") 53% 39% / 265% auto no-repeat!important;color:transparent!important;border-radius:7px!important;box-shadow:none!important}

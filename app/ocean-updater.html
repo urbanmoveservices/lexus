@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+    <title>LEXUS</title>
+    <style>
+      :root {
+        --bg0: #0b1220;
+        --line: #1f2937;
+        --ink: #e5e7eb;
+        --muted: #94a3b8;
+        --teal: #0d9488;
+        --teal2: #14b8a6;
+        --danger: #ef4444;
+        --ok: #22c55e;
+        --blue: #14529a;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        font: 12px/1.35 "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg0);
+        overflow: hidden;
+        height: 100%;
+      }
+      body {
+        padding: 18px 18px 16px;
+        display: flex;
+        flex-direction: column;
+        -webkit-app-region: drag;
+      }
+      .ui { -webkit-app-region: no-drag; }
+      .brand {
+        margin: 0 0 4px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+      .sub {
+        margin: 0 0 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .versions {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .versions span { color: var(--muted); font-weight: 600; }
+      .versions strong { color: var(--teal2); }
+      .bar-wrap {
+        height: 14px;
+        border-radius: 999px;
+        background: #111827;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+      .bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--blue), var(--teal), var(--teal2));
+        transition: width 0.15s linear;
+      }
+      .pct {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        margin: 0 0 8px;
+      }
+      .msg {
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        min-height: 2.4em;
+      }
+      .msg.is-err { color: var(--danger); }
+      .msg.is-ok { color: var(--ok); }
+      .notes {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 10px;
+        color: var(--muted);
+        opacity: 0.9;
+      }
+      .actions {
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+        padding-top: 10px;
+      }
+      button {
+        flex: 1;
+        border: none;
+        border-radius: 6px;
+        padding: 9px 10px;
+        font-weight: 800;
+        font-size: 12px;
+        cursor: pointer;
+        background: #1e293b;
+        color: var(--ink);
+      }
+      button.primary {
+        background: linear-gradient(180deg, var(--teal2), var(--teal));
+        color: #042f2e;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      button.hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="ui" style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <h1 class="brand">LEXUS</h1>
+      <p class="sub">Downloading latest update…</p>
+      <div class="versions">
+        <div>Now <span id="curVer">—</span></div>
+        <div>New <strong id="newVer">—</strong></div>
+      </div>
+      <div class="pct" id="pct">0%</div>
+      <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+      <p class="msg" id="msg">Preparing…</p>
+      <p class="notes" id="notes"></p>
+      <div class="actions">
+        <button type="button" id="btnClose" class="hidden">Close</button>
+      </div>
+    </div>
+    <script src="ocean-updater-ui.js"></script>
+  </body>
+</html>

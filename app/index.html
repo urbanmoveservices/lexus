@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LEXUS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./lexus-theme.css">
+</head>
+  <body>
+    <div id="appRoot" class="ocean-app">
+      <form id="oceanForm" autocomplete="off" class="ocean-form">
+        <div class="sr-only-controls" aria-hidden="true">
+          <span id="timerClock">00:00:00</span>
+        </div>
+
+        <div class="modal-layer" aria-live="polite">
+          <section class="modal-panel editor-panel modal-book" data-modal="book" data-editor-panel="journey" aria-labelledby="book-title">
+            <header class="modal-head">
+              <div class="modal-title-row">
+                <span class="modal-logo lexus-logo-mark" aria-hidden="true"></span>
+                <h2 id="book-title"><span class="title-plus">+</span> BOOK A TICKET</h2>
+              </div>
+              <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+            </header>
+
+            <!-- Search row -->
+            <div class="book-search-row">
+              <label class="field field-station">
+                <span>FROM</span>
+                <input type="text" id="from-station-input" name="from-station" placeholder="e.g. LTT" autocomplete="off" />
+              </label>
+              <button type="button" class="icon-btn swap-btn" data-action="book-swap" aria-label="Swap stations" title="Swap">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h11l-2.5-2.5 1.4-1.4L22.8 8l-5.9 4.9-1.4-1.4L19 9H8V7Zm8 10H5l2.5 2.5-1.4 1.4L1.2 16l5.9-4.9 1.4 1.4L5 15h11v2Z"/></svg>
+              </button>
+              <label class="field field-station">
+                <span>TO</span>
+                <input type="text" id="destination-station-input" name="destination-station" placeholder="e.g. BSB" autocomplete="off" />
+              </label>
+              <label class="field field-date">
+                <span>DATE</span>
+                <input type="date" id="journey-date" name="journey-date" />
+              </label>
+              <button type="button" id="search-trains-btn" class="btn btn-primary" data-action="search-trains">Search</button>
+            </div>
+
+            <div class="book-train-row">
+              <label class="field field-grow">
+                <span>TRAIN</span>
+                <input type="text" id="train-no" name="train-no" placeholder="Type a train number or name" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span>CLASS</span>
+                <select name="class" id="journey-class-input">
+                  <option value="">- Select -</option>
+                  <option value="1A">AC First Class (1A)</option>
+                  <option value="2A">AC 2 Tier (2A)</option>
+                  <option value="3A">AC 3 Tier (3A)</option>
+                  <option value="SL">Sleeper (SL)</option>
+                  <option value="3E">AC 3 Economy (3E)</option>
+                  <option value="CC">AC Chair car (CC)</option>
+                  <option value="2S">Second Sitting (2S)</option>
+                  <option value="EV">Vistadome AC (EV)</option>
+                  <option value="EC">Exec. Chair Car (EC)</option>
+                  <option value="EA">Anubhuti Class (EA)</option>
+                  <option value="FC">First Class (FC)</option>
+                  <option value="VC">Vistadome Chair Car (VC)</option>
+                  <option value="VS">Vistadome Non AC (VS)</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>QUOTA</span>
+                <select name="Quota" id="quota-input">
+                  <option value="GN">GENERAL</option>
+                  <option value="TQ" selected>TATKAL</option>
+                  <option value="PT">PREMIUM TATKAL</option>
+                  <option value="LD">LADIES</option>
+                  <option value="SR">LOWER BERTH/SR.CITIZEN</option>
+                </select>
+              </label>
+              <button type="button" class="btn btn-primary" data-action="availability-check">Availability</button>
+            </div>
+
+            <!-- Passengers -->
+            <section class="book-section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-2.7 0-8 1.3-8 4v2h10v-2c0-1.5.8-2.7 2-3.5A12 12 0 0 0 8 13Zm8 0c-.3 0-.7 0-1 .1A5.3 5.3 0 0 1 17 17v2h7v-2c0-2.7-5.3-4-8-4Z"/></svg>
+                <h3>PASSENGER INFORMATION (Max 6)</h3>
+              </div>
+              <div class="psg-table">
+                <div class="psg-head">
+                  <span>S.NO</span>
+                  <span>FULL NAME</span>
+                  <span>AGE</span>
+                  <span>GENDER</span>
+                  <span>BERTH PREF</span>
+                  <span>FOOD</span>
+                  <span></span>
+                </div>
+                <div id="passengerRows" class="passenger-rows"></div>
+              </div>
+              <button type="button" id="addPassengerBtn" class="btn btn-add-psg" data-action="add-passenger">+ Add passenger</button>
+            </section>
+
+            <!-- Contact / Bank / Options -->
+            <section class="book-section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6zm0 5h10v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+                <h3>CONTACT • BANK • OPTIONS</h3>
+              </div>
+              <div class="book-options-grid">
+                <label class="field">
+                  <span>IRCTC ID</span>
+                  <select id="credentialSelect">
+                    <option value="">- Select -</option>
+                  </select>
+                </label>
+                <label class="field field-mobile">
+                  <span>MOBILE (+91)</span>
+                  <div class="inline-row">
+                    <input type="text" id="mobileNumber" name="mobileNumber" maxlength="10" placeholder="9876543210" />
+                    <button type="button" class="icon-btn" data-action="random-mobile" title="Random mobile" aria-label="Random mobile">🎲</button>
+                  </div>
+                </label>
+                <label class="field">
+                  <span>MAX PT FARE</span>
+                  <input type="text" id="maxPtFare" placeholder="Optional" inputmode="numeric" />
+                </label>
+                <label class="field">
+                  <span>BANK / GATEWAY</span>
+                  <select id="paymentSelect">
+                    <option value="">- Select -</option>
+                  </select>
+                </label>
+                <label class="field field-wide">
+                  <span>ALTERNATE BANK / GATEWAY</span>
+                  <select id="journeyBackupGateway">
+                    <option value="">- Select a Bank / Gateway first -</option>
+                    <option value="IRCUPIID">IRCTC UPI ID</option>
+                    <option value="IRCUPIQR">IRCTC QR</option>
+                    <option value="IRCWA">IRCTC eWallet</option>
+                    <option value="irctc_dc">IPAY DC</option>
+                    <option value="PHONEPEUPIQR">PhonePe QR</option>
+                    <option value="PAYTMUPIQR">Paytm QR</option>
+                    <option value="RAZORPAYUPI">RazorPay UPI ID</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="book-toggles">
+                <label class="toggle-line">
+                  <span>Auto Upgradation</span>
+                  <input type="checkbox" id="optAutoUpgradation" class="toggle-input" />
+                  <span class="toggle-ui" aria-hidden="true"></span>
+                </label>
+                <label class="toggle-line">
+                  <span>Fill captcha manually</span>
+                  <input type="checkbox" id="optCaptchaManual" class="toggle-input" />
+                  <span class="toggle-ui" aria-hidden="true"></span>
+                </label>
+                <div class="yn-line">
+                  <span>Travel Insurance</span>
+                  <div class="yn-group" role="group">
+                    <label class="yn"><input type="radio" name="travelInsurance" value="1" /> YES</label>
+                    <label class="yn"><input type="radio" name="travelInsurance" value="0" checked /> NO</label>
+                  </div>
+                </div>
+                <div class="yn-line">
+                  <span>Food</span>
+                  <div class="yn-group" role="group">
+                    <label class="yn"><input type="radio" name="foodOpt" value="1" /> YES</label>
+                    <label class="yn"><input type="radio" name="foodOpt" value="0" checked /> NO</label>
+                  </div>
+                </div>
+                <label class="toggle-line toggle-wide">
+                  <span>Book only if confirmed berths available</span>
+                  <input type="checkbox" id="optConfirmBerths" class="toggle-input" checked />
+                  <span class="toggle-ui" aria-hidden="true"></span>
+                </label>
+              </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="book-footer-bar">
+              <label class="field field-grow">
+                <span>TICKET_NAME</span>
+                <input type="text" id="journey-profile-name" placeholder="e.g. bwn_kan_skhan" />
+              </label>
+              <label class="field">
+                <span>IP</span>
+                <select id="bookIpSelect">
+                  <option value="auto">Home IP</option>
+                  <option value="proxy">Proxy</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Engine</span>
+                <select id="runEngine">
+                      <option value="system-chrome" selected>System Chrome</option>
+                      <option value="brave">Brave (LEXUS host)</option>
+                      <option value="electron">Electron</option>
+                    </select>
+              </label>
+              <label class="field">
+                <span>Mode</span>
+                <select id="runMode">
+                  <option value="nget" selected>Classic</option>
+                  <option value="eticket">Beta</option>
+                  <option value="direct">Direct API</option>
+                </select>
+              </label>
+              <button type="button" class="btn btn-cancel" data-action="book-cancel">Cancel</button>
+              <button type="button" id="saveJourneyBtn" class="btn btn-primary">SAVE</button>
+              <button type="button" id="startRunBtn" class="btn btn-secondary">Launch</button>
+            </footer>
+
+            <!-- Hidden Ocean fields still used by runners -->
+            <div class="sr-only-controls" aria-hidden="true">
+              <input type="text" id="boarding-station-input" name="boarding-station" />
+              <input type="text" id="email" name="email" />
+              <input type="radio" name="AvailabilityCheck" value="A" id="AvailabilityCheck-1" checked />
+              <input type="radio" name="AvailabilityCheck" value="M" id="AvailabilityCheck-2" />
+              <input type="radio" name="AvailabilityCheck" value="I" id="AvailabilityCheck-3" />
+              <input type="text" id="slbooktime" name="slbooktime" value="10:59:59" />
+              <input type="text" id="acbooktime" name="acbooktime" value="09:59:59" />
+              <input type="text" id="gnbooktime" name="gnbooktime" value="07:59:59" />
+              <input type="text" id="Infant-name-1" />
+              <select id="Infant-age-1"><option value="0">0</option></select>
+              <select id="Infant-gender-1"><option value=""></option></select>
+              <input type="text" id="Infant-name-2" />
+              <select id="Infant-age-2"><option value="0">0</option></select>
+              <select id="Infant-gender-2"><option value=""></option></select>
+              <select id="journeySelect"><option value=""></option></select>
+            </div>
+          </section>
+
+          <section class="modal-panel editor-panel modal-tickets" data-modal="tickets" data-editor-panel="tickets" aria-labelledby="tickets-title">
+            <header class="modal-head tickets-head">
+              <div>
+                <h2 id="tickets-title">Total Ticket <span id="ticketsTotalCount" class="count-pill">00</span></h2>
+              </div>
+              <div class="modal-head-right">
+                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+              </div>
+            </header>
+            <section class="card card-wide tickets-card">
+              <div class="table-shell tickets-table-shell">
+                <div class="table-head table-ticket">
+                  <span>TRAIN NO</span>
+                  <span>Name</span>
+                  <span>From</span>
+                  <span>To</span>
+                  <span>Date</span>
+                  <span>QT</span>
+                  <span>CLS</span>
+                  <span>Open</span>
+                  <span>Edit</span>
+                  <span>Delete</span>
+                </div>
+                <div id="ticketsList" class="table-body tickets-table-body"></div>
+                <div id="ticketsEmpty" class="empty-state">
+                  <strong>No saved tickets yet</strong>
+                  <p>Click <b>Book</b> on the toolbar to save a journey.</p>
+                </div>
+              </div>
+              <div class="button-row tickets-foot">
+                <button type="button" class="btn btn-secondary danger" data-action="tickets-delete-all">Delete All</button>
+                <button type="button" class="btn btn-primary" data-action="tickets-open-all">Open All Ticket</button>
+              </div>
+            </section>
+          </section>
+
+          <section class="modal-panel editor-panel modal-accounts" data-modal="accounts" data-editor-panel="login" aria-labelledby="accounts-title">
+            <header class="modal-head accounts-head">
+              <div>
+                <h2 id="accounts-title">ADD IRCTC ID</h2>
+              </div>
+              <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+            </header>
+
+            <div class="accounts-add-bar">
+              <label class="field accounts-field-id">
+                <span>User ID</span>
+                <input type="text" id="irctc-login" name="irctc-login" placeholder="IRCTC username" autocomplete="off" />
+              </label>
+              <label class="accounts-bulk-check">
+                <input type="checkbox" id="accountsBulkToggle" />
+                <span>Add Bulk ID</span>
+              </label>
+              <label class="field accounts-field-pass" id="accountsSinglePassWrap">
+                <span>Password</span>
+                <input type="text" id="irctc-password" name="irctc-password" placeholder="Password" autocomplete="off" spellcheck="false" />
+              </label>
+              <button type="button" class="btn btn-primary accounts-add-btn" id="saveCredentialBtn">Add IRCTC</button>
+            </div>
+
+            <div id="accountsBulkPanel" class="accounts-bulk-panel" hidden>
+              <p class="accounts-bulk-help">
+                Paste IDs below. Formats supported:<br />
+                1. <code>userid:password</code><br />
+                2. <code>userid</code> (uses common password below)
+              </p>
+              <textarea id="accountsBulkText" class="accounts-bulk-text" rows="8" placeholder="userid:password&#10;userid2:password2" spellcheck="false"></textarea>
+              <div class="accounts-bulk-common">
+                <label for="accountsBulkCommonPass">Common Password:</label>
+                <input type="text" id="accountsBulkCommonPass" placeholder="optional" autocomplete="off" spellcheck="false" />
+              </div>
+              <button type="button" class="btn btn-primary accounts-bulk-save" id="accountsBulkSaveBtn">SAVE ALL IDs</button>
+            </div>
+
+            <section class="card card-wide accounts-table-card" id="accountsTableCard">
+              <div class="accounts-table-wrap">
+                <div class="list-row list-header accounts-list-header">
+                  <span>User ID</span>
+                  <span>Password</span>
+                  <span>Status</span>
+                  <span>Delete</span>
+                </div>
+                <div id="accountsList" class="table-body accounts-table-body"></div>
+                <div id="accountsEmpty" class="empty-state">
+                  <p>No accounts yet. Add one above to begin.</p>
+                </div>
+              </div>
+              <div class="accounts-foot">
+                <div class="accounts-stats">
+                  <span>Total IDs: <b id="accountsCount" class="stat-total">0</b></span>
+                  <span>Active IDs: <b id="accountsActiveCount" class="stat-active">0</b></span>
+                  <span>DeActive: <b id="accountsInactiveCount" class="stat-inactive">0</b></span>
+                </div>
+                <div class="button-row tight">
+                  <button type="button" id="editCredentialBtn" class="btn btn-secondary btn-sm">Change PASS</button>
+                  <button type="button" id="newCredentialBtn" class="btn btn-ghost btn-sm" hidden>New</button>
+                  <button type="button" id="deleteCredentialBtn" class="btn btn-ghost btn-sm danger" hidden>Delete</button>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="modal-panel editor-panel modal-payment" data-modal="payment" data-editor-panel="payment" aria-labelledby="payment-title">
+            <header class="modal-head">
+              <div>
+                <p class="modal-kicker">Payouts</p>
+                <h2 id="payment-title">PAYMENT METHODS</h2>
+              </div>
+              <div class="modal-head-right">
+                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+              </div>
+            </header>
+            <div class="panel-toolbar">
+              <label class="field">
+                <span>Payment category / gateway</span>
+                <select name="paymentMethod" id="paymentMethod">
+<optgroup label="IRCTC iPay (Credit Card/Debit Card/UPI)">
+                  <option value="IRCUPIID">IRCTC iPay — UPI ID</option>
+                  <option value="IRCUPIQR">IRCTC iPay — QR</option>
+                  </optgroup>
+                  <optgroup label="Multiple Payment Service">
+                  <option value="RAZORPAYUPI">Razorpay — UPI ID</option>
+                  <option value="PHONEPEUPIQR">PhonePe — QR</option>
+                  <option value="PAYUUPIID">PayU — UPI ID</option>
+                  </optgroup>
+                  <optgroup label="BHIM/ UPI/ USSD">
+                  <option value="PAYTMUPIID">Paytm — UPI ID</option>
+                  <option value="PAYTMUPIQR">Paytm — QR</option>
+                  </optgroup>
+                  <optgroup label="IRCTC eWallet">
+                  <option value="IRCWA">IRCTC eWallet</option>
+                  </optgroup>
+</select>
+              </label>
+              <label class="field">
+                <span>Backup category / gateway</span>
+                <select name="backupPaymentMethod" id="backupPaymentMethod">
+<option value="">--None--</option>
+<optgroup label="IRCTC iPay (Credit Card/Debit Card/UPI)">
+                  <option value="IRCUPIID">IRCTC iPay — UPI ID</option>
+                  <option value="IRCUPIQR">IRCTC iPay — QR</option>
+                  </optgroup>
+                  <optgroup label="Multiple Payment Service">
+                  <option value="RAZORPAYUPI">Razorpay — UPI ID</option>
+                  <option value="PHONEPEUPIQR">PhonePe — QR</option>
+                  <option value="PAYUUPIID">PayU — UPI ID</option>
+                  </optgroup>
+                  <optgroup label="BHIM/ UPI/ USSD">
+                  <option value="PAYTMUPIID">Paytm — UPI ID</option>
+                  <option value="PAYTMUPIQR">Paytm — QR</option>
+                  </optgroup>
+                  <optgroup label="IRCTC eWallet">
+                  <option value="IRCWA">IRCTC eWallet</option>
+                  </optgroup>
+</select>
+              </label>
+              <label class="field field-wide" id="vpaField">
+                <span>UPI ID (primary / backup)</span>
+                <input type="text" id="vpa" name="vpa" placeholder="e.g. 9000xxxx11@paytm" />
+              </label>
+            </div>
+            <section class="card">
+              <div class="card-head">
+                <h3>Profile actions</h3>
+              </div>
+              <div class="button-stack">
+                <button type="button" id="savePaymentBtn" class="btn btn-primary">Save</button>
+                <button type="button" id="deletePaymentBtn" class="btn btn-ghost danger">Delete</button>
+                <button type="button" id="deleteAllPaymentBtn" class="btn btn-ghost danger">Delete all</button>
+              </div>
+            </section>
+            <section class="card card-wide">
+              <div class="card-head">
+                <h3>SAVED METHODS</h3>
+              </div>
+              <div id="paymentsList" class="table-body"></div>
+              <div id="paymentsEmpty" class="empty-state">
+                <p>No payment methods yet. Add one above to begin.</p>
+              </div>
+            </section>
+          </section>
+
+          <section class="modal-panel editor-panel modal-proxies" data-modal="proxies" data-editor-panel="proxy" aria-labelledby="proxies-title">
+            <header class="modal-head">
+              <div>
+                <p class="modal-kicker">Network</p>
+                <h2 id="proxies-title">PROXIES</h2>
+              </div>
+              <div class="modal-head-right">
+                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+              </div>
+            </header>
+            <div class="panel-toolbar">
+              <label class="field field-wide">
+                <span>Proxy string</span>
+                <input
+                  type="text"
+                  id="proxyHost"
+                  placeholder="host:port:user:pass  ·  or host:port"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </label>
+              <p class="field-hint">
+                Sirf ek string: <code>ip:port:user:pass</code> — panel me Home IP / Proxy select karo.
+              </p>
+            </div>
+            <div class="button-row">
+              <button type="button" class="btn btn-secondary" data-action="proxy-test" id="btnProxyTest">Check</button>
+              <button type="button" id="saveProxyBtn" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-ghost danger" data-action="proxy-delete" id="btnProxyDelete">Delete selected</button>
+            </div>
+            <section class="card card-wide">
+              <div class="card-head">
+                <h3>SAVED PROXY <span id="proxiesCount" class="count-pill">0</span></h3>
+              </div>
+              <div class="list-shell">
+                <div class="list-row list-header proxy-list-header">
+                  <span class="proxy-check-col">
+                    <input type="checkbox" id="proxySelectAll" title="Select all" aria-label="Select all proxies" />
+                  </span>
+                  <span>#</span>
+                  <span>IP / HOST</span>
+                  <span>PORT</span>
+                  <span>USER</span>
+                  <span>PASS</span>
+                </div>
+                <div id="proxiesList" class="table-body"></div>
+                <div id="proxiesEmpty" class="empty-state">
+                  <p>No proxy yet. Paste string above and Save.</p>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="modal-panel editor-panel modal-tokens" data-modal="tokens" data-editor-panel="tokens" aria-labelledby="tokens-title">
+            <header class="modal-head">
+              <div>
+                <p class="modal-kicker">Subscription</p>
+                <h2 id="tokens-title">TOKENS</h2>
+              </div>
+              <div class="modal-head-right">
+                <div class="tab-row" role="tablist" aria-label="Token source">
+                  <button type="button" class="filter-pill is-active" data-action="tokens-tab-app">App</button>
+                </div>
+                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+              </div>
+            </header>
+            <section class="card card-wide banner-card">
+              <div class="banner-copy">
+                <span class="banner-tag">SENSOR</span>
+                <h3>App sensor tokens</h3>
+                <p id="tokensStatusLine">Check queue count or clear all sensors on server.</p>
+              </div>
+              <div class="license-grid">
+                <div class="license-card">
+                  <span>UserId</span>
+                  <strong id="tokensUserId">—</strong>
+                </div>
+                <div class="license-card">
+                  <span>Tokens available</span>
+                  <strong id="tokensCount">—</strong>
+                </div>
+                <div class="qr-placeholder" aria-hidden="true">APP</div>
+              </div>
+            </section>
+            <div class="button-row">
+              <button type="button" class="btn btn-primary" data-action="tokens-check" id="btnTokensCheck">Check Tokens</button>
+              <button type="button" class="btn btn-secondary" data-action="tokens-clear" id="btnTokensClear">Clear Tokens</button>
+            </div>
+          </section>
+
+          <section class="modal-panel editor-panel modal-about" data-modal="about" data-editor-panel="about" aria-labelledby="about-title">
+            <header class="modal-head">
+              <div>
+                <p class="modal-kicker">Brand</p>
+                <h2 id="about-title">LEXUS</h2>
+              </div>
+              <div class="modal-head-right">
+                <div class="brand-mini">PRO</div>
+                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+              </div>
+            </header>
+            <section class="card card-wide about-card">
+              <div class="about-grid">
+                <div class="about-stat">
+                  <span>License</span>
+                  <strong class="about-license-key">—</strong>
+                </div>
+                <div class="about-stat">
+                  <span>Days remaining</span>
+                  <strong class="about-license-days">—</strong>
+                </div>
+                <div class="about-stat">
+                  <span>Version</span>
+                  <strong class="about-app-version">—</strong>
+                </div>
+              </div>
+              <div class="support-row">
+                <button type="button" class="support-btn" data-action="support-whatsapp" aria-label="WhatsApp support">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.1A9.9 9.9 0 0 0 3.1 16.3L2 22l5.9-1.1A9.9 9.9 0 1 0 12 2.1Zm0 18.1c-1.3 0-2.5-.3-3.6-.9l-.3-.2-3.5.7.7-3.4-.2-.3a7.7 7.7 0 1 1 6.9 4.1Zm4.4-5.7c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.6.1-.2.2-.7.7-.8.8-.2.2-.3.2-.6.1-.2-.1-.9-.3-1.7-1a6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.3-.5.1-.2 0-.4-.1-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.9 1.1 3.1c.1.2 1.9 2.9 4.6 4 .6.3 1.1.4 1.5.5.6.2 1.1.1 1.5.1.5-.1 1.3-.5 1.5-1 .2-.5.2-1 .2-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+                </button>
+                <button type="button" class="support-btn" data-action="support-telegram" aria-label="Telegram support">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.8 4.7 18.9 20c-.2 1-1 1.3-1.8.8l-5-3.7-2.4 2.4c-.2.2-.4.4-.8.4l.4-5.2L18.7 6c.3-.3-.1-.5-.4-.3L7.3 12.6l-5.1-1.6c-1.1-.3-1.1-1 .2-1.5L20 3.8c.9-.3 1.7.2 1.8.9Z"/></svg>
+                </button>
+              </div>
+              <div class="button-row">
+                <button type="button" class="btn btn-primary" data-action="reset-key">Reset key</button>
+              </div>
+            </section>
+          </section>
+
+          <section id="runsDrawer" class="modal-panel editor-panel modal-runs modal-history" data-modal="history" data-editor-panel="history" aria-labelledby="history-title">
+            <header class="modal-head">
+              <div>
+                <p class="modal-kicker">Bookings</p>
+                <h2 id="history-title">HISTORY</h2>
+              </div>
+              <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
+            </header>
+            <section class="card card-wide history-card">
+              <div class="card-head history-table-head">
+                <span>ID</span>
+                <span>Ticket Name</span>
+                <span>User ID</span>
+                <span>From</span>
+                <span>To</span>
+                <span>Jrny Date</span>
+                <span>Bank/VPA</span>
+                <span>PNR</span>
+                <span>Fare</span>
+                <span>Date</span>
+              </div>
+              <div id="historyList" class="history-list"></div>
+              <div id="historyEmpty" class="empty-state">
+                <strong>No bookings yet</strong>
+                <p>Successful PNRs will appear here automatically.</p>
+              </div>
+              <div class="button-row history-foot">
+                <button type="button" class="btn btn-secondary danger" data-action="history-clear">Clear history</button>
+              </div>
+            </section>
+          </section>
+        </div>
+      </form>
+
+      <div id="toast" class="toast" hidden></div>
+
+      <nav class="ocean-toolbar" aria-label="LEXUS toolbar">
+        <details class="tb-brand-menu">
+          <summary class="tb-brand" aria-label="Open brand menu">
+            <span class="tb-brand-mark lexus-logo-mark" aria-hidden="true"></span>
+            <span class="tb-brand-name">LEXUS</span>
+            <span class="tb-pro">LOCAL</span>
+            <svg class="tb-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <div class="dropdown-card dropdown-about">
+            <div class="dropdown-title">
+              <strong>About LEXUS</strong>
+              <span class="about-license-subtitle">License</span>
+            </div>
+            <div class="about-grid mini">
+              <div class="about-stat">
+                <span>License</span>
+                <strong class="about-license-key">—</strong>
+              </div>
+              <div class="about-stat">
+                <span>Days remaining</span>
+                <strong class="about-license-days">—</strong>
+              </div>
+              <div class="about-stat">
+                <span>Version</span>
+                <strong class="about-app-version">—</strong>
+              </div>
+            </div>
+            <div class="support-row">
+              <button type="button" class="support-btn" data-action="support-whatsapp" aria-label="WhatsApp support">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.1A9.9 9.9 0 0 0 3.1 16.3L2 22l5.9-1.1A9.9 9.9 0 1 0 12 2.1Zm0 18.1c-1.3 0-2.5-.3-3.6-.9l-.3-.2-3.5.7.7-3.4-.2-.3a7.7 7.7 0 1 1 6.9 4.1Zm4.4-5.7c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.6.1-.2.2-.7.7-.8.8-.2.2-.3.2-.6.1-.2-.1-.9-.3-1.7-1a6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.3-.5.1-.2 0-.4-.1-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.9 1.1 3.1c.1.2 1.9 2.9 4.6 4 .6.3 1.1.4 1.5.5.6.2 1.1.1 1.5.1.5-.1 1.3-.5 1.5-1 .2-.5.2-1 .2-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+              </button>
+              <button type="button" class="support-btn" data-action="support-telegram" aria-label="Telegram support">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.8 4.7 18.9 20c-.2 1-1 1.3-1.8.8l-5-3.7-2.4 2.4c-.2.2-.4.4-.8.4l.4-5.2L18.7 6c.3-.3-.1-.5-.4-.3L7.3 12.6l-5.1-1.6c-1.1-.3-1.1-1 .2-1.5L20 3.8c.9-.3 1.7.2 1.8.9Z"/></svg>
+              </button>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" data-action="reset-key">Reset key</button>
+          </div>
+        </details>
+
+        <div class="tb-actions">
+          <button type="button" class="tb-btn tb-book tb-btn-purple" data-editor-tab="journey" data-action="book-open">
+            <span class="tb-plus">+</span>
+            <span class="label">New Ticket</span>
+          </button>
+          <button type="button" class="tb-btn tb-btn-blue" data-editor-tab="tickets" data-action="open-tickets">
+            <span class="label">Book Tickets</span>
+          </button>
+          <button type="button" class="tb-btn tb-btn-orange" data-editor-tab="tokens" data-action="open-tokens">
+            <span class="label">Tokens</span>
+          </button>
+          <details class="tb-settings-menu">
+            <summary class="tb-btn tb-settings tb-btn-purple" aria-label="Open settings menu">
+              <span class="label">Settings</span>
+              <svg class="tb-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="dropdown-card dropdown-settings">
+              <label class="dropdown-check" title="Password aur Sign In aap khud karenge">
+                <input type="checkbox" id="optManualLogin" />
+                <span>Manual Login</span>
+              </label>
+              <button type="button" class="dropdown-item" data-action="settings-proxy" data-editor-tab="proxy">Proxy</button>
+              <button type="button" class="dropdown-item" data-action="settings-export">Export</button>
+              <button type="button" class="dropdown-item" data-action="settings-import">Import</button>
+              <div class="dropdown-submenu">
+                <span class="dropdown-submenu-label">Cleanup</span>
+                <button type="button" class="dropdown-item" data-action="cleanup-cache">Clear cache</button>
+                <button type="button" class="dropdown-item" data-action="cleanup-forms">Clear forms</button>
+                <button type="button" class="dropdown-item" data-action="cleanup-runs">Clear runs</button>
+              </div>
+            </div>
+          </details>
+          <button type="button" class="tb-btn tb-btn-blue" data-editor-tab="login" data-action="open-accounts">
+            <span class="label">IRCTC ID</span>
+          </button>
+          <button type="button" class="tb-btn tb-btn-orange" data-editor-tab="payment" data-action="open-payment">
+            <span class="label">Payment</span>
+          </button>
+          <button type="button" class="tb-btn tb-btn-green" data-editor-tab="history" data-action="open-history">
+            <span class="label">History</span>
+          </button>
+        </div>
+
+        <div class="tb-meta">
+          <span id="toolbarClock" class="tb-clock">00:00:00</span>
+          <button type="button" id="closeAppBtn" class="tb-close" aria-label="Close">×</button>
+          <button type="button" id="clearEditorBtn" hidden>Clear</button>
+        </div>
+      </nav>
+    </div>
+
+    <script src="./stations.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

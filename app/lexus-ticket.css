@@ -1,0 +1,22 @@
+/* LEXUS ticket panels: white surfaces, blue actions, teal status. */
+:root{--purple:#2458c4;--teal:#087f8c;--teal-deep:#096653;--ink:#18304e;--muted:#506680;--line:#c8d8eb;color-scheme:light}
+body{color:#18304e}.panel{background:#fff;border:1px solid #a9c0df;border-radius:12px;box-shadow:0 6px 18px rgba(34,69,110,.12)}
+.panel-head{background:#f3f7fd;border-color:#c8d8eb}.panel-title{color:#18304e}.panel-pc-icon{background:#e5efff;border-color:#b8cdea}
+.status-bar,.status-bar.is-final-hit{background:#2458c4!important;background-image:none!important;color:#fff;animation:none!important}.status-success-text{color:#fff}.status-pnr{color:#fff6bf}.status-bar.is-success-status{background:#096653!important}
+.summary{background:#fff;color:#18304e}.summary-text{color:#18304e}.summary-train-icon{background:#edf4ff;border-color:#c8d8eb}
+.field-pill,.field-pill--id,.field-pill--pay,.field-pill--ip,.field-pill--quota,.field-pill--method{background:#f4f8fd!important;background-image:none!important;border-color:#c8d8eb!important;box-shadow:none!important}
+.field-pill .field-pill-icon,.field-pill--id .field-pill-icon,.field-pill--pay .field-pill-icon,.field-pill--ip .field-pill-icon,.field-pill--quota .field-pill-icon,.field-pill--method .field-pill-icon{background:#e5efff!important;border-color:#c8d8eb!important;color:#2458c4!important}
+.field-pill select,.field-pill input,.field-pill select option{background:#f4f8fd!important;color:#18304e!important;-webkit-text-fill-color:#18304e!important;border-color:#c8d8eb!important;opacity:1}
+.field-pill select:focus,.field-pill input:focus{outline:2px solid #8fb5ee;outline-offset:-2px}.field-pill--ip .field-pill-icon path{fill:#2458c4!important}.field-pill--pay .field-pill-icon path,.field-pill--quota .field-pill-icon path{fill:#2458c4!important}
+.eng{border:1px solid transparent;box-shadow:none;color:#fff}.eng.web2{background:#2458c4}.eng.web3{background:#087f8c}.eng.app{background:#18304e}.eng:hover{filter:brightness(.92)}.eng:focus-visible{outline:2px solid #2458c4;outline-offset:2px}.eng:disabled{background:#e7edf5;color:#52657b;border-color:#c2cfdf;opacity:1}
+.run-clock-box{background:#2458c4;border-color:#1748aa}.run-clock{color:white}.run-clock-label{color:#fff}.run-metrics-box{background:#e5f5f1;border-color:#91cabb}.run-metrics{color:#11634f}
+.badge,.success-badge{background:#e5f5f1!important;color:#11634f!important;border-color:#91cabb!important}.ocean-brand-text{background:none!important;-webkit-text-fill-color:#2458c4!important;color:#2458c4!important}
+.qr-card{background:#fff;border:1px solid #c8d8eb}.qr-close,.panel-close{background:#fff0f0;color:#a02c35;border-color:#dba7ad}.panel-toast{background:#18304e;color:white;border-color:#a9c0df}
+.pt-fare-proceed{background:#087f8c!important;color:white!important;border-color:#096653!important}
+
+.engines{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.eng.headless{background:#155e75!important;color:white!important;grid-column:span 2}.eng.headless-view{background:#edf4ff!important;color:#214e9a!important;border:1px solid #c8d8eb!important;font-size:10px!important}
+
+body.is-running.is-headless .engines{display:grid!important}body.is-running.is-headless .engines [data-engine]{display:none!important}body.is-running.is-headless #headless-view{grid-column:1/-1}
+
+.elapsed-strip{display:flex;align-items:center;gap:9px;padding:5px 9px;margin:4px 7px 0;border:1px solid #c8d8eb;border-radius:7px;background:#edf4ff;color:#315779;font-size:9px;font-weight:700}.elapsed-strip strong{font-size:15px;color:#155e75;font-variant-numeric:tabular-nums}.elapsed-strip #elapsedState{margin-left:auto;color:#526b88;font-size:8px}
+.auto-start{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:4px;margin:5px 7px;font-size:9px}.auto-start select,.auto-start button{min-width:0;border:1px solid #c8d8eb;border-radius:5px;padding:5px 2px;background:#edf4ff;color:#18304e;font:inherit}.auto-start #autoStartArm{background:#087f8c;color:white}.auto-start span{grid-column:1/-1;color:#315779;font-size:9px}.auto-start button:disabled{opacity:.5}

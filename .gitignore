@@ -1,0 +1,31 @@
+license-data/
+desktop-data/
+web-data/
+*.log
+*-process-id.txt
+qa/data/
+
+releases/
+
+desktop-ready.json
+
+# Dependencies and platform binaries are installed/bundled during release builds.
+node_modules/
+runtime/
+qa/
+__pycache__/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+# Local recovery, test output and diagnostic reports can contain private data.
+*-REPORT.md
+*-REPORT.json
+E2E-*.md
+web2-timing-result.json
+app/_pdf_cmp/
+.npm-cache/

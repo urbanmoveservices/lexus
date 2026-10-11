@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+    <title>LEXUS</title>
+    <style>
+      :root {
+        --bg0: #061018;
+        --bg1: #0a1824;
+        --line: rgba(0, 210, 255, 0.42);
+        --line-strong: rgba(0, 228, 255, 0.88);
+        --ink: #e8eef5;
+        --muted: #94a3b8;
+        --cyan: #00e5ff;
+        --teal: #0d9488;
+        --teal2: #14b8a6;
+        --panel-bg: #ffffff;
+        --panel-border: #6b7280;
+        --doc-ink: #111827;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        font: 14px/1.5 "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(ellipse 90% 55% at 50% 100%, rgba(0, 80, 90, 0.35) 0%, transparent 62%),
+          linear-gradient(165deg, var(--bg0) 0%, var(--bg1) 45%, #040a10 100%);
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        padding: 6px;
+        -webkit-app-region: drag;
+      }
+      .shell {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        border: 2px solid var(--line-strong);
+        border-radius: 18px;
+        box-shadow:
+          inset 0 0 0 1px rgba(0, 220, 255, 0.22),
+          0 0 24px rgba(0, 210, 255, 0.28),
+          0 0 48px rgba(0, 120, 140, 0.18);
+        background: linear-gradient(180deg, rgba(5, 16, 28, 0.96) 0%, rgba(2, 8, 14, 0.98) 100%);
+        overflow: hidden;
+      }
+      .ui { -webkit-app-region: no-drag; }
+      .head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        padding: 12px 10px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 18px;
+        color: #042f2e;
+        background: linear-gradient(135deg, #2dd4bf, #0d9488);
+        box-shadow: 0 0 16px rgba(45, 212, 191, 0.45);
+        flex-shrink: 0;
+      }
+      .brand-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .brand-text strong {
+        font-size: 15px;
+        letter-spacing: 0.06em;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+      .brand-text span {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .title-box {
+        justify-self: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border: 2px solid var(--line-strong);
+        border-radius: 14px;
+        box-shadow:
+          0 0 18px rgba(0, 220, 255, 0.28),
+          inset 0 0 12px rgba(0, 180, 220, 0.08);
+        background: rgba(6, 18, 32, 0.82);
+      }
+      .title-box .megaphone {
+        font-size: 18px;
+        line-height: 1;
+      }
+      .title-box strong {
+        font-size: 17px;
+        font-weight: 800;
+        font-style: italic;
+        letter-spacing: 0.06em;
+        text-shadow: 0 0 14px rgba(0, 220, 255, 0.35);
+      }
+      .clock {
+        justify-self: end;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(6, 18, 32, 0.82);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .clock .cal {
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      .clock small {
+        display: block;
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .clock #newsTime {
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .content-wrap {
+        flex: 1;
+        min-height: 0;
+        padding: 8px 6px 6px;
+      }
+      .news-panel {
+        height: 100%;
+        overflow: auto;
+        border: 2px solid var(--panel-border);
+        border-radius: 12px;
+        background: var(--panel-bg);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        scrollbar-color: var(--cyan) #0b3038;
+        scrollbar-width: thin;
+      }
+      .news-panel::-webkit-scrollbar { width: 14px; }
+      .news-panel::-webkit-scrollbar-track {
+        background: linear-gradient(180deg, #0a2a32 0%, #0b3038 100%);
+        border-left: 1px solid rgba(0, 0, 0, 0.15);
+      }
+      .news-panel::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #00e5ff 0%, #14b8a6 100%);
+        border-radius: 999px;
+        border: 2px solid #0b3038;
+        min-height: 48px;
+      }
+      .news-panel::-webkit-scrollbar-button:single-button {
+        display: block;
+        height: 14px;
+        background: #0b3038;
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .news-doc {
+        padding: 24px 16px 32px 20px;
+        text-align: center;
+        color: var(--doc-ink);
+        font-size: 19px;
+      }
+      .news-doc-date {
+        margin: 0 0 14px;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .news-doc-body {
+        max-width: none;
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+        padding: 0 4px;
+      }
+      .news-doc-body p {
+        margin: 0 0 12px;
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 1.62;
+      }
+      .news-doc-body p.news-welcome {
+        font-size: 21px;
+        font-weight: 800;
+        margin-bottom: 14px;
+      }
+      .news-section-head {
+        margin: 14px 0 8px !important;
+        font-size: 19px;
+        font-weight: 800 !important;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .news-rule {
+        border: none;
+        border-top: 1.5px solid #374151;
+        margin: 0 auto 12px;
+        max-width: 92%;
+      }
+      .news-gateways {
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.02em;
+        line-height: 1.5 !important;
+        margin-top: 6px !important;
+      }
+      .news-doc-body p:last-child { margin-bottom: 0; }
+      .news-doc-body strong {
+        font-weight: 800;
+      }
+      .news-doc-body em {
+        font-style: normal;
+        font-weight: 800;
+      }
+      .news-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .foot {
+        padding: 8px 10px 12px;
+        border-top: 1px solid var(--line);
+      }
+      .foot-bar {
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr) 46px;
+        align-items: center;
+        gap: 18px;
+        width: 100%;
+        max-width: none;
+        margin: 0 auto;
+        padding: 0 4px;
+      }
+      .support-btn {
+        display: inline-grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border: 1px solid rgba(0, 180, 255, 0.35);
+        border-radius: 50%;
+        background: linear-gradient(180deg, rgba(30, 41, 82, 0.95), rgba(15, 23, 42, 0.98));
+        cursor: pointer;
+        padding: 0;
+        box-shadow: 0 0 10px rgba(0, 140, 200, 0.15);
+      }
+      .support-btn.wa { color: #25d366; }
+      .support-btn.tg { color: #38bdf8; }
+      .support-btn:hover {
+        border-color: rgba(0, 220, 255, 0.5);
+        filter: brightness(1.08);
+      }
+      .support-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+      .btn-ok {
+        width: 100%;
+        min-width: 0;
+        border: none;
+        border-radius: 14px;
+        padding: 13px 20px;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: #0f172a;
+        cursor: pointer;
+        background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 52%, #0d9488 100%);
+        box-shadow:
+          0 0 20px rgba(45, 212, 191, 0.5),
+          0 4px 14px rgba(0, 0, 0, 0.28);
+      }
+      .btn-ok:hover {
+        filter: brightness(1.05);
+      }
+      .btn-ok:disabled {
+        opacity: 0.65;
+        cursor: wait;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell ui">
+      <header class="head">
+        <div class="brand">
+          <div class="brand-mark">O</div>
+          <div class="brand-text">
+            <strong>LEXUS</strong>
+            <span>TATKAL SOFTWARE</span>
+          </div>
+        </div>
+        <div class="title-box">
+          <span class="megaphone" aria-hidden="true">📢</span>
+          <strong>NEWS &amp; UPDATES</strong>
+        </div>
+        <div class="clock">
+          <span class="cal" aria-hidden="true">📅</span>
+          <div>
+            <small id="newsDate">—</small>
+            <div id="newsTime">—</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <div id="newsPanel" class="news-panel">
+          <div id="newsList" class="news-doc" hidden></div>
+          <div id="newsEmpty" class="news-empty ui" hidden>No news available.</div>
+        </div>
+      </div>
+
+      <footer class="foot ui">
+        <div class="foot-bar">
+          <button type="button" class="support-btn wa" id="btnWhatsApp" aria-label="WhatsApp channel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.1A9.9 9.9 0 0 0 3.1 16.3L2 22l5.9-1.1A9.9 9.9 0 1 0 12 2.1Zm0 18.1c-1.3 0-2.5-.3-3.6-.9l-.3-.2-3.5.7.7-3.4-.2-.3a7.7 7.7 0 1 1 6.9 4.1Zm4.4-5.7c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.6.1-.2.2-.7.7-.8.8-.2.2-.3.2-.6.1-.2-.1-.9-.3-1.7-1a6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.3-.5.1-.2 0-.4-.1-.5l-.7-1.7c-.2-.4-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.9 1.1 3.1c.1.2 1.9 2.9 4.6 4 .6.3 1.1.4 1.5.5.6.2 1.1.1 1.5.1.5-.1 1.3-.5 1.5-1 .2-.5.2-1 .2-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+          </button>
+          <button type="button" class="btn-ok" id="btnOk">OK</button>
+          <button type="button" class="support-btn tg" id="btnTelegram" aria-label="Telegram channel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.8 4.7 18.9 20c-.2 1-1 1.3-1.8.8l-5-3.7-2.4 2.4c-.2.2-.4.4-.8.4l.4-5.2L18.7 6c.3-.3-.1-.5-.4-.3L7.3 12.6l-5.1-1.6c-1.1-.3-1.1-1 .2-1.5L20 3.8c.9-.3 1.7.2 1.8.9Z"/></svg>
+          </button>
+        </div>
+      </footer>
+    </div>
+    <script src="./news.js"></script>
+  </body>
+</html>

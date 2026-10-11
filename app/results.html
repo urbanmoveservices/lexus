@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http:"
+    />
+    <title>Find trains · Availability</title>
+    <style>
+      :root {
+        --navy: #071426;
+        --teal: #00343a;
+        --ocean: #2dd4bf;
+        --line: rgba(45, 160, 170, 0.32);
+        --ink: #e8eef5;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: #071426;
+      }
+      body {
+        font-family: "Segoe UI", Candara, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(ellipse 95% 65% at 50% 78%, rgba(0, 52, 58, 0.92) 0%, transparent 58%),
+          linear-gradient(165deg, #071426 0%, #0a2033 42%, #071426 100%);
+        padding: 12px 14px 20px;
+      }
+      .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        padding: 12px;
+        background: rgba(7, 20, 38, 0.55);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      .title-container h2 {
+        margin: 0;
+        flex: 1;
+        font-size: 16px;
+        color: #2dd4bf;
+        min-width: 180px;
+      }
+      .quota-selector {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #cbd5e1;
+      }
+      .availability-button {
+        background: #0e6b7a;
+        color: #fff;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        min-width: 160px;
+        text-align: center;
+        line-height: 1.25;
+        box-shadow: 0 6px 14px rgba(14, 107, 122, 0.35);
+      }
+      .availability-button:hover { opacity: 0.92; }
+      #results-container {
+        background: rgba(7, 20, 38, 0.45);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: auto;
+        max-height: calc(100vh - 110px);
+        scrollbar-color: rgba(45, 212, 191, 0.35) rgba(0, 52, 58, 0.35);
+      }
+      #results-container::-webkit-scrollbar {
+        width: 10px;
+      }
+      #results-container::-webkit-scrollbar-track {
+        background: rgba(0, 52, 58, 0.35);
+      }
+      #results-container::-webkit-scrollbar-thumb {
+        background: rgba(45, 212, 191, 0.35);
+        border-radius: 999px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+      }
+      th, td {
+        border-bottom: 1px solid rgba(45, 160, 170, 0.18);
+        padding: 8px 10px;
+        text-align: left;
+        color: #e2e8f0;
+      }
+      th {
+        background: rgba(0, 52, 58, 0.55);
+        color: #7dd3c8;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      tr:nth-child(even) td {
+        background: rgba(5, 16, 30, 0.35);
+      }
+      .class-selector {
+        padding: 3px 7px;
+        background: rgba(5, 16, 30, 0.75);
+        border: 1px solid rgba(45, 160, 170, 0.28);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        margin: 2px;
+        display: inline-block;
+        color: #cbd5e1;
+      }
+      .class-selector:hover,
+      .class-selector.selected {
+        background: #0e6b7a;
+        border-color: transparent;
+        color: #fff;
+      }
+      .hint {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="hint">Class pe click = sirf availability · availability button pe click = form me autofill</p>
+    <div class="title-container">
+      <h2 id="title">Loading trains…</h2>
+      <div class="quota-selector">
+        <label><input type="radio" name="global_quota" value="GN" checked /> GN</label>
+        <label><input type="radio" name="global_quota" value="TQ" /> TQ</label>
+        <label><input type="radio" name="global_quota" value="PT" /> PT</label>
+      </div>
+      <button id="global-check-availability-btn" class="availability-button" type="button">
+        Select a Class
+      </button>
+    </div>
+    <div id="results-container">
+      <table id="results-table"></table>
+    </div>
+    <script src="./availability-format.js"></script>
+    <script src="./train-results.js"></script>
+  </body>
+</html>

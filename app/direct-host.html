@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LEXUS Direct Booking Host</title>
+  <style>
+    html, body { margin: 0; background: #111; color: #0f0; font: 13px monospace; }
+    #log { padding: 12px; white-space: pre-wrap; word-break: break-word; max-height: 40vh; overflow: auto; }
+    #qrWrap { text-align: center; padding: 8px; }
+    #qrWrap img { max-width: 280px; background: #fff; padding: 8px; }
+  </style>
+</head>
+<body>
+  <div id="log">OCEAN Direct Host ready (Token Manager popup-parity)…</div>
+  <div id="qrWrap"></div>
+  <script src="inject/booking_direct.js"></script>
+  <script src="inject/qr_flow_filelog.js"></script>
+  <script src="inject/phonepe_qr.js"></script>
+  <script src="inject/paytm_qr.js"></script>
+  <script src="inject/razorpay_upi.js"></script>
+  <script src="inject/ipay_qr.js"></script>
+  <script>
+    (function () {
+      const logEl = document.getElementById('log');
+      function uiLog(msg) {
+        const line = String(msg);
+        console.log('[OCEAN DirectHost]', line);
+        logEl.textContent = line + '\n' + logEl.textContent.slice(0, 4000);
+        try {
+          if (window.oceanDirectHost && typeof window.oceanDirectHost.status === 'function') {
+            window.oceanDirectHost.status(line);
+          }
+        } catch (_) {}
+      }
+
+      function resolveQrGate(method) {
+        const key = String(method || '').toUpperCase();
+        if (key.includes('RAZORPAY')) {
+          return {
+            bankId: '105',
+            mode: 'razorpay',
+            label: 'Razorpay UPI',
+            Engine: typeof RazorpayUPIHandlerJS !== 'undefined' ? RazorpayUPIHandlerJS : null,
+          };
+        }
+        if (key.includes('PAYTM')) {
+          return { bankId: '117', mode: 'paytm', label: 'Paytm QR', Engine: typeof PaytmQRHandlerJS !== 'undefined' ? PaytmQRHandlerJS : null };
+        }
+        return { bankId: '116', mode: 'phonepe', label: 'PhonePe QR', Engine: typeof PhonePeQRHandlerJS !== 'undefined' ? PhonePeQRHandlerJS : null };
+      }
+
+      function bankListHasId(bankDetailDTO, bankId) {
+        const want = String(bankId || '').trim();
+        if (!want || !Array.isArray(bankDetailDTO)) return false;
+        return bankDetailDTO.some((b) => {
+          if (!b) return false;
+          if (String(b.bankId || '').trim() !== want) return false;
+          const en = String(b.enableFlag != null ? b.enableFlag : 'true').toLowerCase();
+          return en === 'true' || en === '1' || en === 'y' || en === 'yes';
+        });
+      }
+
+      function applyAddonBankFallback(payGate, bankDetailDTO) {
+        const chosen = payGate || resolveQrGate('PHONEPEUPIQR');
+        const mode = String(chosen.mode || '');
+        if (mode !== 'paytm' && mode !== 'phonepe') return chosen;
+
+        const paytm117 = resolveQrGate('PAYTMUPIQR');
+        const paytm78 = {
+          bankId: '78',
+          mode: 'paytm',
+          label: 'Paytm',
+          Engine: typeof PaytmQRHandlerJS !== 'undefined' ? PaytmQRHandlerJS : null,
+        };
+        const phonepe116 = resolveQrGate('PHONEPEUPIQR');
+
+        if (mode === 'paytm') {
+          if (bankListHasId(bankDetailDTO, '117')) return paytm117;
+          if (bankListHasId(bankDetailDTO, '78')) {
+            uiLog('⚠️ Paytm UPI (117) not in addon list — init bankId 78 (Paytm)');
+            return paytm78;
+          }
+          if (bankListHasId(bankDetailDTO, '116')) {
+            uiLog('⚠️ Paytm 117/78 missing — fallback PhonePe (116)');
+            return phonepe116;
+          }
+          uiLog('⚠️ Paytm/PhonePe banks missing in addon — keeping ' + chosen.label);
+          return chosen;
+        }
+
+        if (bankListHasId(bankDetailDTO, '116')) return phonepe116;
+        if (bankListHasId(bankDetailDTO, '117')) {
+          uiLog('⚠️ PhonePe (116) not in addon list — fallback Paytm UPI (117)');
+          return paytm117;
+        }
+        if (bankListHasId(bankDetailDTO, '78')) {
+          uiLog('⚠️ PhonePe (116) not in addon list — fallback Paytm (78)');
+          return paytm78;
+        }
+        uiLog('⚠️ PhonePe/Paytm banks missing in addon — keeping ' + chosen.label);
+        return chosen;
+      }
+
+      function resolveVpa(payload) {
+        const d = (payload && payload.details) || {};
+        return String(
+          (payload && payload.vpa) || d.vpa || d.upiVpa || d.upi_id || ''
+        ).trim();
+      }
+
+      async function runQrOnly(payload, gate) {
+        const TOK = payload && payload.tokens ? payload.tokens : {};
+        const wsUser = (payload && payload.wsUser) || '';
+        const clientTxnId = (payload && payload.clientTxnId) || '';
+        if (!TOK.access_token) throw new Error('access_token missing');
+        if (!clientTxnId) throw new Error('clientTxnId missing');
+        if (!wsUser) throw new Error('wsUser missing');
+        if (!gate.Engine) throw new Error(gate.mode + ' handler missing');
+
+        uiLog(gate.label + ' host start (PaymentRedirect off IRCTC tab)…');
+        const engineOpts = gate.mode === 'razorpay' ? { vpa: resolveVpa(payload) } : undefined;
+        const engine = new gate.Engine(wsUser, clientTxnId, TOK, uiLog, engineOpts);
+        const finalResult = await engine.start_process();
+        const fileLogLines =
+          typeof engine.getFileLogLines === 'function'
+            ? engine.getFileLogLines()
+            : [];
+        if (finalResult && finalResult.status === 'BOOKED') {
+          // Do not log "BOOKED PNR=…" here — IRCTC page reports full_data first, then BOOKED
+          uiLog(gate.label + ' confirmed');
+          return {
+            ok: true,
+            pnr: finalResult.pnr,
+            note: 'BOOKED PNR=' + finalResult.pnr,
+            full_data: finalResult.full_data || null,
+            fileLogLines,
+          };
+        }
+        if (finalResult && finalResult.ok === false) {
+          const msg = String(finalResult.error || finalResult.note || gate.label + ' failed').trim();
+          uiLog(msg);
+          return { ok: false, pnr: null, note: msg, error: msg, fileLogLines };
+        }
+        if (finalResult === false || finalResult == null) {
+          uiLog(gate.label + ' failed');
+          return { ok: false, pnr: null, note: gate.label + ' failed', fileLogLines };
+        }
+        uiLog('payment ok, PNR not fetched');
+        return { ok: true, pnr: null, note: 'payment ok, PNR not fetched', fileLogLines };
+      }
+
+      /** PhonePe only — PaymentRedirect → QR (NOT on IRCTC browser tab). */
+      window.__oceanRunPhonePeOnly = async function (payload) {
+        return runQrOnly(payload, resolveQrGate('PHONEPEUPIQR'));
+      };
+
+      /** Paytm UPI QR only — PaymentRedirect → processTransaction QR. */
+      window.__oceanRunPaytmOnly = async function (payload) {
+        return runQrOnly(payload, resolveQrGate('PAYTMUPIQR'));
+      };
+
+      /** Razorpay UPI collect — PaymentRedirect → VPA collect. */
+      window.__oceanRunRazorpayOnly = async function (payload) {
+        return runQrOnly(payload, resolveQrGate('RAZORPAYUPI'));
+      };
+
+      /** IRCTC iPay QR — bank 113. */
+      window.__oceanRunIpayOnly = async function (payload) {
+        return runQrOnly(payload, resolveQrGate('IRCUPIQR'));
+      };
+
+      window.__oceanRunDirectBooking = async function (payload) {
+        if (payload && payload.mode === 'phonepe') {
+          return window.__oceanRunPhonePeOnly(payload);
+        }
+        if (payload && payload.mode === 'paytm') {
+          return window.__oceanRunPaytmOnly(payload);
+        }
+        if (payload && payload.mode === 'razorpay') {
+          return window.__oceanRunRazorpayOnly(payload);
+        }
+        if (payload && payload.mode === 'ipay') {
+          return window.__oceanRunIpayOnly(payload);
+        }
+        const TOK = payload && payload.tokens ? payload.tokens : {};
+        const allDetails = payload && payload.details ? payload.details : {};
+        const captchaCreds = (payload && payload.captchaCreds) || {};
+        const payGate = resolveQrGate(allDetails.paymentmethod);
+
+        if (!TOK.access_token) throw new Error('access_token missing');
+        if (typeof IrctcDirectBookingJS === 'undefined') throw new Error('booking_direct.js missing');
+        if (!payGate.Engine) throw new Error(payGate.mode + '_qr.js missing');
+
+        uiLog('Direct host start (requests NOT on IRCTC tab)…');
+        const api = new IrctcDirectBookingJS(TOK, uiLog);
+        let runNote = 'ok';
+        let clientTxnId = null;
+        let responseData = null;
+
+        try {
+          let T = await api.ensureFreshTokens();
+          await api.fetchTrainList(allDetails);
+          await api.fetchAvailabilityFare(allDetails);
+          const inj3 = await api.fetchBoardingEnq(allDetails);
+
+          const waitTimeStr = (inj3 && inj3.data && inj3.data.minPsgnInputTime || '35000').split('#')[0];
+          let waitMs = parseInt(waitTimeStr, 10);
+          if (isNaN(waitMs) || waitMs <= 0) waitMs = 35000;
+          const endAt = Date.now() + waitMs;
+          let lastShown = -1;
+          while (true) {
+            const left = Math.max(0, endAt - Date.now());
+            if (left !== lastShown) {
+              const ms = String(left).padStart(5, '0');
+              uiLog('Passenger Submit in ' + ms + 'ms');
+              lastShown = left;
+            }
+            if (left <= 0) break;
+            await new Promise((r) => setTimeout(r, 1));
+          }
+
+          const inj6 = await api.allLapAvlFareEnq(allDetails);
+          const captchaBase64 = inj6 && inj6.captchaBase64;
+          clientTxnId = inj6 && inj6.usedClientTxnId;
+          const lapData = inj6 && inj6.data;
+          const avlStatus =
+            (inj6 && inj6.availabilityStatus) ||
+            (lapData &&
+              lapData.avlFareResponseDTO &&
+              lapData.avlFareResponseDTO[0] &&
+              lapData.avlFareResponseDTO[0].avlDayList &&
+              lapData.avlFareResponseDTO[0].avlDayList[0] &&
+              lapData.avlFareResponseDTO[0].avlDayList[0].availablityStatus) ||
+            '';
+
+          const proceed =
+            (inj6 && inj6.proceedCheck) ||
+            api.checkProceedAfterAllLap(avlStatus, allDetails.bookOnlyIfCnf !== false);
+          if (proceed.panelStatus) uiLog(proceed.panelStatus);
+          if (!proceed.ok) throw new Error(proceed.error || proceed.panelStatus || 'Booking blocked');
+
+          if (!clientTxnId) throw new Error('clientTxnId missing');
+
+          async function solveCaptcha(b64) {
+            const userId = captchaCreds.userId || '';
+            const apiKey = captchaCreds.apiKey || '';
+            if (!userId || !apiKey) {
+              throw new Error('TrueCaptcha missing (save in Login tab)');
+            }
+            let data = String(b64 || '');
+            const comma = data.indexOf(',');
+            if (data.startsWith('data:') && comma !== -1) data = data.slice(comma + 1);
+            const response = await fetch('https://api.apitruecaptcha.org/one/gettext', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userid: userId, apikey: apiKey, data }),
+            });
+            if (!response.ok) throw new Error('TrueCaptcha HTTP ' + response.status);
+            const json = await response.json();
+            if (!json || !json.result) throw new Error('TrueCaptcha empty');
+            return String(json.result).replace(/\s/g, '').replace(')', 'J').replace(']', 'J');
+          }
+
+          let captchaText = null;
+          if (captchaBase64) {
+            uiLog('[6/8] Captcha solve…');
+            captchaText = await solveCaptcha(captchaBase64);
+          } else {
+            uiLog('[6/8] No captcha — captchaAns=null');
+          }
+
+          const maxRetries = captchaText ? 5 : 3;
+          let attempt = 0;
+          let isAddonOk = false;
+          const addonDetails = {
+            captcha: captchaText,
+            clientTxnId: clientTxnId,
+            paymentType: allDetails.paymentType || 2,
+          };
+
+          while (!isAddonOk && attempt < maxRetries) {
+            attempt++;
+            uiLog('[7/8] addonServices attempt ' + attempt);
+            const injAddon = await api.addonServices(addonDetails);
+            responseData = injAddon && injAddon.data;
+            const errorMsg = String((responseData && responseData.errorMessage) || '').toLowerCase();
+            if (errorMsg.includes('invalid captcha')) {
+              const neu = responseData && responseData.captchaDto && responseData.captchaDto.captchaQuestion;
+              if (!neu) throw new Error('No new captcha');
+              addonDetails.captcha = await solveCaptcha(neu);
+              captchaText = addonDetails.captcha;
+              await new Promise((r) => setTimeout(r, 1000));
+              continue;
+            }
+            if (responseData && responseData.bankDetailDTO) {
+              isAddonOk = true;
+              break;
+            }
+            throw new Error('addonServices: ' + ((responseData && responseData.errorMessage) || 'Unknown'));
+          }
+          if (!isAddonOk) throw new Error('addonServices failed');
+
+          const payGateFinal = applyAddonBankFallback(
+            payGate,
+            responseData && responseData.bankDetailDTO
+          );
+          if (!payGateFinal.Engine) throw new Error(payGateFinal.mode + '_qr.js missing');
+
+          const injPayment = await api.bookingInitPayment({
+            clientTxnId: clientTxnId,
+            amount: String(responseData.totalCollectibleAmount),
+            bankId: payGateFinal.bankId,
+          });
+          if (!injPayment || injPayment.status !== 200) throw new Error('Payment init failed');
+
+          uiLog('Payment init OK — ' + payGateFinal.label + ' (host)…');
+          T = api.TOK;
+          const engineOpts =
+            payGateFinal.mode === 'razorpay'
+              ? { vpa: resolveVpa({ details: allDetails, vpa: allDetails.vpa }) }
+              : undefined;
+          const engine = new payGateFinal.Engine(allDetails.wsUser, clientTxnId, T, uiLog, engineOpts);
+          const finalResult = await engine.start_process();
+          if (finalResult && finalResult.status === 'BOOKED') {
+            runNote = 'BOOKED PNR=' + finalResult.pnr;
+            uiLog(payGateFinal.label + ' confirmed');
+            return {
+              ok: true,
+              pnr: finalResult.pnr,
+              note: runNote,
+              full_data: finalResult.full_data || null,
+            };
+          }
+          runNote = 'payment ok, PNR not fetched';
+          uiLog(runNote);
+          return { ok: true, pnr: null, note: runNote };
+        } catch (e) {
+          runNote = 'error: ' + (e && e.message ? e.message : e);
+          uiLog(runNote);
+          throw e;
+        } finally {
+          try {
+            api && api.downloadRunLog && api.downloadRunLog(runNote);
+          } catch (_) {}
+        }
+      };
+
+      document.title = 'OCEAN Direct Host';
+    })();
+  </script>
+</body>
+</html>

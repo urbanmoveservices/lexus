@@ -1,0 +1,19 @@
+{
+  "name": "lexus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LEXUS desktop and local workspace using copied application modules",
+  "productName": "LEXUS",
+  "main": "desktop.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "desktop": "runtime\\electron.exe .",
+    "verify": "node --test licensing.test.cjs hierarchy.test.cjs signup.test.cjs headless.test.cjs workspace.test.cjs usdt-payments.test.cjs && node verify.cjs"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "jsqr": "1.4.0",
+    "pngjs": "7.0.0",
+    "jpeg-js": "0.4.4"
+  }
+}

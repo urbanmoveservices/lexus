@@ -1,0 +1,9 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),Module=require('node:module');
+test('desktop workspace switching keeps A two tickets and B one, and preserves legacy mixed data',async()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'lexus-desktop-isolation-')),filename=path.join(__dirname,'app/profile-store.js'),m=new Module(filename,module);m.filename=filename;m.paths=Module._nodeModulePaths(path.dirname(filename));const real=m.require.bind(m);m.require=name=>name==='electron'?{app:{isPackaged:false,getPath:()=>root}}:real(name);m._compile(fs.readFileSync(filename,'utf8'),filename);const store=m.exports;
+ await store.init();for(let n=0;n<3;n++)store.saveJourney({name:'Legacy mixed '+n,from:'BSB',to:'PRYJ'});const legacyPath=store.getDbPath();
+ const a=path.join(root,'clients','user-a'),b=path.join(root,'clients','user-b');await store.useWorkspace(a);assert.equal(store.listSummaries('journeys').length,0);for(let n=0;n<2;n++)store.saveJourney({name:'A '+n,from:'BSB',to:'PRYJ'});const account=store.saveCredential({name:'A account',username:'a-only',password:'private-test-secret'});
+ await store.useWorkspace(b);assert.equal(store.listSummaries('journeys').length,0);store.saveJourney({name:'B only',from:'BSB',to:'PRYJ'});assert.equal(store.listSummaries('journeys').length,1);assert.equal(store.getCredential(account.id,{includeSecrets:true}),null);
+ await store.useWorkspace(a);assert.equal(store.listSummaries('journeys').length,2);assert.equal(store.getCredential(account.id,{includeSecrets:true}).password,'private-test-secret');
+ await store.useWorkspace(b);assert.equal(store.listSummaries('journeys').length,1);assert(fs.existsSync(legacyPath));assert(!fs.readFileSync(path.join(a,'ocean-data','ocean.sqlite')).includes(Buffer.from('private-test-secret')));
+});

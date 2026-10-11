@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>LEXUS — Test PhonePe start_process</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 13px/1.4 Segoe UI, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+    }
+    h1 { font-size: 15px; margin: 0 0 4px; color: #38bdf8; }
+    p { margin: 0 0 12px; color: #94a3b8; font-size: 12px; }
+    label { display: block; font-size: 11px; color: #cbd5e1; margin: 8px 0 4px; }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #f8fafc;
+    }
+    textarea { min-height: 72px; resize: vertical; font-family: Consolas, monospace; font-size: 11px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #059669;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    #log {
+      margin-top: 12px;
+      padding: 8px;
+      background: #020617;
+      border-radius: 6px;
+      min-height: 120px;
+      max-height: 200px;
+      overflow: auto;
+      font: 11px/1.35 Consolas, monospace;
+      white-space: pre-wrap;
+    }
+    #qrBox {
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+    }
+    #qrBox img {
+      max-width: 240px;
+      background: #fff;
+      padding: 8px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test PhonePe — start_process only</h1>
+  <p>
+    Normal browser me login + bookingInitPayment karo, phir yahan tokens / clientTxnId paste karke
+    sirf PhonePe pipeline test karo (mapps1 / inject skip).
+  </p>
+
+  <label>IRCTC username (wsUser)</label>
+  <input id="wsUser" placeholder="Takrimunnisha" />
+
+  <label>clientTxnId (bookingInitPayment ke baad)</label>
+  <input id="clientTxnId" placeholder="xkgkicqz" />
+
+  <div class="row">
+    <div>
+      <label>access_token</label>
+      <input id="access" />
+    </div>
+    <div>
+      <label>refresh_token (bmiyek)</label>
+      <input id="refresh" />
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>csrf (spa-csrf-token)</label>
+      <input id="csrf" />
+    </div>
+    <div>
+      <label>greq</label>
+      <input id="greq" />
+    </div>
+  </div>
+
+  <label>Tokens JSON (optional — localStorage ir:tokens paste)</label>
+  <textarea id="tokensJson" placeholder='{"access_token":"...","refresh_token":"...","csrf":"...","greq":"..."}'></textarea>
+
+  <button type="button" id="runBtn">Run start_process</button>
+  <div id="log"></div>
+  <div id="qrBox"><img id="qrImg" alt="PhonePe QR" /></div>
+
+  <script src="test-phonepe-start.js"></script>
+</body>
+</html>

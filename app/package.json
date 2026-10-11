@@ -1,0 +1,16 @@
+{
+  "name": "ocean-electron",
+  "version": "1.1.1",
+  "description": "OCEAN — multi-profile SQLite + multi-run IRCTC",
+  "productName": "OCEAN",
+  "main": "main.js",
+  "author": "Ocean",
+  "license": "MIT",
+  "dependencies": {
+    "proxy-chain": "^2.7.1",
+    "puppeteer-core": "^24.43.1",
+    "rebrowser-puppeteer-core": "^24.8.1",
+    "sql.js": "^1.14.1",
+    "undici": "^8.10.0"
+  }
+}
