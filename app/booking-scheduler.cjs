@@ -32,6 +32,6 @@ function createScheduler({ launch, notify, now = Date.now, timer = setTimeout, c
     }, due - now());
     return { ok: true, due };
   }
-  return { arm, cancel };
+  return { arm, cancel, pendingCount: () => jobs.size };
 }
 module.exports = { nextStart, createScheduler };

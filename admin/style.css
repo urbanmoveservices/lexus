@@ -75,3 +75,5 @@ body[data-role="admin"] .portal-sidebar .section-link.current{box-shadow:inset 3
 
 body[data-role="seller"] .seller-logout{display:block;flex-shrink:0;width:100%;margin-top:16px;background:#fff1f2;color:#a1243b;border-color:#f0cad1;font-weight:600}body[data-role="seller"] .seller-logout:hover{background:#ffe4e8}
 body[data-role="seller"] #logout{color:#a1243b;border-color:#f0cad1;background:#fff1f2}
+
+.client-download .actions{justify-content:flex-start;flex-wrap:wrap;margin:18px 0}.client-download a{text-decoration:none;padding:12px 16px;border-radius:9px}.client-download .disabled{pointer-events:none;opacity:.65}.client-download p{margin-top:12px}

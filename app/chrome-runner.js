@@ -50,6 +50,8 @@ function logTag(browserKind) {
   return browserKind === 'brave' ? '[Ocean Brave]' : '[Ocean Chrome]';
 }
 
+const activeChromeProfiles = new Set();
+
 function profileDirFor(sessionId, browserKind = 'chrome') {
   // Persistent under AppData — tmp cold profiles look like bots
   const folder = browserKind === 'brave' ? 'brave-profiles' : 'chrome-profiles';
@@ -812,7 +814,8 @@ async function launchSystemChromeRun({
     };
   }
 
-  const userDataDir = profileDirFor(sessionId, kind);
+  let userDataDir = profileDirFor(sessionId, kind);
+  const launchStarted = Date.now();
   const port = await getFreePort();
   let proxyCfg = normalizeProxyConfig({});
   try {
@@ -900,6 +903,14 @@ async function launchSystemChromeRun({
       return { ok: false, error: e.message || String(e) };
     }
   } else {
+    // Reuse the same isolated account/pair profile after Chrome exits. Concurrent
+    // runs keep separate profiles and never contend for Chrome's profile lock.
+    const scope = [meta?.journeyId, meta?.credentialId, meta?.pairIndex || 1];
+    if (scope[0] && scope[1]) {
+      const stable = profileDirFor(crypto.createHash('sha256').update(JSON.stringify(scope)).digest('hex').slice(0,24), kind);
+      if (!activeChromeProfiles.has(stable)) userDataDir = stable;
+    }
+    activeChromeProfiles.add(userDataDir);
     console.log(`${tag} executable:`, chromePath);
     console.log(`${tag} profile:`, userDataDir);
     console.log(`${tag} debug port:`, port);
@@ -919,7 +930,12 @@ async function launchSystemChromeRun({
       browserKind: kind,
     });
 
+    chromeProc.once('exit', () => activeChromeProfiles.delete(userDataDir));
+    chromeProc.once('error', () => activeChromeProfiles.delete(userDataDir));
+    console.log(`${tag} spawned after ${Date.now()-launchStarted}ms`);
+    if(onStatusMessage)onStatusMessage('CHROME OPENING · allow browser access if prompted');
     const ready = await waitForCDP(port);
+    console.log(`${tag} browser ready=${ready} after ${Date.now()-launchStarted}ms`);
     if (!ready) {
       try {
         chromeProc.kill();
@@ -953,6 +969,14 @@ async function launchSystemChromeRun({
   }
 
   if (kind === 'brave') {
+    // Reuse the same isolated account/pair profile after Chrome exits. Concurrent
+    // runs keep separate profiles and never contend for Chrome's profile lock.
+    const scope = [meta?.journeyId, meta?.credentialId, meta?.pairIndex || 1];
+    if (scope[0] && scope[1]) {
+      const stable = profileDirFor(crypto.createHash('sha256').update(JSON.stringify(scope)).digest('hex').slice(0,24), kind);
+      if (!activeChromeProfiles.has(stable)) userDataDir = stable;
+    }
+    activeChromeProfiles.add(userDataDir);
     console.log(`${tag} executable:`, chromePath);
     console.log(`${tag} user-data-dir:`, effectiveUserDataDir);
     console.log(`${tag} profile-directory:`, profileDirectory);

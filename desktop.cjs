@@ -3,7 +3,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const distributionConfig = require('./distribution-config.cjs');
 if (!process.env.LEXUS_LICENSE_URL) process.env.LEXUS_LICENSE_URL = distributionConfig.licenseUrl || 'https://lexus.vaidya-gpt.com';
-if (distributionConfig.bundledChrome && !process.env.OCEAN_CHROME_PATH) process.env.OCEAN_CHROME_PATH = path.join(__dirname, 'browsers', 'chrome', 'chrome.exe');
+if (distributionConfig.bundledChrome && !process.env.LEXUS_BUNDLED_CHROME_PATH) process.env.LEXUS_BUNDLED_CHROME_PATH = path.join(__dirname, 'browsers', 'chrome', 'chrome.exe');
 const braveCandidates=[process.env.LEXUS_BRAVE_PATH,path.join(process.env.LOCALAPPDATA||'', 'BraveSoftware','Brave-Browser','Application','brave.exe'),'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe','C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'].filter(Boolean);
 const installedBrave=braveCandidates.find(candidate=>fs.existsSync(candidate));
 if(installedBrave)process.env.OCEAN_BRAVE_PATH=installedBrave;

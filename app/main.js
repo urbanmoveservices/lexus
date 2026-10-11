@@ -1036,17 +1036,10 @@ app.whenReady().then(async () => {
     onOceanApiSuccess: handleOceanApiBookingSuccess,
   });
 
-  oceanUpdater.registerUpdaterIpc();
+  oceanUpdater.registerUpdaterIpc({canUpdate:()=>bookingScheduler.pendingCount()===0});
 
-  console.log('[OCEAN UPDATER] Checking for updates before startup…');
-  const updateResult = await oceanUpdater.checkAndOfferUpdate().catch((e) => {
-    console.warn('[OCEAN UPDATER]', e?.message || e);
-    return { update: false, error: e?.message || String(e) };
-  });
-  if (updateResult?.started) {
-    console.log('[OCEAN UPDATER] Update in progress — app will restart');
-    return;
-  }
+  // Updates never delay opening the app or a booking window.
+  if(require('../distribution-config.cjs').installed)setTimeout(() => oceanUpdater.checkAndOfferUpdate().catch(() => {}), 5000).unref();
 
   console.log('[Ocean] License gate…');
   await runLicenseGate();
@@ -1127,24 +1120,6 @@ ipcMain.handle('app:get-info', () => ({
 ipcMain.handle('app:quit', () => {
   app.quit();
   return { ok: true };
-});
-
-ipcMain.handle('sensors:check', async () => {
-  const sensorClient = require('./sensor-client');
-  try {
-    return await sensorClient.checkSensors();
-  } catch (e) {
-    return { httpOk: false, ok: false, count: 0, reason: e.message || String(e) };
-  }
-});
-
-ipcMain.handle('sensors:clear', async () => {
-  const sensorClient = require('./sensor-client');
-  try {
-    return await sensorClient.clearTokens();
-  } catch (e) {
-    return { ok: false, reason: e.message || String(e) };
-  }
 });
 
 ipcMain.handle('ui:set-shell-mode', () => {

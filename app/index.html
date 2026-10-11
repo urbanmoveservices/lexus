@@ -473,42 +473,6 @@
             </section>
           </section>
 
-          <section class="modal-panel editor-panel modal-tokens" data-modal="tokens" data-editor-panel="tokens" aria-labelledby="tokens-title">
-            <header class="modal-head">
-              <div>
-                <p class="modal-kicker">Subscription</p>
-                <h2 id="tokens-title">TOKENS</h2>
-              </div>
-              <div class="modal-head-right">
-                <div class="tab-row" role="tablist" aria-label="Token source">
-                  <button type="button" class="filter-pill is-active" data-action="tokens-tab-app">App</button>
-                </div>
-                <button type="button" class="modal-close" data-action="modal-close" aria-label="Close">×</button>
-              </div>
-            </header>
-            <section class="card card-wide banner-card">
-              <div class="banner-copy">
-                <span class="banner-tag">SENSOR</span>
-                <h3>App sensor tokens</h3>
-                <p id="tokensStatusLine">Check queue count or clear all sensors on server.</p>
-              </div>
-              <div class="license-grid">
-                <div class="license-card">
-                  <span>UserId</span>
-                  <strong id="tokensUserId">—</strong>
-                </div>
-                <div class="license-card">
-                  <span>Tokens available</span>
-                  <strong id="tokensCount">—</strong>
-                </div>
-                <div class="qr-placeholder" aria-hidden="true">APP</div>
-              </div>
-            </section>
-            <div class="button-row">
-              <button type="button" class="btn btn-primary" data-action="tokens-check" id="btnTokensCheck">Check Tokens</button>
-              <button type="button" class="btn btn-secondary" data-action="tokens-clear" id="btnTokensClear">Clear Tokens</button>
-            </div>
-          </section>
 
           <section class="modal-panel editor-panel modal-about" data-modal="about" data-editor-panel="about" aria-labelledby="about-title">
             <header class="modal-head">
@@ -633,9 +597,6 @@
           <button type="button" class="tb-btn tb-btn-blue" data-editor-tab="tickets" data-action="open-tickets">
             <span class="label">Book Tickets</span>
           </button>
-          <button type="button" class="tb-btn tb-btn-orange" data-editor-tab="tokens" data-action="open-tokens">
-            <span class="label">Tokens</span>
-          </button>
           <details class="tb-settings-menu">
             <summary class="tb-btn tb-settings tb-btn-purple" aria-label="Open settings menu">
               <span class="label">Settings</span>
@@ -647,6 +608,7 @@
                 <span>Manual Login</span>
               </label>
               <button type="button" class="dropdown-item" data-action="settings-proxy" data-editor-tab="proxy">Proxy</button>
+              <button type="button" class="dropdown-item" data-action="check-updates">Check for updates</button>
               <button type="button" class="dropdown-item" data-action="settings-export">Export</button>
               <button type="button" class="dropdown-item" data-action="settings-import">Import</button>
               <div class="dropdown-submenu">

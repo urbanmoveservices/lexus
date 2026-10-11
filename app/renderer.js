@@ -558,7 +558,6 @@ function showEditorTab(name) {
     payment: 'payment',
     proxy: 'proxies',
     tickets: 'tickets',
-    tokens: 'tokens',
     about: 'about',
     runs: 'history',
     history: 'history',
@@ -2117,10 +2116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal('tickets');
         return;
       }
-      if (action === 'open-tokens') {
-        openModal('tokens');
-        return;
-      }
+
       if (action === 'open-accounts') {
         openModal('accounts');
         return;
@@ -2242,58 +2238,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await deleteProxy();
         return;
       }
-      if (action === 'tokens-check') {
-        const btn = document.getElementById('btnTokensCheck');
-        if (btn) btn.disabled = true;
-        try {
-          const res = await window.ocean.checkSensorTokens();
-          const count = Number(res?.count) || 0;
-          const uid = res?.userId || '—';
-          const countEl = document.getElementById('tokensCount');
-          const userEl = document.getElementById('tokensUserId');
-          const statusEl = document.getElementById('tokensStatusLine');
-          if (countEl) countEl.textContent = String(count);
-          if (userEl) userEl.textContent = uid;
-          if (statusEl) {
-            statusEl.textContent = res?.httpOk
-              ? `Queue: ${count} sensor${count === 1 ? '' : 's'} (userId=${uid})`
-              : `Check failed: ${res?.reason || 'HTTP error'}`;
-          }
-          toast(res?.httpOk ? `Tokens: ${count}` : res?.reason || 'Check failed');
-        } catch (err) {
-          toast(err?.message || 'Check failed');
-        } finally {
-          if (btn) btn.disabled = false;
-        }
-        return;
-      }
-      if (action === 'tokens-clear') {
-        if (!confirm('Clear ALL sensor tokens on server for this license?')) return;
-        const btn = document.getElementById('btnTokensClear');
-        if (btn) btn.disabled = true;
-        try {
-          const res = await window.ocean.clearSensorTokens();
-          const countEl = document.getElementById('tokensCount');
-          const userEl = document.getElementById('tokensUserId');
-          const statusEl = document.getElementById('tokensStatusLine');
-          if (res?.ok) {
-            if (countEl) countEl.textContent = String(Number(res.remaining) || 0);
-            if (userEl) userEl.textContent = res.userId || '—';
-            if (statusEl) {
-              statusEl.textContent = `Cleared ${res.cleared || 0} · remaining ${res.remaining || 0}`;
-            }
-            toast(`Cleared ${res.cleared || 0} tokens`);
-          } else {
-            if (statusEl) statusEl.textContent = res?.reason || 'Clear failed';
-            toast(res?.reason || 'Clear failed');
-          }
-        } catch (err) {
-          toast(err?.message || 'Clear failed');
-        } finally {
-          if (btn) btn.disabled = false;
-        }
-        return;
-      }
       if (action === 'settings-export' || action === 'settings-import') {
         toast('Export/Import — baad me');
         return;
@@ -2311,6 +2255,13 @@ document.addEventListener('DOMContentLoaded', () => {
         await window.ocean.clearHistory?.();
         renderHistory([]);
         toast('History cleared');
+        return;
+      }
+      if (action === 'check-updates') {
+        toast('Checking for updates…');
+        const result = await window.ocean.checkForUpdates();
+        if(result?.hosted){location.assign('/downloads');return;}
+        toast(result?.error || (result?.started ? 'Update downloading…' : result?.update ? 'Update available; choose Install update to continue' : 'LEXUS is up to date'));
         return;
       }
       if (action === 'support-whatsapp') {

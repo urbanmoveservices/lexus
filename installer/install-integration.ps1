@@ -12,5 +12,5 @@ foreach($lexusShortcutPath in @((Join-Path ([Environment]::GetFolderPath('Deskto
 $lexusUninstallKey='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\LEXUS'
 New-Item -Path $lexusUninstallKey -Force | Out-Null
 $lexusUninstallCommand='powershell.exe -NoProfile -ExecutionPolicy Bypass -File "'+(Join-Path $lexusInstallRoot 'uninstall.ps1')+'"'
-$lexusProperties=@{DisplayName='LEXUS';DisplayVersion='0.1.1';Publisher='LEXUS';InstallLocation=$lexusInstallRoot;DisplayIcon=(Join-Path $lexusInstallRoot 'LEXUS.exe');UninstallString=$lexusUninstallCommand;URLInfoAbout='https://lexus.vaidya-gpt.com/portal'}
+$lexusProperties=@{DisplayName='LEXUS';DisplayVersion=((Get-Content -LiteralPath (Join-Path $lexusInstallRoot 'package.json') -Raw | ConvertFrom-Json).version);Publisher='LEXUS';InstallLocation=$lexusInstallRoot;DisplayIcon=(Join-Path $lexusInstallRoot 'LEXUS.exe');UninstallString=$lexusUninstallCommand;URLInfoAbout='https://lexus.vaidya-gpt.com/portal'}
 foreach($lexusName in $lexusProperties.Keys){New-ItemProperty -Path $lexusUninstallKey -Name $lexusName -Value $lexusProperties[$lexusName] -PropertyType String -Force | Out-Null}

@@ -48,6 +48,7 @@ function invoke(store, channel, args, license = null) {
     case 'profiles:listProxies': return {proxies:store.listProxies()};
     case 'profiles:addProxy': { const proxies=store.addProxyFromString(p.host); return {ok:true,proxies,count:proxies.length}; }
     case 'profiles:deleteProxies': { const proxies=store.deleteProxiesByIds(p.ids||[]); return {ok:true,proxies,count:proxies.length}; }
+    case 'updater:check-offer': return {hosted:true,url:'/downloads'};
     case 'app:get-info': return {name:'LEXUS',version:require('./package.json').version,maxParallelRuns:4};
     case 'license:get-about': case 'license:refresh-about': return {version:require('./package.json').version,appVersion:require('./package.json').version,key:license?.hint?'…'+license.hint:'',leftDays:license?Math.max(0,Math.ceil((Date.parse(license.expiresAt)-Date.now())/86400000)):null,subtitle:'LEXUS browser workspace · licensing service connected'};
     case 'runs:list': return {runs:[]};
@@ -65,7 +66,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     if(req.method==='GET'&&(url.pathname==='/api/portal/downloads'||url.pathname.startsWith('/downloads/'))){
       const manifest=fs.existsSync(downloadManifestPath)?JSON.parse(fs.readFileSync(downloadManifestPath,'utf8')):{version:'0.1.0'};
       if(url.pathname==='/api/portal/downloads'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(manifest));}
-      const item=[manifest.setup,manifest.updater,manifest.offlineSetup].filter(Boolean).find(item=>item.url===url.pathname);
+      const item=[manifest.setup,manifest.updater,manifest.offlineSetup].filter(Boolean).find(item=>item.url===url.pathname) || (/^\/downloads\/LEXUS-(?:Offline-)?Setup-\d+\.\d+\.\d+\.exe$/.test(url.pathname) ? {url:url.pathname} : null);
       if(!item){res.writeHead(404);return res.end('Download not found');}
       const name=path.basename(item.url);const archive=path.join(process.env.LEXUS_RELEASES_DIR || path.join(__dirname,'releases'),name);
       if(!fs.existsSync(archive)){res.writeHead(404);return res.end('Package unavailable');}

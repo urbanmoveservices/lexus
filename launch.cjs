@@ -1,7 +1,7 @@
 const path=require('node:path'),fs=require('node:fs'),{spawn}=require('node:child_process');
 const config=require('./distribution-config.cjs');
 if(!process.env.LEXUS_LICENSE_URL)process.env.LEXUS_LICENSE_URL=config.licenseUrl||'https://lexus.vaidya-gpt.com';
-if(config.bundledChrome&&!process.env.OCEAN_CHROME_PATH)process.env.OCEAN_CHROME_PATH=path.join(__dirname,'browsers','chrome','chrome.exe');
+if(config.bundledChrome&&!process.env.LEXUS_BUNDLED_CHROME_PATH)process.env.LEXUS_BUNDLED_CHROME_PATH=path.join(__dirname,'browsers','chrome','chrome.exe');
 const root=__dirname,base=process.env.LEXUS_LICENSE_URL||'https://lexus.vaidya-gpt.com';
 async function ready(){try{const r=await fetch(base+'/api/license/state',{signal:AbortSignal.timeout(1000)});const b=await r.json();return r.ok&&typeof b.activated==='boolean';}catch{return false;}}
 function launch(executable,args,name){const out=fs.openSync(path.join(root,name+'.stdout.log'),'a'),err=fs.openSync(path.join(root,name+'.stderr.log'),'a');let child;try{child=spawn(executable,args,{cwd:root,windowsHide:name!=='desktop',detached:true,stdio:['ignore',out,err]});}finally{fs.closeSync(out);fs.closeSync(err);}child.on('error',e=>{console.error(e.message);process.exitCode=1;});child.unref();if(child.pid)fs.writeFileSync(path.join(root,name+'-process-id.txt'),String(child.pid));return child;}

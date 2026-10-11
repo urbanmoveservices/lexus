@@ -30,7 +30,12 @@ function findChromePath() {
   if (process.env.OCEAN_CHROME_PATH && fs.existsSync(process.env.OCEAN_CHROME_PATH)) {
     return process.env.OCEAN_CHROME_PATH;
   }
-  for (const p of candidates()) {
+  const paths = candidates();
+  for (const p of paths.filter(p => /Google[\\/]Chrome[\\/]Application[\\/]chrome\.exe$/i.test(p))) {
+    if (fs.existsSync(p)) return p;
+  }
+  if (process.env.LEXUS_BUNDLED_CHROME_PATH && fs.existsSync(process.env.LEXUS_BUNDLED_CHROME_PATH)) return process.env.LEXUS_BUNDLED_CHROME_PATH;
+  for (const p of paths) {
     try {
       if (p && fs.existsSync(p)) return p;
     } catch (_) {}

@@ -82,8 +82,7 @@ contextBridge.exposeInMainWorld('ocean', {
 
   // Find trains / availability
   openTrainSearch: (query) => ipcRenderer.invoke('train:open-search', query),
-  checkSensorTokens: () => ipcRenderer.invoke('sensors:check'),
-  clearSensorTokens: () => ipcRenderer.invoke('sensors:clear'),
+  checkForUpdates: () => ipcRenderer.invoke('updater:check-offer'),
   onTrainSelected: (callback) => {
     const handler = (_e, payload) => callback(payload);
     ipcRenderer.on('train:selected', handler);

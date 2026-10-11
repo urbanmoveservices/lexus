@@ -16,3 +16,5 @@ async function refreshDetails(){
 }
 
 el('request-renewal').addEventListener('click',async()=>{el('request-renewal').disabled=true;try{await post('renew-request',{});await refreshDetails();message('Renewal request sent to your seller/admin.');}catch(error){message(error.message,true);}finally{el('request-renewal').disabled=false;}});
+
+fetch('/api/portal/downloads').then(async response=>{if(!response.ok)throw Error('Download service unavailable');const data=await response.json(),link=document.getElementById('client-setup-download');if(!data.setup)throw Error('Setup is not available yet');link.href=data.setup.url;link.textContent='Download Windows Setup · v'+data.version;link.classList.remove('disabled');link.removeAttribute('aria-disabled');document.getElementById('client-setup-meta').textContent=(data.setup.bytes/1024).toFixed(0)+' KB setup · downloads required files during installation';}).catch(error=>{document.getElementById('client-setup-download').textContent='View downloads';document.getElementById('client-setup-download').href='/downloads';document.getElementById('client-setup-meta').textContent=error.message;});
