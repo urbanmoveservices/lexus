@@ -7,3 +7,5 @@ The installer includes app dependencies, Electron, Node and Chrome for WEB-2/APP
 `lexus-config.json` is generated in the package and points to `https://lexus.vaidya-gpt.com`. Private local data and admin credentials are excluded. This build is not code-signed.
 
 Publish the versioned EXE, updater ZIP and manifest.json to `/srv/lexus-releases`. The hosted service mounts this directory read-only. The installer supports `/extract <path-under-Windows-temp>` for package validation without registering an installation.
+
+Run python installer/build-web-setup.py after the full build to create the small, checksum-pinned Web Setup and add Offline Setup to the manifest.

@@ -65,7 +65,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     if(req.method==='GET'&&(url.pathname==='/api/portal/downloads'||url.pathname.startsWith('/downloads/'))){
       const manifest=fs.existsSync(downloadManifestPath)?JSON.parse(fs.readFileSync(downloadManifestPath,'utf8')):{version:'0.1.0'};
       if(url.pathname==='/api/portal/downloads'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(manifest));}
-      const item=[manifest.setup,manifest.updater].filter(Boolean).find(item=>item.url===url.pathname);
+      const item=[manifest.setup,manifest.updater,manifest.offlineSetup].filter(Boolean).find(item=>item.url===url.pathname);
       if(!item){res.writeHead(404);return res.end('Download not found');}
       const name=path.basename(item.url);const archive=path.join(process.env.LEXUS_RELEASES_DIR || path.join(__dirname,'releases'),name);
       if(!fs.existsSync(archive)){res.writeHead(404);return res.end('Package unavailable');}
