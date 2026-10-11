@@ -36,7 +36,7 @@ function createUsdtPayments({registry,persist,audit,fetchImpl=fetch,now=Date.now
    else decoded=require('jpeg-js').decode(bytes,{useTArray:true,maxResolutionInMP:3,maxMemoryUsageInMB:32});
    if(decoded.width>1600||decoded.height>1600)throw Error('QR image dimensions exceed 1600 pixels');const result=require('jsqr')(new Uint8ClampedArray(decoded.data),decoded.width,decoded.height);if(result?.data!==address&&!(b.confirmQr===true&&!result))throw Error('Uploaded QR must contain exactly the receiving TRON address');
   }
-  const qr=b.qr||await QRCode.toDataURL(address,{errorCorrectionLevel:'M',margin:2,width:280});
+  const qr=b.qr||(registry.usdtSettings.address===address&&registry.usdtSettings.qr)||await QRCode.toDataURL(address,{errorCorrectionLevel:'M',margin:2,width:280});
   const fixedRate=Number(b.fixedRate||0);if(!Number.isFinite(fixedRate)||fixedRate<0||fixedRate>10000||fixedRate>0&&fixedRate<1)throw Error('Enter a rate between 1 and 10000, or leave blank for live rate');
   registry.usdtSettings={address,qr,enabled:b.enabled===true,fixedRate};audit(actor,'usdt-settings-updated',null,{address,enabled:b.enabled===true,fixedRate});persist();return settings(actor);
  }
