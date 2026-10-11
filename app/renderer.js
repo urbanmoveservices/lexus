@@ -918,6 +918,14 @@ function validateJourneyForm() {
   if (!p1age || !/^\d{1,3}$/.test(p1age) || ageNum < 1 || ageNum > 125) {
     return { ok: false, message: 'Passenger 1 AGE 1-125 (number only) fill karo' };
   }
+  for (let i = 2; i <= state.visiblePassengers; i += 1) {
+    const name = val(`passenger-name-${i}`).trim(), age = val(`age-${i}`).trim();
+    if (!name && !age) continue;
+    if (!name) return { ok: false, message: `Passenger ${i} NAME fill karo` };
+    if (!/^\d{1,3}$/.test(age) || Number(age) < 1 || Number(age) > 125) {
+      return { ok: false, message: `Passenger ${i} AGE 1-125 (number only) fill karo` };
+    }
+  }
   if (!/^\d{10}$/.test(mobile)) return { ok: false, message: 'MOBILE number 10 digit fill karo' };
   if (!payId) return { ok: false, message: 'BANK / GATEWAY select nahi kiya' };
   return { ok: true };
