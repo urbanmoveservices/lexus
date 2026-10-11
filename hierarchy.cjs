@@ -42,7 +42,7 @@ function createHierarchy({registry,persist,issue,publicKey,authenticated,session
     }return true;
    }
    if(req.method!=='POST'){json(405,{error:'Method not allowed'});return true;}
-   if(req.headers.origin&&!['http://127.0.0.1:'+url.port,'http://localhost:'+url.port].includes(req.headers.origin)){json(403,{error:'Invalid origin'});return true;}
+   if(req.headers.origin&&!['http://127.0.0.1:'+url.port,'http://localhost:'+url.port,...String(process.env.LEXUS_ALLOWED_ORIGINS||'').split(',').map(x=>x.trim()).filter(Boolean)].includes(req.headers.origin)){json(403,{error:'Invalid origin'});return true;}
    if(req.headers['content-type']?.split(';')[0]!=='application/json'){json(415,{error:'JSON required'});return true;}
    let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>(route==='usdt-settings'?750000:16384))throw Error('Request too large');}const b=JSON.parse(raw||'{}');
    if(route==='login'){
