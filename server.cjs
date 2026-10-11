@@ -90,7 +90,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     }
     if(req.method!=='GET'){res.writeHead(405);return res.end();}
     if(url.pathname==='/web-bridge.js') {res.setHeader('Content-Type','application/javascript');return res.end(fs.readFileSync(path.join(__dirname,'bridge.js'))+'\n'+fs.readFileSync(path.join(root,'preload-ui.js'),'utf8').replace("const { contextBridge, ipcRenderer } = require('electron');",''));}
-    const relative=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
+    const relative=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname==='/favicon.ico'?'/assets/lexus.ico':url.pathname);
     const file=path.resolve(root,'.'+relative);
     if(!file.startsWith(root+path.sep) || !mime[path.extname(file)] || relative.includes('/node_modules/') || relative.endsWith('/RECOVERY-REPORT.json')) {res.writeHead(404);return res.end();}
     let content=fs.readFileSync(file);

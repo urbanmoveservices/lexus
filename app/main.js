@@ -33,6 +33,7 @@ const {
 /** App / shortcut / taskbar icon (build/icon.ico preferred). */
 function getAppIconPath() {
   const candidates = [
+    path.join(__dirname, 'assets', 'lexus.ico'),
     path.join(__dirname, 'build', 'icon.ico'),
     path.join(__dirname, 'icon.ico'),
   ];
