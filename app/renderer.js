@@ -307,7 +307,7 @@ function collectJourneyPayload() {
   updateAutoTicketName();
   return {
     id: state.selectedJourneyId || undefined,
-    name: buildAutoTicketName() || val('journey-profile-name') || 'Journey',
+    name: val('journey-profile-name').trim() || buildAutoTicketName() || 'Journey',
     from: val('from-station-input'),
     to: val('destination-station-input'),
     date: val('journey-date'),
@@ -352,6 +352,8 @@ function fillJourneyEditor(j) {
   setVal('mobileNumber', j.contact?.mobile || '');
   setVal('email', j.contact?.email || '');
   writeBookOptions(j.options || {});
+  const nameField = document.getElementById('journey-profile-name');
+  if (nameField) nameField.dataset.autoName = j.name === buildAutoTicketName() ? j.name : '';
   updateAutoTicketName();
   syncSaveJourneyButton();
 }
@@ -368,6 +370,8 @@ function defaultJourneyDateIso() {
 function clearJourneyEditor() {
   state.selectedJourneyId = null;
   setVal('journey-profile-name', '');
+  const nameField = document.getElementById('journey-profile-name');
+  if (nameField) nameField.dataset.autoName = '';
   setVal('from-station-input', '');
   setVal('destination-station-input', '');
   setVal('journey-date', defaultJourneyDateIso());
@@ -885,8 +889,10 @@ function buildAutoTicketName() {
 }
 
 function updateAutoTicketName() {
+  const field = document.getElementById('journey-profile-name');
+  if (!field || (field.value.trim() && field.value !== (field.dataset.autoName || ''))) return;
   const name = buildAutoTicketName();
-  if (name) setVal('journey-profile-name', name);
+  if (name) { field.value = name; field.dataset.autoName = name; }
 }
 
 function validateJourneyForm() {
