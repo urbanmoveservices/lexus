@@ -753,7 +753,7 @@ function createNewsWindow() {
     newsWindow = null;
     pendingNewsPayload = null;
     if (licenseUnlocked && !mainAppOpened && !SKIP_LICENSE) {
-      app.quit();
+      openMainApp();
     }
   });
   newsWindow.loadFile(path.join(__dirname, 'news.html')).catch((err) => {
@@ -1003,8 +1003,6 @@ app.whenReady().then(async () => {
   lexusUpdater.registerUpdaterIpc({canUpdate:()=>bookingScheduler.pendingCount()===0});
 
   // Updates never delay opening the app or a booking window.
-  const mandatoryUpdate=await lexusUpdater.enforceRequiredUpdate();
-  if(mandatoryUpdate.required)return;
 
   console.log('[LEXUS] License gate…');
   await runLicenseGate();

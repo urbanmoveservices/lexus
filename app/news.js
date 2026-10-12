@@ -126,6 +126,7 @@ function renderPayload(payload) {
 }
 
 async function boot() {
+  document.getElementById('btnUpdate')?.addEventListener('click', async event => { const button=event.currentTarget; button.disabled=true; try {const result=await window.newsUi.update(); if(result?.error) document.getElementById('newsEmpty').textContent=result.error;} finally {button.disabled=false;} });
   const btn = document.getElementById('btnOk');
   btn?.addEventListener('click', async () => {
     btn.disabled = true;

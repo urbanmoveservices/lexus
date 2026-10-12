@@ -20,14 +20,9 @@ test('in-app update offers honor Later and block active or scheduled bookings', 
  scheduled=false;runs=[{}];result=await handlers['updater:check-offer']();assert.match(result.error,/active booking/);assert.equal(offers,0);
  runs=[];result=await handlers['updater:check-offer']();assert.equal(result.update,true);assert.equal(offers,1);assert.equal(result.started,undefined);
 });
-test('mandatory startup update failure exits instead of allowing the old app to open',async()=>{
- let quit=0,windows=0;const source=fs.readFileSync('app/ocean-updater.js','utf8');
- const context={require:name=>{
-  if(name==='electron')return{app:{quit:()=>quit++},BrowserWindow:function(){windows++},ipcMain:{},dialog:{showMessageBox:async()=>({response:2})},shell:{}};
-  if(name==='../distribution-config.cjs')return{installed:true,licenseUrl:'https://lexus.vaidya-gpt.com'};
-  if(name==='../package.json')return{version:'0.1.4'};
-  if(name==='./lexus-update-core')return{...require('./app/lexus-update-core'),fetchManifest:async()=>{throw Error('Offline fixture')}};
-  return require(name);
- },process:{platform:'win32'},module:{exports:{}},setTimeout};
- vm.runInNewContext(source,context);const result=await context.module.exports.enforceRequiredUpdate();assert.equal(result.required,true);assert.equal(result.started,false);assert.equal(quit,1);assert.equal(windows,0);
+test('desktop startup never starts the updater automatically',()=>{
+ const source=fs.readFileSync('app/main.js','utf8');
+ assert(!source.includes('enforceRequiredUpdate('));
+ assert(!source.includes('checkAndOfferUpdate('));
+ assert(fs.readFileSync('app/ocean-updater.js','utf8').includes("ipcMain.handle('updater:check-offer'"));
 });

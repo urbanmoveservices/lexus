@@ -2271,6 +2271,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await window.lexus.openSupportLink?.('whatsapp');
         return;
       }
+      if (action === 'about-close') {
+        document.querySelector('details.tb-brand-menu')?.removeAttribute('open');
+        await syncToolbarMenuShell();
+        return;
+      }
       if (action === 'support-telegram') {
         await window.lexus.openSupportLink?.('telegram');
         return;

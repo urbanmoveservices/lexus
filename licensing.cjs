@@ -100,11 +100,13 @@ function createLicensing({ directory = path.join(__dirname, 'license-data'), adm
       if (url.pathname.startsWith('/api/admin/') && url.pathname !== '/api/admin/login' && !authenticated(auth)) { json(401, { error: 'Administrator login required' }); return true; }
       if (req.method === 'GET' && url.pathname === '/api/admin/keys') { json(200, { keys: registry.keys.map(publicKey) }); return true; }
       if (req.method === 'GET' && url.pathname === '/api/admin/session') { json(200, { authenticated: true }); return true; }
+      if (req.method === 'GET' && ['/api/admin/notice','/api/license/notice'].includes(url.pathname)) { json(200, {notice:registry.desktopNotice||require('./app/notice-payload').defaults}); return true; }
       if (req.method === 'GET' && url.pathname === '/api/license/state') { const license = sessionLicense(cookies(req).lexus_license); json(200, { activated: !!license, license, details:license?hierarchy.clientSummary(license.id):null }); return true; }
       if (req.method !== 'POST') { json(405, { error: 'Method not allowed' }); return true; }
       let text = ''; for await (const chunk of req) { text += chunk; if (text.length > 16384) { json(413, { error: 'Request too large' }); return true; } }
       const body = text ? JSON.parse(text) : {};
       switch (url.pathname) {
+        case '/api/admin/notice': { registry.desktopNotice=require('./app/notice-payload').validateNotice(body);persist();json(200,{ok:true,notice:registry.desktopNotice});break; }
         case '/api/admin/login': { const token = login(body.password, req.socket.remoteAddress, body.username); res.setHeader('Set-Cookie', `lexus_admin=${token}; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=28800`); json(200, { ok: true }); break; }
         case '/api/admin/logout': sessions.delete(auth); res.setHeader('Set-Cookie', 'lexus_admin=; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=0'); json(200, { ok: true }); break;
         case '/api/admin/issue': json(200, issue({customer:body.customer,days:body.days,maxDevices:body.maxDevices,preferredKey:body.preferredKey})); break;
