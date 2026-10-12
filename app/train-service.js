@@ -378,12 +378,12 @@ async function fetchAvailabilityWithRetries(payload) {
         solution = await solveCaptchaImage(captchaBuf);
       } catch (ocrErr) {
         lastErr = ocrErr.message || String(ocrErr);
-        console.warn('[Ocean Train] OCR attempt failed:', lastErr);
+        console.warn('[LEXUS Train] OCR attempt failed:', lastErr);
         await sleep(300);
         continue;
       }
 
-      console.log(`[Ocean Train] Avail try ${attempt}/3 train=${trainNo} ${classCode}`);
+      console.log(`[LEXUS Train] Avail try ${attempt}/3 train=${trainNo} ${classCode}`);
 
       const result = await fetchAvailabilityOnce({
         trainNo,

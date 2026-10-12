@@ -62,5 +62,5 @@
     };
   }
 
-  global.OceanQrFileLog = { create: createFlowLogger };
+  global.LexusQrFileLog = { create: createFlowLogger };
 })(typeof window !== 'undefined' ? window : global);

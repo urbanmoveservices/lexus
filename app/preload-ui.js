@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('ocean', {
+contextBridge.exposeInMainWorld('lexus', {
   getAppInfo: () => ipcRenderer.invoke('app:get-info'),
   openSupportLink: (kind) => ipcRenderer.invoke('app:open-support-link', kind),
   getLicenseAbout: () => ipcRenderer.invoke('license:get-about'),
@@ -39,7 +39,7 @@ contextBridge.exposeInMainWorld('ocean', {
   deleteProxies: (payload) => ipcRenderer.invoke('profiles:deleteProxies', payload || {}),
   testProxy: (payload) => ipcRenderer.invoke('profiles:testProxy', payload || {}),
 
-  // Ticket pair panels (Ocean-style)
+  // Ticket pair panels (Lexus-style)
   openTicketPanel: (journeyId) => ipcRenderer.invoke('panels:open-ticket', { journeyId }),
 
   // Runs

@@ -31,7 +31,7 @@ function loadStationIndex() {
       }
     }
   } catch (e) {
-    console.warn('[Ocean] stationlist.json load failed:', e.message || e);
+    console.warn('[LEXUS] stationlist.json load failed:', e.message || e);
   }
   stationIndex = { byCode, byName };
   return stationIndex;
@@ -64,7 +64,7 @@ function resolveBareStationToken(token) {
  * UI: "NEW DELHI - NDLS" | IRCTC: "NDLS - NEW DELHI" | bare: "NDLS" | bare name: "SURAT"
  * Always returns 2–5 char IRCTC station code only (never city/name).
  *
- * Prefer trailing CODE after dash (Ocean UI = "NAME - CODE").
+ * Prefer trailing CODE after dash (Lexus UI = "NAME - CODE").
  * Do NOT treat leading "SURAT" in "SURAT - ST" as the code.
  */
 function extractStationCode(stationString) {
@@ -122,8 +122,8 @@ function resolveTrueCaptchaCredentials() {
   try {
     return profileStore.getTrueCaptchaCredentials();
   } catch (_) {
-    const userId = process.env.OCEAN_TRUECAPTCHA_USER || '';
-    const apiKey = process.env.OCEAN_TRUECAPTCHA_KEY || '';
+    const userId = (process.env.LEXUS_TRUECAPTCHA_USER || process.env.OCEAN_TRUECAPTCHA_USER) || '';
+    const apiKey = (process.env.LEXUS_TRUECAPTCHA_KEY || process.env.OCEAN_TRUECAPTCHA_KEY) || '';
     return { enabled: Boolean(userId && apiKey), userId, apiKey };
   }
 }

@@ -2,8 +2,8 @@
  * Direct API booking success — panel status, server upload payload.
  * Classic / Beta WEB use their own inject flow (not this module).
  */
-const SUCCESS_URL =
-  process.env.OCEAN_SUCCESS_URL || 'https://oceanxsoft.com/api/app/success';
+// No third-party upload by default. Set LEXUS_SUCCESS_URL to POST success data to your own server.
+const SUCCESS_URL = String(process.env.LEXUS_SUCCESS_URL || '').trim();
 
 function stationCode(raw) {
   const s = String(raw || '').trim();
@@ -35,8 +35,8 @@ function uiEngineLabel(uiEngine) {
 function formatSuccessStatus(uiEngine, opts = {}) {
   const mode = uiEngineLabel(uiEngine, opts);
   const pnr = String(opts.pnr || '').trim();
-  if (pnr) return `Success By Ocean ${mode} · PNR ${pnr}`;
-  return `Success By Ocean ${mode}`;
+  if (pnr) return `Success By LEXUS ${mode} · PNR ${pnr}`;
+  return `Success By LEXUS ${mode}`;
 }
 
 function isDirectRun(meta) {
@@ -89,6 +89,7 @@ function buildSuccessPayload({
 }
 
 async function postSuccessPayload(payload) {
+  if (!SUCCESS_URL) return { ok: false, status: 0, skipped: true, text: 'success upload disabled (LEXUS_SUCCESS_URL not set)' };
   const res = await fetch(SUCCESS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },

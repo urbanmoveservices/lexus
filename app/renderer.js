@@ -65,8 +65,8 @@ function sanitizePassengerAgeValue(raw) {
 }
 
 function bindPassengerNameInput(el) {
-  if (!el || el.dataset.oceanBound === '1') return;
-  el.dataset.oceanBound = '1';
+  if (!el || el.dataset.lexusBound === '1') return;
+  el.dataset.lexusBound = '1';
   el.setAttribute('maxlength', '16');
   el.setAttribute('autocomplete', 'off');
   el.setAttribute('spellcheck', 'false');
@@ -78,8 +78,8 @@ function bindPassengerNameInput(el) {
 }
 
 function bindPassengerAgeInput(el) {
-  if (!el || el.dataset.oceanBound === '1') return;
-  el.dataset.oceanBound = '1';
+  if (!el || el.dataset.lexusBound === '1') return;
+  el.dataset.lexusBound = '1';
   el.setAttribute('maxlength', '3');
   el.setAttribute('inputmode', 'numeric');
   el.setAttribute('autocomplete', 'off');
@@ -568,12 +568,12 @@ function showEditorTab(name) {
 async function openNewBookForm() {
   if (SHELL.view === 'toolbar') {
     state.selectedJourneyId = null;
-    await window.ocean.openNewBookDraft();
+    await window.lexus.openNewBookDraft();
     return;
   }
   clearJourneyEditor();
   state.selectedJourneyId = null;
-  await window.ocean.setUiState({ selectedJourneyId: null });
+  await window.lexus.setUiState({ selectedJourneyId: null });
   setVal('journey-date', defaultJourneyDateIso());
   openModal('book');
 }
@@ -619,13 +619,13 @@ function openModal(modalName) {
   const name = modalName || '';
   if (SHELL.view === 'toolbar') {
     closeToolbarMenus();
-    if (name) window.ocean?.openModalShell?.(name);
+    if (name) window.lexus?.openModalShell?.(name);
     return;
   }
   activateModalLocal(name);
   // Edit from Tickets reuses this window — ask main to resize to book/default bounds
-  if (name && typeof window.ocean?.openModalShell === 'function') {
-    Promise.resolve(window.ocean.openModalShell(name)).catch(() => {});
+  if (name && typeof window.lexus?.openModalShell === 'function') {
+    Promise.resolve(window.lexus.openModalShell(name)).catch(() => {});
   }
 }
 
@@ -653,7 +653,7 @@ async function syncToolbarMenuShell() {
   const open = Boolean(openDetails);
   document.body.classList.toggle('toolbar-menu-open', open);
   try {
-    await window.ocean?.setToolbarMenuOpen?.(open);
+    await window.lexus?.setToolbarMenuOpen?.(open);
   } catch (_) {}
   if (open && openDetails) {
     // After window grows, pin menu above the button (avoids 86px clip)
@@ -709,14 +709,14 @@ function applyAboutInfo({ key = '', leftDays = null, version = '', web2Browser =
 }
 
 async function refreshAboutInfo(refreshFromServer = false) {
-  if (!window.ocean?.getLicenseAbout) return;
+  if (!window.lexus?.getLicenseAbout) return;
   try {
-    const info = refreshFromServer && window.ocean.refreshLicenseAbout
-      ? await window.ocean.refreshLicenseAbout()
-      : await window.ocean.getLicenseAbout();
+    const info = refreshFromServer && window.lexus.refreshLicenseAbout
+      ? await window.lexus.refreshLicenseAbout()
+      : await window.lexus.getLicenseAbout();
     applyAboutInfo(info);
   } catch (err) {
-    console.warn('[Ocean] About info failed', err);
+    console.warn('[LEXUS] About info failed', err);
   }
 }
 
@@ -780,7 +780,7 @@ function wireToolbarMenus() {
     enableDropdownDrag(card);
     // Expand window before details opens so first paint isn't clipped
     summary?.addEventListener('pointerdown', () => {
-      if (!details.open) window.ocean?.setToolbarMenuOpen?.(true);
+      if (!details.open) window.lexus?.setToolbarMenuOpen?.(true);
     });
     details.addEventListener('toggle', () => {
       if (details.open) {
@@ -806,11 +806,11 @@ function wireToolbarMenus() {
 
 function closeModals() {
   if (SHELL.view === 'toolbar') {
-    window.ocean?.closeModalShell?.();
+    window.lexus?.closeModalShell?.();
     return;
   }
   if (SHELL.view === 'modal') {
-    window.ocean?.closeModalShell?.();
+    window.lexus?.closeModalShell?.();
     return;
   }
   activateModalLocal('');
@@ -823,7 +823,7 @@ function setRunsDrawer(open) {
 
 async function refreshLists() {
   const [journeys, credentials, payments] = await Promise.all([
-    window.ocean.listProfiles('journeys'), window.ocean.listProfiles('credentials'), window.ocean.listProfiles('payments'),
+    window.lexus.listProfiles('journeys'), window.lexus.listProfiles('credentials'), window.lexus.listProfiles('payments'),
   ]);
 
   fillSelect('journeySelect', journeys, state.selectedJourneyId, (j) =>
@@ -853,12 +853,12 @@ async function refreshLists() {
 }
 
 function stationCodeShort(raw) {
-  if (window.OceanStations?.normalizeToStationCode) {
-    const c = window.OceanStations.normalizeToStationCode(raw);
+  if (window.LexusStations?.normalizeToStationCode) {
+    const c = window.LexusStations.normalizeToStationCode(raw);
     if (c) return c;
   }
-  if (window.OceanStations?.stationCodeFromValue) {
-    const c = window.OceanStations.stationCodeFromValue(raw);
+  if (window.LexusStations?.stationCodeFromValue) {
+    const c = window.LexusStations.stationCodeFromValue(raw);
     if (c) return c;
   }
   const s = String(raw || '').trim();
@@ -1047,11 +1047,11 @@ async function openTicketPanel(id) {
     toast('Ticket ID missing');
     return;
   }
-  if (!window.ocean?.openTicketPanel) {
+  if (!window.lexus?.openTicketPanel) {
     toast('Panel API missing — app restart karo');
     return;
   }
-  const r = await window.ocean.openTicketPanel(id);
+  const r = await window.lexus.openTicketPanel(id);
   if (!r?.ok) {
     toast(r?.error || 'Panel open failed');
     return;
@@ -1066,9 +1066,9 @@ async function editTicket(id) {
 }
 
 async function duplicateTicket(id) {
-  const j = await window.ocean.getProfile({ kind: 'journeys', id });
+  const j = await window.lexus.getProfile({ kind: 'journeys', id });
   if (!j) return;
-  const saved = await window.ocean.saveJourney({
+  const saved = await window.lexus.saveJourney({
     name: `${j.name || 'ticket'}_copy`,
     from: j.from,
     to: j.to,
@@ -1092,7 +1092,7 @@ async function duplicateTicket(id) {
 
 async function deleteTicket(id) {
   if (!confirm('Delete this ticket?')) return;
-  await window.ocean.deleteProfile('journeys', id);
+  await window.lexus.deleteProfile('journeys', id);
   if (state.selectedJourneyId === id) clearJourneyEditor();
   await refreshLists();
   toast('Ticket deleted');
@@ -1104,7 +1104,7 @@ function setTicketsFilter(filter) {
     const key = btn.dataset.action.replace('tickets-filter-', '');
     btn.classList.toggle('is-active', key === filter);
   });
-  window.ocean.listProfiles('journeys').then((journeys) => renderTicketsList(journeys));
+  window.lexus.listProfiles('journeys').then((journeys) => renderTicketsList(journeys));
 }
 
 async function renderAccountsList(credentials) {
@@ -1132,7 +1132,7 @@ async function renderAccountsList(credentials) {
   const detailed = await Promise.all(
     credentials.map(async (c) => {
       try {
-        const full = await window.ocean.getProfile({
+        const full = await window.lexus.getProfile({
           kind: 'credentials',
           id: c.id,
           includeSecrets: true,
@@ -1170,11 +1170,11 @@ async function renderAccountsList(credentials) {
       // STAR: ACTIVE → DEACTIVE; DEACTIVE/BOOKED/… → ACTIVE
       const next = status === 'ACTIVE' ? 'DEACTIVE' : 'ACTIVE';
       try {
-        if (typeof window.ocean.setCredentialStatus !== 'function') return;
-        await window.ocean.setCredentialStatus(c.id, next);
+        if (typeof window.lexus.setCredentialStatus !== 'function') return;
+        await window.lexus.setCredentialStatus(c.id, next);
         await refreshLists();
       } catch (err) {
-        console.warn('[Ocean] credential status toggle failed', err);
+        console.warn('[LEXUS] credential status toggle failed', err);
       }
     });
 
@@ -1262,12 +1262,12 @@ async function saveBulkCredentials() {
   try {
     let lastId = null;
     for (const item of lines) {
-      const saved = await window.ocean.saveCredential(item);
+      const saved = await window.lexus.saveCredential(item);
       lastId = saved?.id || lastId;
     }
     if (lastId) {
       state.selectedCredentialId = lastId;
-      await window.ocean.setUiState({ selectedCredentialId: lastId });
+      await window.lexus.setUiState({ selectedCredentialId: lastId });
     }
     setVal('accountsBulkText', '');
     setAccountsBulkMode(false);
@@ -1328,8 +1328,8 @@ async function renderProxiesList() {
   if (selectAll) selectAll.checked = false;
   try {
     const res =
-      typeof window.ocean?.listProxies === 'function'
-        ? await window.ocean.listProxies()
+      typeof window.lexus?.listProxies === 'function'
+        ? await window.lexus.listProxies()
         : null;
     const proxies = Array.isArray(res?.proxies) ? res.proxies : [];
     if (count) count.textContent = String(proxies.length);
@@ -1375,29 +1375,29 @@ function clearProxyInput() {
 }
 
 async function selectJourney(id, { navigate = true } = {}) {
-  const j = await window.ocean.getProfile({ kind: 'journeys', id });
+  const j = await window.lexus.getProfile({ kind: 'journeys', id });
   if (!j) return;
   fillJourneyEditor(j);
-  await window.ocean.setUiState({ selectedJourneyId: id });
+  await window.lexus.setUiState({ selectedJourneyId: id });
   if (navigate) showEditorTab('journey');
   await refreshLists();
 }
 
 async function selectCredential(id, { navigate = true, fillForm = navigate } = {}) {
-  const c = await window.ocean.getProfile({ kind: 'credentials', id, includeSecrets: true });
+  const c = await window.lexus.getProfile({ kind: 'credentials', id, includeSecrets: true });
   if (!c) return;
   state.selectedCredentialId = c.id;
   if (fillForm) fillCredentialEditor(c);
-  await window.ocean.setUiState({ selectedCredentialId: id });
+  await window.lexus.setUiState({ selectedCredentialId: id });
   if (navigate) showEditorTab('login');
   await refreshLists();
 }
 
 async function selectPayment(id, { navigate = true } = {}) {
-  const p = await window.ocean.getProfile({ kind: 'payments', id, includeSecrets: true });
+  const p = await window.lexus.getProfile({ kind: 'payments', id, includeSecrets: true });
   if (!p) return;
   fillPaymentEditor(p);
-  await window.ocean.setUiState({ selectedPaymentId: id });
+  await window.lexus.setUiState({ selectedPaymentId: id });
   if (navigate) showEditorTab('payment');
   await refreshLists();
 }
@@ -1408,8 +1408,8 @@ async function saveJourney() {
     toast(formCheck.message);
     return;
   }
-  if (window.OceanStations) {
-    const check = window.OceanStations.validateJourneyStations();
+  if (window.LexusStations) {
+    const check = window.LexusStations.validateJourneyStations();
     if (!check.ok) {
       toast(check.problems[0] || 'Station list se choose karo');
       return;
@@ -1420,11 +1420,11 @@ async function saveJourney() {
   const payId = val('paymentSelect');
   if (credId) {
     state.selectedCredentialId = credId;
-    await window.ocean.setUiState({ selectedCredentialId: credId });
+    await window.lexus.setUiState({ selectedCredentialId: credId });
   }
   if (payId) {
     state.selectedPaymentId = payId;
-    await window.ocean.setUiState({ selectedPaymentId: payId });
+    await window.lexus.setUiState({ selectedPaymentId: payId });
   }
   const wasEdit = Boolean(state.selectedJourneyId);
   const payload = collectJourneyPayload();
@@ -1435,9 +1435,9 @@ async function saveJourney() {
   if (payload.from === '—') payload.from = '';
   if (payload.to === '—') payload.to = '';
   if (payload.boarding === '—') payload.boarding = '';
-  const saved = await window.ocean.saveJourney(payload);
+  const saved = await window.lexus.saveJourney(payload);
   state.selectedJourneyId = saved.id;
-  await window.ocean.setUiState({ selectedJourneyId: saved.id });
+  await window.lexus.setUiState({ selectedJourneyId: saved.id });
   fillJourneyEditor(saved);
   toast(wasEdit ? `Ticket updated: ${saved.name}` : `Ticket saved: ${saved.name}`);
   await refreshLists();
@@ -1454,11 +1454,11 @@ async function saveCredential() {
     toast('Enter password');
     return;
   }
-  const saved = await window.ocean.saveCredential(payload);
+  const saved = await window.lexus.saveCredential(payload);
   const wasEdit = state.credentialEditMode;
   state.selectedCredentialId = saved.id;
   state.credentialEditMode = false;
-  await window.ocean.setUiState({ selectedCredentialId: saved.id });
+  await window.lexus.setUiState({ selectedCredentialId: saved.id });
   setVal('irctc-login', '');
   setVal('irctc-password', '');
   setLoginFieldsEditable(true);
@@ -1471,7 +1471,7 @@ async function editCredential() {
     toast('Pehle list se ID select karo');
     return;
   }
-  const c = await window.ocean.getProfile({
+  const c = await window.lexus.getProfile({
     kind: 'credentials',
     id: state.selectedCredentialId,
     includeSecrets: true,
@@ -1493,13 +1493,13 @@ async function savePayment() {
     return;
   }
 
-  const payments = await window.ocean.listProfiles('payments');
+  const payments = await window.lexus.listProfiles('payments');
   const existing = payments.find((p) => p.paymentMethod === method);
   const label = paymentMethodLabel(method);
 
   if (existing) {
     if (state.selectedPaymentId === existing.id) {
-      const saved = await window.ocean.savePayment(collectPaymentPayload({ id: existing.id }));
+      const saved = await window.lexus.savePayment(collectPaymentPayload({ id: existing.id }));
       state.selectedPaymentId = saved.id;
       toast(`Updated: ${label}`);
       await refreshLists();
@@ -1510,7 +1510,7 @@ async function savePayment() {
     return;
   }
 
-  const saved = await window.ocean.savePayment(collectPaymentPayload());
+  const saved = await window.lexus.savePayment(collectPaymentPayload());
   state.selectedPaymentId = saved.id;
   toast(`Added: ${label}`);
   await refreshLists();
@@ -1529,7 +1529,7 @@ async function renameSelected(kind) {
   }
   const name = prompt('New name:');
   if (!name) return;
-  await window.ocean.renameProfile(kind, id, name);
+  await window.lexus.renameProfile(kind, id, name);
   if (kind === 'journeys') setVal('journey-profile-name', name);
   toast('Renamed');
   await refreshLists();
@@ -1547,7 +1547,7 @@ async function deleteSelected(kind) {
     return;
   }
   if (!confirm('Delete this profile?')) return;
-  await window.ocean.deleteProfile(kind, id);
+  await window.lexus.deleteProfile(kind, id);
   if (kind === 'journeys') clearJourneyEditor();
   if (kind === 'credentials') clearCredentialEditor();
   if (kind === 'payments') clearPaymentEditor();
@@ -1556,15 +1556,15 @@ async function deleteSelected(kind) {
 }
 
 async function deleteAllPayments() {
-  const payments = await window.ocean.listProfiles('payments');
+  const payments = await window.lexus.listProfiles('payments');
   if (!payments.length) {
     toast('No payment methods to delete');
     return;
   }
   if (!confirm('Delete ALL saved payment methods?')) return;
-  for (const p of payments) await window.ocean.deleteProfile('payments', p.id);
+  for (const p of payments) await window.lexus.deleteProfile('payments', p.id);
   clearPaymentEditor();
-  await window.ocean.setUiState({ selectedPaymentId: null });
+  await window.lexus.setUiState({ selectedPaymentId: null });
   toast('All payment methods deleted');
   await refreshLists();
 }
@@ -1617,12 +1617,12 @@ function renderRuns(runs) {
 
   ul.querySelectorAll('[data-focus]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      await window.ocean.focusRun(btn.dataset.focus);
+      await window.lexus.focusRun(btn.dataset.focus);
     });
   });
   ul.querySelectorAll('[data-stop]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      await window.ocean.stopRun(btn.dataset.stop);
+      await window.lexus.stopRun(btn.dataset.stop);
     });
   });
 }
@@ -1682,9 +1682,9 @@ function renderHistory(items) {
 }
 
 async function refreshHistory() {
-  if (typeof window.ocean?.listHistory !== 'function') return;
+  if (typeof window.lexus?.listHistory !== 'function') return;
   try {
-    const data = await window.ocean.listHistory();
+    const data = await window.lexus.listHistory();
     renderHistory(data?.items || []);
   } catch (_) {
     renderHistory([]);
@@ -1701,8 +1701,8 @@ async function startRun() {
     toast('Select Journey + Login + Payment first');
     return;
   }
-  if (window.OceanStations) {
-    const check = window.OceanStations.validateJourneyStations();
+  if (window.LexusStations) {
+    const check = window.LexusStations.validateJourneyStations();
     if (!check.ok) {
       showEditorTab('journey');
       toast(check.problems[0] || 'Station list se choose karo');
@@ -1712,7 +1712,7 @@ async function startRun() {
   const mode = val('runMode') || 'nget';
   const engine = val('runEngine') || 'system-chrome';
   const ipMode = val('bookIpSelect') === 'proxy' ? 'proxy' : 'auto';
-  const result = await window.ocean.startRun({
+  const result = await window.lexus.startRun({
     journeyId: state.selectedJourneyId,
     credentialId: state.selectedCredentialId,
     paymentId: state.selectedPaymentId,
@@ -1754,19 +1754,19 @@ function startClock() {
 }
 
 async function loadManualLoginSetting() {
-  if (!window.ocean?.getUiState) return;
+  if (!window.lexus?.getUiState) return;
   try {
-    const ui = await window.ocean.getUiState();
+    const ui = await window.lexus.getUiState();
     const el = document.getElementById('optManualLogin');
     if (el) el.checked = String(ui.manualLoginEnabled ?? '0') === '1';
   } catch (e) {
-    console.warn('[Ocean] Manual login load failed', e);
+    console.warn('[LEXUS] Manual login load failed', e);
   }
 }
 
 async function saveManualLogin(enabled) {
-  if (!window.ocean?.setUiState) return;
-  await window.ocean.setUiState({ manualLoginEnabled: enabled ? '1' : '0' });
+  if (!window.lexus?.setUiState) return;
+  await window.lexus.setUiState({ manualLoginEnabled: enabled ? '1' : '0' });
   toast(
     enabled
       ? 'Manual login ON — password aur Sign In aap karenge'
@@ -1775,10 +1775,10 @@ async function saveManualLogin(enabled) {
 }
 
 async function loadTrueCaptchaForm() {
-  if (!window.ocean?.getTrueCaptcha) return;
+  if (!window.lexus?.getTrueCaptcha) return;
   try {
-    const c = await window.ocean.getTrueCaptcha();
-    const ui = await window.ocean.getUiState();
+    const c = await window.lexus.getTrueCaptcha();
+    const ui = await window.lexus.getUiState();
     const en = document.getElementById('trueCaptchaEnabled');
     const uid = document.getElementById('trueCaptchaUserId');
     const key = document.getElementById('trueCaptchaApiKey');
@@ -1786,19 +1786,19 @@ async function loadTrueCaptchaForm() {
     if (uid) uid.value = c.userId || '';
     if (key) key.value = c.apiKey || '';
   } catch (e) {
-    console.warn('[Ocean] TrueCaptcha load failed', e);
+    console.warn('[LEXUS] TrueCaptcha load failed', e);
   }
 }
 
 async function saveTrueCaptcha() {
-  if (!window.ocean?.setTrueCaptcha) {
+  if (!window.lexus?.setTrueCaptcha) {
     toast('Captcha save unavailable');
     return;
   }
   const enabled = Boolean(document.getElementById('trueCaptchaEnabled')?.checked);
   const userId = val('trueCaptchaUserId');
   const apiKey = val('trueCaptchaApiKey');
-  await window.ocean.setTrueCaptcha({ enabled, userId, apiKey });
+  await window.lexus.setTrueCaptcha({ enabled, userId, apiKey });
   toast(
     enabled && userId && apiKey
       ? 'TrueCaptcha saved (jab captcha aaye tab use hoga)'
@@ -1813,7 +1813,7 @@ async function loadProxyForm() {
 }
 
 async function saveProxy() {
-  if (!window.ocean?.addProxy && !window.ocean?.setProxy) {
+  if (!window.lexus?.addProxy && !window.lexus?.setProxy) {
     toast('Proxy save unavailable');
     return;
   }
@@ -1827,14 +1827,14 @@ async function saveProxy() {
     return;
   }
   try {
-    if (typeof window.ocean.addProxy === 'function') {
-      const res = await window.ocean.addProxy({ host });
+    if (typeof window.lexus.addProxy === 'function') {
+      const res = await window.lexus.addProxy({ host });
       clearProxyInput();
       await renderProxiesList();
       toast(`Proxy added (${res?.count ?? '?'} saved)`);
       return;
     }
-    const saved = await window.ocean.setProxy({ host });
+    const saved = await window.lexus.setProxy({ host });
     clearProxyInput();
     await renderProxiesList();
     toast(
@@ -1848,7 +1848,7 @@ async function saveProxy() {
 }
 
 async function deleteProxy() {
-  if (!window.ocean?.deleteProxies && !window.ocean?.setProxy) {
+  if (!window.lexus?.deleteProxies && !window.lexus?.setProxy) {
     toast('Proxy delete unavailable');
     return;
   }
@@ -1859,10 +1859,10 @@ async function deleteProxy() {
   }
   if (!confirm(`Delete ${ids.length} selected proxy?`)) return;
   try {
-    if (typeof window.ocean.deleteProxies === 'function') {
-      await window.ocean.deleteProxies({ ids });
+    if (typeof window.lexus.deleteProxies === 'function') {
+      await window.lexus.deleteProxies({ ids });
     } else {
-      await window.ocean.setProxy({ host: '' });
+      await window.lexus.setProxy({ host: '' });
     }
     clearProxyInput();
     await renderProxiesList();
@@ -1873,7 +1873,7 @@ async function deleteProxy() {
 }
 
 async function testProxy() {
-  if (!window.ocean?.testProxy) {
+  if (!window.lexus?.testProxy) {
     toast('Proxy test unavailable');
     return;
   }
@@ -1888,7 +1888,7 @@ async function testProxy() {
     } else if (selected.length) {
       payload = { id: selected[0] };
     }
-    const res = await window.ocean.testProxy(payload);
+    const res = await window.lexus.testProxy(payload);
     if (res?.ok) {
       toast(
         `IRCTC OK — HTTP ${res.status || 200}${res.ms != null ? ` (${res.ms}ms)` : ''}`
@@ -1904,49 +1904,49 @@ async function testProxy() {
 }
 
 async function bootstrap() {
-  if (!window.ocean) {
-    toast('Ocean bridge missing');
+  if (!window.lexus) {
+    toast('LEXUS bridge missing');
     return;
   }
 
-  const info = await window.ocean.getAppInfo();
+  const info = await window.lexus.getAppInfo();
   state.maxRuns = info.maxParallelRuns || 4;
-  refreshAboutInfo(false).catch(error => console.warn('[Ocean] About load:', error.message));
+  refreshAboutInfo(false).catch(error => console.warn('[LEXUS] About load:', error.message));
 
-  const runs = await window.ocean.listRuns();
+  const runs = await window.lexus.listRuns();
   renderRuns(runs.runs || []);
-  window.ocean.onRunsStatus((data) => renderRuns(data.runs || []));
-  refreshHistory().catch(error => console.warn('[Ocean] History load:', error.message));
-  window.ocean.onHistoryUpdated?.((data) => {
+  window.lexus.onRunsStatus((data) => renderRuns(data.runs || []));
+  refreshHistory().catch(error => console.warn('[LEXUS] History load:', error.message));
+  window.lexus.onHistoryUpdated?.((data) => {
     renderHistory(data?.items || []);
   });
 
   // Toolbar shell: show immediately — heavy work only in modal window
   if (SHELL.view === 'toolbar') {
-    console.log('[Ocean] Toolbar ready');
+    console.log('[LEXUS] Toolbar ready');
     return;
   }
 
   const stationsReady = (async () => { try {
-    if (window.OceanStations) {
-      const n = await window.OceanStations.initStationAutocomplete();
-      console.log('[Ocean] Stations loaded:', n);
+    if (window.LexusStations) {
+      const n = await window.LexusStations.initStationAutocomplete();
+      console.log('[LEXUS] Stations loaded:', n);
     }
   } catch (e) {
-    console.error('[Ocean] Station list failed', e);
+    console.error('[LEXUS] Station list failed', e);
     toast('Station list load failed');
   } })();
 
-  const ui = await window.ocean.getUiState();
+  const ui = await window.lexus.getUiState();
   state.selectedJourneyId = newBookDraftRequested ? null : ui.selectedJourneyId || null;
   state.selectedCredentialId = ui.selectedCredentialId || null;
   state.selectedPaymentId = ui.selectedPaymentId || null;
 
   await stationsReady;
   const [journey, credential, payment] = await Promise.all([
-    state.selectedJourneyId ? window.ocean.getProfile({ kind: 'journeys', id: state.selectedJourneyId }) : null,
-    state.selectedCredentialId ? window.ocean.getProfile({ kind: 'credentials', id: state.selectedCredentialId, includeSecrets: true }) : null,
-    state.selectedPaymentId ? window.ocean.getProfile({ kind: 'payments', id: state.selectedPaymentId, includeSecrets: true }) : null,
+    state.selectedJourneyId ? window.lexus.getProfile({ kind: 'journeys', id: state.selectedJourneyId }) : null,
+    state.selectedCredentialId ? window.lexus.getProfile({ kind: 'credentials', id: state.selectedCredentialId, includeSecrets: true }) : null,
+    state.selectedPaymentId ? window.lexus.getProfile({ kind: 'payments', id: state.selectedPaymentId, includeSecrets: true }) : null,
   ]);
   if (journey && !newBookDraftRequested) fillJourneyEditor(journey);
   if (credential) fillCredentialEditor(credential);
@@ -1954,12 +1954,12 @@ async function bootstrap() {
   await refreshLists();
   await Promise.all([loadTrueCaptchaForm(), loadManualLoginSetting(), loadProxyForm()]);
 
-  window.ocean.onTrainSelected((payload) => {
+  window.lexus.onTrainSelected((payload) => {
     applyTrainSelection(payload || {});
   });
 
   // Register early-ish; also recover if book:new-draft fired before listener
-  window.ocean.onNewBookDraft?.(() => {
+  window.lexus.onNewBookDraft?.(() => {
     prepareNewBookDraftLocal();
   });
 
@@ -1970,12 +1970,12 @@ async function bootstrap() {
     activateModalLocal(startModal);
     if (startModal === 'book') ensureDefaultJourneyDate();
   }
-  console.log('[Ocean] Modal ready:', startModal);
+  console.log('[LEXUS] Modal ready:', startModal);
 }
 
 function findStationFullNameByCode(code) {
-  if (!window.OceanStations || !code) return null;
-  const matches = window.OceanStations.getStationMatches(code, 20) || [];
+  if (!window.LexusStations || !code) return null;
+  const matches = window.LexusStations.getStationMatches(code, 20) || [];
   const exact = matches.find((line) => {
     const parts = line.split(' - ');
     return (parts[parts.length - 1] || '').trim().toUpperCase() === String(code).toUpperCase();
@@ -2018,7 +2018,7 @@ function applyTrainSelection(payload) {
   syncSaveJourneyButton();
 
   try {
-    window.OceanStations?.closeAllStationLists?.();
+    window.LexusStations?.closeAllStationLists?.();
   } catch (_) {}
 
   if (SHELL.view === 'modal') {
@@ -2038,14 +2038,14 @@ async function openTrainSearch() {
     toast('Pehle From, To aur Date bharo');
     return;
   }
-  if (window.OceanStations) {
-    const check = window.OceanStations.validateJourneyStations();
+  if (window.LexusStations) {
+    const check = window.LexusStations.validateJourneyStations();
     if (!check.ok) {
       toast(check.problems[0] || 'Stations list se choose karo');
       return;
     }
   }
-  await window.ocean.openTrainSearch({ from, to, date });
+  await window.lexus.openTrainSearch({ from, to, date });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2067,15 +2067,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('view-modal');
     activateModalLocal(SHELL.modal || 'tickets');
     // Catch book:new-draft before async bootstrap finishes
-    window.ocean?.onNewBookDraft?.(() => {
+    window.lexus?.onNewBookDraft?.(() => {
       prepareNewBookDraftLocal();
     });
   }
   bootstrap().catch((err) => {
-    console.error('[Ocean] bootstrap failed', err);
+    console.error('[LEXUS] bootstrap failed', err);
   });
 
-  window.ocean?.onModalNavigate?.((name) => {
+  window.lexus?.onModalNavigate?.((name) => {
     activateModalLocal(name || 'tickets');
     if (name === 'book') ensureDefaultJourneyDate();
     if (name === 'history' || name === 'runs') refreshHistory();
@@ -2172,13 +2172,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (action === 'tickets-open-all') {
-        const journeys = filterTickets(await window.ocean.listProfiles('journeys'));
+        const journeys = filterTickets(await window.lexus.listProfiles('journeys'));
         if (!journeys.length) {
           toast('No tickets to open');
           return;
         }
         for (const j of journeys) {
-          await window.ocean.openTicketPanel(j.id);
+          await window.lexus.openTicketPanel(j.id);
         }
         closeModals();
         return;
@@ -2222,8 +2222,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (action === 'tickets-delete-all') {
         if (!confirm('Delete ALL saved tickets?')) return;
-        const journeys = await window.ocean.listProfiles('journeys');
-        for (const j of journeys) await window.ocean.deleteProfile('journeys', j.id);
+        const journeys = await window.lexus.listProfiles('journeys');
+        for (const j of journeys) await window.lexus.deleteProfile('journeys', j.id);
         clearJourneyEditor();
         await refreshLists();
         toast('All tickets deleted');
@@ -2255,24 +2255,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (action === 'history-clear') {
         if (!confirm('Clear all booking history?')) return;
-        await window.ocean.clearHistory?.();
+        await window.lexus.clearHistory?.();
         renderHistory([]);
         toast('History cleared');
         return;
       }
       if (action === 'check-updates') {
         toast('Checking for updates…');
-        const result = await window.ocean.checkForUpdates();
+        const result = await window.lexus.checkForUpdates();
         if(result?.hosted){location.assign('/downloads');return;}
         toast(result?.error || (result?.started ? 'Update downloading…' : result?.update ? 'Update available; choose Install update to continue' : 'LEXUS is up to date'));
         return;
       }
       if (action === 'support-whatsapp') {
-        await window.ocean.openSupportLink?.('whatsapp');
+        await window.lexus.openSupportLink?.('whatsapp');
         return;
       }
       if (action === 'support-telegram') {
-        await window.ocean.openSupportLink?.('telegram');
+        await window.lexus.openSupportLink?.('telegram');
         return;
       }
       if (action === 'reset-key') {
@@ -2285,7 +2285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = e.target.value;
     if (!id) {
       clearJourneyEditor();
-      await window.ocean.setUiState({ selectedJourneyId: null });
+      await window.lexus.setUiState({ selectedJourneyId: null });
       await refreshLists();
       return;
     }
@@ -2296,7 +2296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = e.target.value;
     if (!id) {
       state.selectedCredentialId = null;
-      await window.ocean.setUiState({ selectedCredentialId: null });
+      await window.lexus.setUiState({ selectedCredentialId: null });
       await refreshLists();
       return;
     }
@@ -2306,7 +2306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = e.target.value;
     if (!id) {
       state.selectedPaymentId = null;
-      await window.ocean.setUiState({ selectedPaymentId: null });
+      await window.lexus.setUiState({ selectedPaymentId: null });
       await refreshLists();
       return;
     }
@@ -2317,11 +2317,11 @@ document.addEventListener('DOMContentLoaded', () => {
     syncVpaFieldVisibility();
     const method = String(e.target?.value || '').trim();
     if (!state.selectedPaymentId || !method) return;
-    const payments = await window.ocean.listProfiles('payments');
+    const payments = await window.lexus.listProfiles('payments');
     const selected = payments.find((p) => p.id === state.selectedPaymentId);
     if (selected && selected.paymentMethod !== method) {
       state.selectedPaymentId = null;
-      await window.ocean.setUiState({ selectedPaymentId: null });
+      await window.lexus.setUiState({ selectedPaymentId: null });
       await refreshLists();
       syncVpaFieldVisibility();
     }
@@ -2338,12 +2338,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   on('closeRunsBtn', 'click', () => closeModals());
   on('closeAppBtn', 'click', () => {
-    window.ocean?.quitApp?.();
+    window.lexus?.quitApp?.();
   });
 
   on('newCredentialBtn', 'click', async () => {
     clearCredentialEditor();
-    await window.ocean.setUiState({ selectedCredentialId: null });
+    await window.lexus.setUiState({ selectedCredentialId: null });
     setAccountsBulkMode(false);
     await refreshLists();
     document.getElementById('irctc-login')?.focus();
@@ -2387,7 +2387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearJourneyEditor();
     clearCredentialEditor();
     clearPaymentEditor();
-    await window.ocean.setUiState({
+    await window.lexus.setUiState({
       selectedJourneyId: null,
       selectedCredentialId: null,
       selectedPaymentId: null,
@@ -2398,7 +2398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   on('ticketsSearchInput', 'input', async (e) => {
     state.ticketsSearch = e.target.value || '';
-    const journeys = await window.ocean.listProfiles('journeys');
+    const journeys = await window.lexus.listProfiles('journeys');
     renderTicketsList(journeys);
   });
 });

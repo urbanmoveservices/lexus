@@ -52,10 +52,10 @@ async function api(channel,...args){const r=await fetch(base+'/api/invoke',{meth
     activationCookie=cookieA;assert.equal((await api('profiles:list','journeys')).length,2);assert.equal(await api('profiles:get',{kind:'journeys',id:journeyB.id}),null);
 
     const personalizedA=await fetch(base+'/api/license/change',{method:'POST',headers:{'Content-Type':'application/json',Cookie:activationCookie},body:JSON.stringify({currentKey:issuedData.key,newKey:'isolationAnew7'})});assert.equal(personalizedA.status,200);activationCookie=personalizedA.headers.get('set-cookie').split(';')[0];assert.equal((await api('profiles:list','journeys')).length,2);
-    assert(!fs.readFileSync(path.join(data,'clients',issuedData.license.id,'ocean-data','ocean.sqlite')).includes(Buffer.from('dummy-test-password')));
+    assert(!fs.readFileSync(path.join(data,'clients',issuedData.license.id,'lexus-data','lexus.sqlite')).includes(Buffer.from('dummy-test-password')));
     const rejected=await fetch(base+'/api/invoke',{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://example.com'},body:'{}'});assert.equal(rejected.status,403);
     const html=await (await fetch(base+'/index.html')).text();assert(html.includes('/web-bridge.js'));
-    assert.equal((await fetch(base+'/../ocean-desktop/data')).status,404);
+    assert.equal((await fetch(base+'/../lexus-desktop/data')).status,404);
     await stop();await start();
     assert.equal((await api('profiles:get',{kind:'journeys',id:journey.id})).name,'UPDATED TEST');
     assert.equal((await api('profiles:getUiState')).selectedJourneyId,expectedUi.selectedJourneyId);

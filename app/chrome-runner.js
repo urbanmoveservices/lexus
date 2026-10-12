@@ -33,12 +33,12 @@ const braveHost = require('./brave-host');
 
 // Start Chrome automation shortly after DOMContentLoaded; the page script
 // separately waits for dialogs and login controls to become ready.
-const configuredChromeGrace = Number(process.env.OCEAN_AUTOMATION_GRACE_MS);
-const AUTOMATION_GRACE_MS = process.env.OCEAN_AUTOMATION_GRACE_MS !== undefined &&
+const configuredChromeGrace = Number((process.env.LEXUS_AUTOMATION_GRACE_MS || process.env.OCEAN_AUTOMATION_GRACE_MS));
+const AUTOMATION_GRACE_MS = (process.env.LEXUS_AUTOMATION_GRACE_MS || process.env.OCEAN_AUTOMATION_GRACE_MS) !== undefined &&
   Number.isFinite(configuredChromeGrace) && configuredChromeGrace >= 0 && configuredChromeGrace <= 60000
   ? configuredChromeGrace : 1000;
 const AUTOMATION_GRACE_BRAVE_MS =
-  Number(process.env.OCEAN_BRAVE_GRACE_MS) || Math.max(AUTOMATION_GRACE_MS, 12000);
+  Number((process.env.LEXUS_BRAVE_GRACE_MS || process.env.OCEAN_BRAVE_GRACE_MS)) || Math.max(AUTOMATION_GRACE_MS, 12000);
 /** Blank page settle before IRCTC navigation (stealth CDP scripts register first). */
 const STEALTH_BLANK_SETTLE_MS = 900;
 
@@ -47,7 +47,7 @@ function sleep(ms) {
 }
 
 function logTag(browserKind) {
-  return browserKind === 'brave' ? '[Ocean Brave]' : '[Ocean Chrome]';
+  return browserKind === 'brave' ? '[LEXUS Brave]' : '[LEXUS Chrome]';
 }
 
 const activeChromeProfiles = new Set();
@@ -205,17 +205,17 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
   const isDirect = mode === 'direct';
   const site = mode === 'eticket' ? 'eticket' : 'nget';
   const injectFlag = isDirect
-    ? '__OCEAN_DIRECT_INJECTED__'
+    ? '__LEXUS_DIRECT_INJECTED__'
     : site === 'nget'
-      ? '__OCEAN_NGET_INJECTED__'
-      : '__OCEAN_BETA_INJECTED__';
+      ? '__LEXUS_NGET_INJECTED__'
+      : '__LEXUS_BETA_INJECTED__';
   const scriptName = site === 'nget' ? 'content_script.js' : 'content_script_beta.js';
 
   // CDP Fetch/Network AFTER Akamai first paint — not before IRCTC load.
   try {
     await attachChromeIrctcNetwork(page);
   } catch (e) {
-    console.warn('[Ocean] network attach at inject failed:', e.message || e);
+    console.warn('[LEXUS] network attach at inject failed:', e.message || e);
   }
   // Obfuscated bridge names — avoid __ocNative* scans by Akamai sensors
   const clickName = randomBridgeName('_n');
@@ -238,7 +238,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
     }
   } catch (e) {
     if (!String(e.message || e).includes('already')) {
-      console.warn('[Ocean Chrome] exposeFunction', e.message || e);
+      console.warn('[LEXUS Chrome] exposeFunction', e.message || e);
     }
   }
 
@@ -257,14 +257,14 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
           } catch (_) {}
         }
         try {
-          Object.defineProperty(window, '__oceanPushPanelStatus', {
+          Object.defineProperty(window, '__lexusPushPanelStatus', {
             value: pushPanelStatus,
             writable: true,
             configurable: true,
             enumerable: false,
           });
         } catch (_) {
-          window.__oceanPushPanelStatus = pushPanelStatus;
+          window.__lexusPushPanelStatus = pushPanelStatus;
         }
       })();`
     );
@@ -272,7 +272,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
 
   // PhonePe Direct Host bridge (PaymentRedirect NOT in IRCTC tab)
   if (isDirect) {
-    const hostFn = '__oceanNodePhonePeHost';
+    const hostFn = '__lexusNodePhonePeHost';
     try {
       await page.exposeFunction(hostFn, async (payload) => {
         let cookies = [];
@@ -313,7 +313,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       });
     } catch (e) {
       if (!String(e.message || e).includes('already')) {
-        console.warn('[Ocean Chrome] expose Direct Host', e.message || e);
+        console.warn('[LEXUS Chrome] expose Direct Host', e.message || e);
       }
     }
     await evaluateSource(
@@ -322,20 +322,20 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
         const fn = window[${JSON.stringify(hostFn)}];
         if (typeof fn !== 'function') return;
         try {
-          Object.defineProperty(window, '__oceanNativeDirectBook', {
+          Object.defineProperty(window, '__lexusNativeDirectBook', {
             value: (payload) => fn(payload || {}),
             writable: true,
             configurable: true,
             enumerable: false,
           });
         } catch (_) {
-          window.__oceanNativeDirectBook = (payload) => fn(payload || {});
+          window.__lexusNativeDirectBook = (payload) => fn(payload || {});
         }
       })();`
     );
 
     // STAR history: report bookingData / verifyPayment JSON before BOOKED status
-    const fullFn = '__oceanNodeBookingFull';
+    const fullFn = '__lexusNodeBookingFull';
     try {
       await page.exposeFunction(fullFn, async (fullData) => {
         try {
@@ -349,7 +349,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       });
     } catch (e) {
       if (!String(e.message || e).includes('already')) {
-        console.warn('[Ocean Chrome] expose booking full', e.message || e);
+        console.warn('[LEXUS Chrome] expose booking full', e.message || e);
       }
     }
     await evaluateSource(
@@ -358,20 +358,20 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
         const fn = window[${JSON.stringify(fullFn)}];
         if (typeof fn !== 'function') return;
         try {
-          Object.defineProperty(window, '__oceanReportBookingFull', {
+          Object.defineProperty(window, '__lexusReportBookingFull', {
             value: (data) => fn(data || {}),
             writable: true,
             configurable: true,
             enumerable: false,
           });
         } catch (_) {
-          window.__oceanReportBookingFull = (data) => fn(data || {});
+          window.__lexusReportBookingFull = (data) => fn(data || {});
         }
       })();`
     );
 
     // PT fare high → wait for panel "Proceed anyway"
-    const ptWaitFn = '__oceanNodePtFareWait';
+    const ptWaitFn = '__lexusNodePtFareWait';
     try {
       await page.exposeFunction(ptWaitFn, async (payload) => {
         const sessionManager = require('./session-manager');
@@ -384,7 +384,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       });
     } catch (e) {
       if (!String(e.message || e).includes('already')) {
-        console.warn('[Ocean Chrome] expose PT fare wait', e.message || e);
+        console.warn('[LEXUS Chrome] expose PT fare wait', e.message || e);
       }
     }
     await evaluateSource(
@@ -393,21 +393,21 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
         const fn = window[${JSON.stringify(ptWaitFn)}];
         if (typeof fn !== 'function') return;
         try {
-          Object.defineProperty(window, '__oceanWaitPtFareProceed', {
+          Object.defineProperty(window, '__lexusWaitPtFareProceed', {
             value: (payload) => fn(payload || {}),
             writable: true,
             configurable: true,
             enumerable: false,
           });
         } catch (_) {
-          window.__oceanWaitPtFareProceed = (payload) => fn(payload || {});
+          window.__lexusWaitPtFareProceed = (payload) => fn(payload || {});
         }
       })();`
     );
 
     // Same-ticket pair: sibling bookingInitPayment OK → wait Proceed anyway
-    const siblingFn = '__oceanNodeSiblingInitWait';
-    const markInitFn = '__oceanNodeMarkInitPay';
+    const siblingFn = '__lexusNodeSiblingInitWait';
+    const markInitFn = '__lexusNodeMarkInitPay';
     try {
       await page.exposeFunction(siblingFn, async () => {
         const sessionManager = require('./session-manager');
@@ -417,7 +417,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       });
     } catch (e) {
       if (!String(e.message || e).includes('already')) {
-        console.warn('[Ocean Chrome] expose sibling init wait', e.message || e);
+        console.warn('[LEXUS Chrome] expose sibling init wait', e.message || e);
       }
     }
     try {
@@ -431,7 +431,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       });
     } catch (e) {
       if (!String(e.message || e).includes('already')) {
-        console.warn('[Ocean Chrome] expose mark init pay', e.message || e);
+        console.warn('[LEXUS Chrome] expose mark init pay', e.message || e);
       }
     }
     await evaluateSource(
@@ -441,26 +441,26 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
         const mark = window[${JSON.stringify(markInitFn)}];
         if (typeof sib === 'function') {
           try {
-            Object.defineProperty(window, '__oceanWaitIfSiblingInit', {
+            Object.defineProperty(window, '__lexusWaitIfSiblingInit', {
               value: () => sib(),
               writable: true,
               configurable: true,
               enumerable: false,
             });
           } catch (_) {
-            window.__oceanWaitIfSiblingInit = () => sib();
+            window.__lexusWaitIfSiblingInit = () => sib();
           }
         }
         if (typeof mark === 'function') {
           try {
-            Object.defineProperty(window, '__oceanMarkInitPaymentSuccess', {
+            Object.defineProperty(window, '__lexusMarkInitPaymentSuccess', {
               value: () => mark(),
               writable: true,
               configurable: true,
               enumerable: false,
             });
           } catch (_) {
-            window.__oceanMarkInitPaymentSuccess = () => mark();
+            window.__lexusMarkInitPaymentSuccess = () => mark();
           }
         }
       })();`
@@ -490,17 +490,17 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
     `(() => {
       const data = ${storageJson};
       try {
-        Object.defineProperty(window, '__OCEAN_STORAGE__', {
+        Object.defineProperty(window, '__LEXUS_STORAGE__', {
           value: data, writable: true, configurable: true, enumerable: false
         });
-      } catch (_) { window.__OCEAN_STORAGE__ = data; }
+      } catch (_) { window.__LEXUS_STORAGE__ = data; }
       ${
         isDirect
           ? `try {
-        Object.defineProperty(window, '__OCEAN_DIRECT_BOOK__', {
+        Object.defineProperty(window, '__LEXUS_DIRECT_BOOK__', {
           value: true, writable: false, configurable: true, enumerable: false
         });
-      } catch (_) { window.__OCEAN_DIRECT_BOOK__ = true; }`
+      } catch (_) { window.__LEXUS_DIRECT_BOOK__ = true; }`
           : ''
       }
     })();`
@@ -538,13 +538,13 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
           });
           if (!loggedIn) {
             localStorage.removeItem('ir:tokens');
-            try { delete window.__OCEAN_LOGIN_OK__; } catch (_) { window.__OCEAN_LOGIN_OK__ = false; }
+            try { delete window.__LEXUS_LOGIN_OK__; } catch (_) { window.__LEXUS_LOGIN_OK__ = false; }
           } else {
             try {
-              Object.defineProperty(window, '__OCEAN_LOGIN_OK__', {
+              Object.defineProperty(window, '__LEXUS_LOGIN_OK__', {
                 value: true, writable: true, configurable: true, enumerable: false
               });
-            } catch (_) { window.__OCEAN_LOGIN_OK__ = true; }
+            } catch (_) { window.__LEXUS_LOGIN_OK__ = true; }
           }
         } catch (_) {}
       })();`
@@ -552,7 +552,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
     await evaluateSource(page, readInject('booking_direct.js'));
     await evaluateSource(page, readInject('ewallet_direct.js'));
     const needBoot = await page.evaluate(
-      () => typeof window.__oceanTryStartDirect !== 'function'
+      () => typeof window.__lexusTryStartDirect !== 'function'
     );
     if (needBoot) {
       await evaluateSource(page, readInject('direct_book_boot.js'));
@@ -561,11 +561,11 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
         page,
         `(() => {
           try {
-            if (!window.__OCEAN_LOGIN_OK__) return;
-            if (window.__OCEAN_DIRECT_PIPELINE_DONE__) return;
-            if (window.__OCEAN_PENDING_DIRECT__ || (JSON.parse(localStorage.getItem('ir:tokens')||'{}').access_token)) {
-              if (typeof window.__oceanTryStartDirect === 'function') {
-                window.__oceanTryStartDirect('reinject');
+            if (!window.__LEXUS_LOGIN_OK__) return;
+            if (window.__LEXUS_DIRECT_PIPELINE_DONE__) return;
+            if (window.__LEXUS_PENDING_DIRECT__ || (JSON.parse(localStorage.getItem('ir:tokens')||'{}').access_token)) {
+              if (typeof window.__lexusTryStartDirect === 'function') {
+                window.__lexusTryStartDirect('reinject');
               }
             }
           } catch (_) {}
@@ -586,7 +586,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
       })();`
     );
 
-    // Login UI fill (direct mode: login only, then in-page API via __oceanStartDirectBook)
+    // Login UI fill (direct mode: login only, then in-page API via __lexusStartDirectBook)
     await evaluateSource(page, wrapPageScript(readInject(scriptName)));
     await evaluateSource(
       page,
@@ -598,7 +598,7 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
     page,
     `(() => {
       for (const k of Object.getOwnPropertyNames(window)) {
-        if (k.indexOf('__ocean') === 0 || k.indexOf('__OCEAN') === 0 || k === 'oceanBridge' || k.indexOf('__oc') === 0) {
+        if (k.indexOf('__lexus') === 0 || k.indexOf('__LEXUS') === 0 || k === 'lexusBridge' || k.indexOf('__oc') === 0) {
           try {
             const v = window[k];
             Object.defineProperty(window, k, {
@@ -685,7 +685,7 @@ async function cdpClickSelector(page, selector, offsetXPercent = 50, offsetYPerc
       await handle.dispose().catch(() => {});
     }
   } catch (e1) {
-    console.warn('[Ocean Chrome] page.mouse failed:', e1.message);
+    console.warn('[LEXUS Chrome] page.mouse failed:', e1.message);
   }
 
   // 2) CDP Input with buttons bitmask
@@ -737,7 +737,7 @@ async function cdpClickSelector(page, selector, offsetXPercent = 50, offsetYPerc
       return { success: true, method: 'cdp' };
     }
   } catch (e2) {
-    console.warn('[Ocean Chrome] CDP click failed:', e2.message);
+    console.warn('[LEXUS Chrome] CDP click failed:', e2.message);
   }
 
   return { success: false, error: `mouse click failed: ${selector}` };
@@ -766,7 +766,7 @@ async function cdpKey(page, key) {
 }
 
 /**
- * Launch Chromium host — System Chrome (default) or Brave (Ocean-style).
+ * Launch Chromium host — System Chrome (default) or Brave (Lexus-style).
  * Spawn real browser, then rebrowser connect. Direct mode → Direct Host API.
  * @returns {{ ok, run?, error?, handle? }}
  */
@@ -790,8 +790,8 @@ async function launchSystemChromeRun({
       ok: false,
       error:
         kind === 'brave'
-          ? 'Brave Browser not found. Install Brave, or set OCEAN_BRAVE_PATH.'
-          : 'Google Chrome not found. Install Chrome, or set OCEAN_CHROME_PATH, or use Electron / Brave engine.',
+          ? 'Brave Browser not found. Install Brave, or set LEXUS_BRAVE_PATH.'
+          : 'Google Chrome not found. Install Chrome, or set LEXUS_CHROME_PATH, or use Electron / Brave engine.',
     };
   }
 
@@ -847,7 +847,7 @@ async function launchSystemChromeRun({
   let ownedSpawn = true;
   let effectiveUserDataDir = userDataDir;
   let effectivePort = port;
-  /** Ocean slot page (brave only — not host / other pairs) */
+  /** Lexus slot page (brave only — not host / other pairs) */
   let braveSlotPage = null;
 
   if (kind === 'brave') {
@@ -872,10 +872,10 @@ async function launchSystemChromeRun({
       braveSlotPage = acquired.page || null;
       braveMasterKey = acquired.masterKey;
       braveReused = acquired.reused;
-      // Shared Ocean host process — never kill from one pair
+      // Shared Lexus host process — never kill from one pair
       ownedSpawn = false;
       console.log(
-        `${tag} Ocean slot profile=${profileDirectory} port=${effectivePort} pair=${meta?.pairIndex || 1} reused=${braveReused}`
+        `${tag} Lexus slot profile=${profileDirectory} port=${effectivePort} pair=${meta?.pairIndex || 1} reused=${braveReused}`
       );
     } catch (e) {
       try {
@@ -964,7 +964,7 @@ async function launchSystemChromeRun({
     console.log(`${tag} debug port:`, effectivePort);
   }
 
-  // Brave Ocean: use THIS pair's slot page (not host / other pairs)
+  // Brave Lexus: use THIS pair's slot page (not host / other pairs)
   const page =
     braveSlotPage ||
     (await browser.pages())[0] ||
@@ -1049,12 +1049,12 @@ async function launchSystemChromeRun({
   if (onStatusMessage) {
     page.on('console', (msg) => {
       const text = msg.text();
-      const nget = text.match(/\[OCEAN nget\]\s*(.+)/);
+      const nget = text.match(/\[(?:LEXUS|LEXUS) nget\]\s*(.+)/);
       if (nget) {
         onStatusMessage(nget[1].trim());
         return;
       }
-      const directPage = text.match(/\[OCEAN Direct\]\s*(.+)/);
+      const directPage = text.match(/\[(?:LEXUS|LEXUS) Direct\]\s*(.+)/);
       if (directPage) {
         onStatusMessage(directPage[1].trim());
         return;
@@ -1064,7 +1064,7 @@ async function launchSystemChromeRun({
         onStatusMessage(jsDirect[1].trim());
         return;
       }
-      const direct = text.match(/\[OCEAN DirectHost\]\s*(.+)/);
+      const direct = text.match(/\[(?:LEXUS|LEXUS) DirectHost\]\s*(.+)/);
       if (direct) onStatusMessage(direct[1].trim());
       const irctcDirect = text.match(/\[IRCTC-Direct\]\s*(.+)/);
       if (irctcDirect) onStatusMessage(irctcDirect[1].trim());
@@ -1102,8 +1102,8 @@ async function launchSystemChromeRun({
         if (action) {
           await sleep(400);
           await page.evaluate((type) => {
-            if (typeof window.__oceanDispatchMessage === 'function') {
-              window.__oceanDispatchMessage({
+            if (typeof window.__lexusDispatchMessage === 'function') {
+              window.__lexusDispatchMessage({
                 id: 'irctc',
                 sender: 'electron',
                 beta: false,
@@ -1146,9 +1146,9 @@ function wireChromeUrlRouter(handle, meta, onStatus, onStatusMessage) {
       const has = await page.evaluate(
         () =>
           Boolean(
-            window.__OCEAN_NGET_INJECTED__ ||
-              window.__OCEAN_BETA_INJECTED__ ||
-              window.__OCEAN_DIRECT_INJECTED__
+            window.__LEXUS_NGET_INJECTED__ ||
+              window.__LEXUS_BETA_INJECTED__ ||
+              window.__LEXUS_DIRECT_INJECTED__
           )
       );
       if (!has && handle.bundle) {
@@ -1168,15 +1168,15 @@ function wireChromeUrlRouter(handle, meta, onStatus, onStatusMessage) {
     if (action === 'reviewBooking' || action === 'bkgPaymentOptions') debounceMs = 800;
     if (lastFired.has(key) && now - lastFired.get(key) < debounceMs) return;
     lastFired.set(key, now);
-    console.log('[Ocean Chrome] URL →', action);
+    console.log('[LEXUS Chrome] URL →', action);
     // review/payment CTAs need Angular settle — 200ms too early (markTempId lagta, click miss)
     const delay =
       action === 'reviewBooking' ? 1200 : action === 'bkgPaymentOptions' ? 800 : 600;
     await sleep(delay);
     try {
       await page.evaluate((type) => {
-        if (typeof window.__oceanDispatchMessage === 'function') {
-          window.__oceanDispatchMessage({
+        if (typeof window.__lexusDispatchMessage === 'function') {
+          window.__lexusDispatchMessage({
             id: 'irctc',
             sender: 'electron',
             beta: true,
@@ -1185,7 +1185,7 @@ function wireChromeUrlRouter(handle, meta, onStatus, onStatusMessage) {
         }
       }, action);
     } catch (e) {
-      console.warn('[Ocean Chrome] dispatch failed', e.message);
+      console.warn('[LEXUS Chrome] dispatch failed', e.message);
     }
   };
 
@@ -1204,7 +1204,7 @@ async function closeChromeHandle(handle) {
     }
   } catch (_) {}
 
-  // Stop page JS / automation for this pair (Ocean: close slot window only)
+  // Stop page JS / automation for this pair (Lexus: close slot window only)
   try {
     if (handle.page && !handle.page.isClosed?.()) {
       await handle.page.close({ runBeforeUnload: false });

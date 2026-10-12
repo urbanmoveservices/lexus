@@ -11,7 +11,7 @@
   </style>
 <link rel="icon" type="image/x-icon" href="./assets/lexus.ico?v=0.1.3"></head>
 <body>
-  <div id="log">OCEAN Direct Host ready (Token Manager popup-parity)…</div>
+  <div id="log">LEXUS Direct Host ready (Token Manager popup-parity)…</div>
   <div id="qrWrap"></div>
   <script src="inject/booking_direct.js"></script>
   <script src="inject/qr_flow_filelog.js"></script>
@@ -24,11 +24,11 @@
       const logEl = document.getElementById('log');
       function uiLog(msg) {
         const line = String(msg);
-        console.log('[OCEAN DirectHost]', line);
+        console.log('[LEXUS DirectHost]', line);
         logEl.textContent = line + '\n' + logEl.textContent.slice(0, 4000);
         try {
-          if (window.oceanDirectHost && typeof window.oceanDirectHost.status === 'function') {
-            window.oceanDirectHost.status(line);
+          if (window.lexusDirectHost && typeof window.lexusDirectHost.status === 'function') {
+            window.lexusDirectHost.status(line);
           }
         } catch (_) {}
       }
@@ -150,37 +150,37 @@
       }
 
       /** PhonePe only — PaymentRedirect → QR (NOT on IRCTC browser tab). */
-      window.__oceanRunPhonePeOnly = async function (payload) {
+      window.__lexusRunPhonePeOnly = async function (payload) {
         return runQrOnly(payload, resolveQrGate('PHONEPEUPIQR'));
       };
 
       /** Paytm UPI QR only — PaymentRedirect → processTransaction QR. */
-      window.__oceanRunPaytmOnly = async function (payload) {
+      window.__lexusRunPaytmOnly = async function (payload) {
         return runQrOnly(payload, resolveQrGate('PAYTMUPIQR'));
       };
 
       /** Razorpay UPI collect — PaymentRedirect → VPA collect. */
-      window.__oceanRunRazorpayOnly = async function (payload) {
+      window.__lexusRunRazorpayOnly = async function (payload) {
         return runQrOnly(payload, resolveQrGate('RAZORPAYUPI'));
       };
 
       /** IRCTC iPay QR — bank 113. */
-      window.__oceanRunIpayOnly = async function (payload) {
+      window.__lexusRunIpayOnly = async function (payload) {
         return runQrOnly(payload, resolveQrGate('IRCUPIQR'));
       };
 
-      window.__oceanRunDirectBooking = async function (payload) {
+      window.__lexusRunDirectBooking = async function (payload) {
         if (payload && payload.mode === 'phonepe') {
-          return window.__oceanRunPhonePeOnly(payload);
+          return window.__lexusRunPhonePeOnly(payload);
         }
         if (payload && payload.mode === 'paytm') {
-          return window.__oceanRunPaytmOnly(payload);
+          return window.__lexusRunPaytmOnly(payload);
         }
         if (payload && payload.mode === 'razorpay') {
-          return window.__oceanRunRazorpayOnly(payload);
+          return window.__lexusRunRazorpayOnly(payload);
         }
         if (payload && payload.mode === 'ipay') {
-          return window.__oceanRunIpayOnly(payload);
+          return window.__lexusRunIpayOnly(payload);
         }
         const TOK = payload && payload.tokens ? payload.tokens : {};
         const allDetails = payload && payload.details ? payload.details : {};
@@ -345,7 +345,7 @@
         }
       };
 
-      document.title = 'OCEAN Direct Host';
+      document.title = 'LEXUS Direct Host';
     })();
   </script>
 </body>

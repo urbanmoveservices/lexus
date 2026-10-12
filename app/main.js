@@ -16,8 +16,8 @@ const chromeRunner = require('./chrome-runner');
 const directBookingHost = require('./direct-booking-host');
 const licenseGate = require('./license-gate');
 const supportLinks = require('./support-links');
-const oceanSuccess = require('./ocean-success');
-const oceanUpdater = require('./ocean-updater');
+const lexusSuccess = require('./ocean-success');
+const lexusUpdater = require('./ocean-updater');
 const {
   LAYOUT,
   MAX_PAIRS_PER_JOURNEY,
@@ -222,12 +222,12 @@ function emitPanelStatus(journeyId, pairIndex, message) {
   }
 }
 
-/** Direct API: pair screenshot + POST oceanxsoft success (no Classic animation). */
-async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
+/** Direct API: pair screenshot + success report (local history + optional LEXUS_SUCCESS_URL) (no Classic animation). */
+async function handleLexusApiBookingSuccess(sessionId, pnr, fullData) {
   const entry = sessionManager.getRun(sessionId);
   if (!entry?.meta) return;
-  if (entry.meta.oceanSuccessUploadDone) return;
-  entry.meta.oceanSuccessUploadDone = true;
+  if (entry.meta.lexusSuccessUploadDone) return;
+  entry.meta.lexusSuccessUploadDone = true;
 
   const journeyId = entry.meta.journeyId;
   const pairIndex = entry.meta.pairIndex || 1;
@@ -241,7 +241,7 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
       username: cred.username || cred.name || '',
     });
     if (marked) {
-      console.log('[Ocean Cred] marked BOOKED', marked.username || marked.name || marked.id);
+      console.log('[LEXUS Cred] marked BOOKED', marked.username || marked.name || marked.id);
       entry.meta.credentialBooked = true;
       // Other open panels: drop BOOKED id from assign map + refresh dropdowns
       // (skip this success panel so Success UI stays)
@@ -268,20 +268,20 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
           }
         }
       } catch (e) {
-        console.warn('[Ocean Cred] panel refresh after BOOKED failed:', e?.message || e);
+        console.warn('[LEXUS Cred] panel refresh after BOOKED failed:', e?.message || e);
       }
     } else {
-      console.warn('[Ocean Cred] BOOKED mark skipped — credential not found');
+      console.warn('[LEXUS Cred] BOOKED mark skipped — credential not found');
     }
   } catch (e) {
-    console.warn('[Ocean Cred] BOOKED mark failed:', e?.message || e);
+    console.warn('[LEXUS Cred] BOOKED mark failed:', e?.message || e);
   }
 
   // Let Success status + frozen clock paint before capture
   await new Promise((r) => setTimeout(r, 400));
 
   let base64image = '';
-  // STAR: screenshot pe clock thoda peeche (Ocean: −7s)
+  // STAR: screenshot pe clock thoda peeche (Lexus: −7s)
   const pnrTime = new Date(Date.now() - 7000).toLocaleTimeString('en-GB', {
     hour12: false,
   });
@@ -293,7 +293,7 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
       const img = await win.webContents.capturePage();
       base64image = img.toPNG().toString('base64');
     } catch (e) {
-      console.warn('[Ocean Success] capturePage failed:', e?.message || e);
+      console.warn('[LEXUS Success] capturePage failed:', e?.message || e);
     } finally {
       try {
         if (!win.isDestroyed()) win.webContents.send('panel:privacy-restore');
@@ -302,7 +302,7 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
   }
 
   const licence = licenseGate.getSavedLicense();
-  const payload = oceanSuccess.buildSuccessPayload({
+  const payload = lexusSuccess.buildSuccessPayload({
     journey: entry.bundle?.journey,
     payment: entry.bundle?.payment,
     pnr,
@@ -313,14 +313,14 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
   });
 
   try {
-    console.log('[Ocean Success] POST /api/app/success', {
+    console.log('[LEXUS Success] POST /api/app/success', {
       ...payload,
       base64image: base64image ? `[${base64image.length} chars]` : '(empty)',
     });
-    const result = await oceanSuccess.postSuccessPayload(payload);
-    console.log('[Ocean Success] upload', result.status, String(result.text || '').slice(0, 240));
+    const result = await lexusSuccess.postSuccessPayload(payload);
+    console.log('[LEXUS Success] upload', result.status, String(result.text || '').slice(0, 240));
   } catch (e) {
-    console.warn('[Ocean Success] upload failed:', e?.message || e);
+    console.warn('[LEXUS Success] upload failed:', e?.message || e);
   }
 
   try {
@@ -342,7 +342,7 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
       journeyName: journey.name || star.ticketName || '',
     });
     broadcastBookingHistory(row);
-    console.log('[Ocean History] saved', row.pnr, row.ticketName, row.fare);
+    console.log('[LEXUS History] saved', row.pnr, row.ticketName, row.fare);
 
     // STAR-style ERS PDF (Direct full_data only)
     if (dtoData && dtoData.bookingResponseDTO) {
@@ -351,17 +351,17 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
           const ticketPrinter = require('./ticket-printer');
           Promise.resolve(ticketPrinter.printTicket(dtoData))
             .then((r) => {
-              if (r?.ok) console.log('[Ocean Print] OK', r.path);
-              else console.warn('[Ocean Print]', r?.error || 'failed');
+              if (r?.ok) console.log('[LEXUS Print] OK', r.path);
+              else console.warn('[LEXUS Print]', r?.error || 'failed');
             })
-            .catch((e) => console.warn('[Ocean Print]', e?.message || e));
+            .catch((e) => console.warn('[LEXUS Print]', e?.message || e));
         } catch (e) {
-          console.warn('[Ocean Print] load failed', e?.message || e);
+          console.warn('[LEXUS Print] load failed', e?.message || e);
         }
       });
     }
   } catch (e) {
-    console.warn('[Ocean History] save failed:', e?.message || e);
+    console.warn('[LEXUS History] save failed:', e?.message || e);
   }
 }
 
@@ -572,7 +572,7 @@ function deliverTrainSelection(payload) {
 function openModalShell(modalName) {
   const name = String(modalName || 'tickets').trim() || 'tickets';
   requestedModalName = name;
-  if (name === 'book') trainService.warmAvailability().catch(error => console.warn('[Ocean Train] warmup:', error.message));
+  if (name === 'book') trainService.warmAvailability().catch(error => console.warn('[LEXUS Train] warmup:', error.message));
   const modalKind = name === 'book' ? 'book' : 'default';
   const { bounds, minWidth, minHeight } = getModalBounds(modalKind);
 
@@ -666,7 +666,7 @@ function openPhonePeTestWindow() {
 
 function openMainApp() {
   if (!SKIP_LICENSE && !licenseUnlocked) {
-    console.warn('[Ocean] Main app blocked — license not valid');
+    console.warn('[LEXUS] Main app blocked — license not valid');
     return;
   }
   if (TEST_PHONEPE_START) {
@@ -757,7 +757,7 @@ function createNewsWindow() {
     }
   });
   newsWindow.loadFile(path.join(__dirname, 'news.html')).catch((err) => {
-    console.error('[Ocean] news UI load failed', err);
+    console.error('[LEXUS] news UI load failed', err);
     if (licenseUnlocked) openMainApp();
   });
   return newsWindow;
@@ -821,7 +821,7 @@ function createLicenseWindow() {
     }
   });
   licenseWindow.loadFile(path.join(__dirname, 'license.html')).catch((err) => {
-    console.error('[Ocean] license UI load failed', err);
+    console.error('[LEXUS] license UI load failed', err);
   });
   return licenseWindow;
 }
@@ -829,7 +829,7 @@ function createLicenseWindow() {
 async function runLicenseGate() {
   if (SKIP_LICENSE) {
     licenseUnlocked = true;
-    console.log('[Ocean] License gate skipped');
+    console.log('[LEXUS] License gate skipped');
     openMainApp();
     return;
   }
@@ -927,20 +927,20 @@ function createControlWindow() {
     try {
       positionControlShellForUi(controlWindow);
     } catch (err) {
-      console.error('[Ocean] position toolbar failed', err);
+      console.error('[LEXUS] position toolbar failed', err);
     }
     if (!controlWindow.isVisible()) controlWindow.show();
     controlWindow.focus();
-    console.log('[Ocean] Control window shown', controlWindow.getBounds());
+    console.log('[LEXUS] Control window shown', controlWindow.getBounds());
   };
 
   controlWindow.once('ready-to-show', reveal);
   controlWindow.webContents.once('did-finish-load', () => {
-    console.log('[Ocean] Control UI loaded');
+    console.log('[LEXUS] Control UI loaded');
     reveal();
   });
   controlWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
-    console.error('[Ocean] Control UI failed to load', code, desc, url);
+    console.error('[LEXUS] Control UI failed to load', code, desc, url);
     reveal();
   });
   // Failsafe: never stay invisible
@@ -949,7 +949,7 @@ function createControlWindow() {
   controlWindow.loadFile(path.join(__dirname, 'index.html'), {
     query: { view: 'toolbar' },
   }).catch((err) => {
-    console.error('[Ocean] loadFile failed', err);
+    console.error('[LEXUS] loadFile failed', err);
     reveal();
   });
 
@@ -966,29 +966,29 @@ app.whenReady().then(async () => {
   app.setName('LEXUS');
   // MUST run before preload generate — UA/sec-ch-ua must match installed Chrome
   const ver = syncChromeVersionFromSystem();
-  web2BrowserInfo = {version:ver.detected?ver.full:'Not detected',path:ver.path||'',source:ver.path&&/[\\/]browsers[\\/]chrome[\\/]/i.test(ver.path)?'Bundled Chrome':process.env.OCEAN_CHROME_PATH?'Custom Chrome':'Installed Chrome'};
+  web2BrowserInfo = {version:ver.detected?ver.full:'Not detected',path:ver.path||'',source:ver.path&&/[\\/]browsers[\\/]chrome[\\/]/i.test(ver.path)?'Bundled Chrome':(process.env.LEXUS_CHROME_PATH || process.env.OCEAN_CHROME_PATH)?'Custom Chrome':'Installed Chrome'};
   try {
     require('./stealth-preload-build').writeStealthPreload();
-    console.log('[Ocean Stealth] frame preload generated for Chrome', ver.full || SPOOF_CHROME_MAJOR);
+    console.log('[LEXUS Stealth] frame preload generated for Chrome', ver.full || SPOOF_CHROME_MAJOR);
   } catch (e) {
-    console.warn('[Ocean Stealth] preload generate failed', e.message);
+    console.warn('[LEXUS Stealth] preload generate failed', e.message);
   }
 
   chromeUA = getChromeUserAgent();
   app.userAgentFallback = chromeUA;
   // Control UI uses defaultSession — only set UA, do NOT attach webRequest
-  // (header rewriting on file:// can hang the Ocean window on Electron 43).
+  // (header rewriting on file:// can hang the Lexus window on Electron 43).
   session.defaultSession.setUserAgent(chromeUA);
 
   await profileStore.init();
-  console.log('[Ocean] SQLite DB:', profileStore.getDbPath());
+  console.log('[LEXUS] SQLite DB:', profileStore.getDbPath());
   console.log(
-    '[Ocean] Spoof Chrome UA:',
+    '[LEXUS] Spoof Chrome UA:',
     chromeUA,
     `| engine Chromium ${process.versions.chrome} → public v${require('./stealth').SPOOF_CHROME_MAJOR}`
   );
-  console.log('[Ocean] System Chrome path:', sessionManager.findChromePath() || '(not found — Electron fallback)');
-  console.log('[Ocean] Brave path:', sessionManager.findBravePath() || '(not found)');
+  console.log('[LEXUS] System Chrome path:', sessionManager.findChromePath() || '(not found — Electron fallback)');
+  console.log('[LEXUS] Brave path:', sessionManager.findBravePath() || '(not found)');
 
   sessionManager.configure({
     getControlWindow: () => controlWindow,
@@ -997,16 +997,16 @@ app.whenReady().then(async () => {
     emitPanelPtFare,
     emitPanelQr,
     emitPanelQrHide,
-    onOceanApiSuccess: handleOceanApiBookingSuccess,
+    onLexusApiSuccess: handleLexusApiBookingSuccess,
   });
 
-  oceanUpdater.registerUpdaterIpc({canUpdate:()=>bookingScheduler.pendingCount()===0});
+  lexusUpdater.registerUpdaterIpc({canUpdate:()=>bookingScheduler.pendingCount()===0});
 
   // Updates never delay opening the app or a booking window.
-  const mandatoryUpdate=await oceanUpdater.enforceRequiredUpdate();
+  const mandatoryUpdate=await lexusUpdater.enforceRequiredUpdate();
   if(mandatoryUpdate.required)return;
 
-  console.log('[Ocean] License gate…');
+  console.log('[LEXUS] License gate…');
   await runLicenseGate();
 
   app.on('activate', () => {
@@ -1300,13 +1300,13 @@ function createTicketPanelWindow(journeyId, pairIndex) {
     ticketPanelWindows.delete(key);
     releasePairCredential(journeyId, pi);
     Promise.resolve(sessionManager.stopRunsForPair(journeyId, pi)).catch((e) => {
-      console.warn('[Ocean] stop on panel close failed', e.message || e);
+      console.warn('[LEXUS] stop on panel close failed', e.message || e);
     });
     positionTicketPanels(journeyId);
     refreshAllTicketPanels();
   });
   win.loadFile(path.join(__dirname, 'ticket-panel.html')).catch((err) => {
-    console.error('[Ocean] ticket panel load failed', err);
+    console.error('[LEXUS] ticket panel load failed', err);
   });
 
   return { ok: true, pairIndex: pi };
@@ -1469,7 +1469,7 @@ ipcMain.handle('panels:close-self', (event) => {
 });
 
 function openTrainResultsWindow(query) {
-  trainService.warmAvailability().catch(error => console.warn('[Ocean Train] warmup:', error.message));
+  trainService.warmAvailability().catch(error => console.warn('[LEXUS Train] warmup:', error.message));
   pendingTrainQuery = query || null;
 
   if (trainResultsWindow && !trainResultsWindow.isDestroyed()) {
@@ -1716,14 +1716,14 @@ ipcMain.handle('irctc:get-status', async () => {
   };
 });
 
-ipcMain.on('ocean:get-stealth-source', (event) => {
+ipcMain.on('lexus:get-stealth-source', (event) => {
   event.returnValue = getStealthInjectSource();
 });
 
 ipcMain.on('irctc:preload-ready', (_event, payload) => {
   const sessionId = payload && payload.sessionId;
   console.log(
-    '[Ocean] IRCTC preload ready:',
+    '[LEXUS] IRCTC preload ready:',
     sessionId || '(no sessionId)',
     payload && payload.href ? payload.href : ''
   );
@@ -1826,7 +1826,7 @@ ipcMain.handle('direct-book:run', async (_e, payload) => {
       }
     }
   } catch (e) {
-    console.warn('[Ocean] cookie harvest for Direct Host:', e.message || e);
+    console.warn('[LEXUS] cookie harvest for Direct Host:', e.message || e);
   }
 
   const onStatus = (msg) => {
@@ -1943,7 +1943,7 @@ ipcMain.handle('test-phonepe:run', async (_e, payload) => {
 
 ipcMain.on('action-click', async (_event, payload) => {
   if (!payload?.sessionId || payload.x == null || payload.y == null) {
-    console.warn('[Ocean] action-click rejected: sessionId/x/y required');
+    console.warn('[LEXUS] action-click rejected: sessionId/x/y required');
     return;
   }
   const page = requireChromePage(payload.sessionId);
@@ -1967,7 +1967,7 @@ ipcMain.on('action-click', async (_event, payload) => {
         clickCount: 1,
       });
     } catch (e) {
-      console.warn('[Ocean] action-click chrome failed', e.message);
+      console.warn('[LEXUS] action-click chrome failed', e.message);
     }
     return;
   }
@@ -1976,13 +1976,13 @@ ipcMain.on('action-click', async (_event, payload) => {
   try {
     await inputEngine.clickAt(win.webContents, payload.x, payload.y);
   } catch (e) {
-    console.warn('[Ocean] action-click failed', e.message);
+    console.warn('[LEXUS] action-click failed', e.message);
   }
 });
 
 ipcMain.on('action-type', async (_event, payload) => {
   if (!payload?.sessionId) {
-    console.warn('[Ocean] action-type rejected: sessionId required');
+    console.warn('[LEXUS] action-type rejected: sessionId required');
     return;
   }
   const win = requireSessionWindow(payload.sessionId);
@@ -1990,6 +1990,6 @@ ipcMain.on('action-type', async (_event, payload) => {
   try {
     await inputEngine.typeText(win.webContents, payload.text ?? '');
   } catch (e) {
-    console.warn('[Ocean] action-type failed', e.message);
+    console.warn('[LEXUS] action-type failed', e.message);
   }
 });

@@ -1,7 +1,7 @@
 /**
  * Injected ONLY after launch grace period (not at first paint).
  * Bridges chrome.runtime → postMessage → isolated preload → sendInputEvent.
- * Does not expose __oceanNative on window.
+ * Does not expose __lexusNative on window.
  */
 (function () {
   function hideProp(obj, key, value) {
@@ -42,7 +42,7 @@
   const pending = new Map();
 
   try {
-    const prev = Object.getOwnPropertyDescriptor(window, '__OCEAN_STORAGE__');
+    const prev = Object.getOwnPropertyDescriptor(window, '__LEXUS_STORAGE__');
     if (prev && prev.value && typeof prev.value === 'object') storage = prev.value;
   } catch (_) {}
 
@@ -245,7 +245,7 @@
     },
     set(items, callback) {
       storage = { ...storage, ...(items || {}) };
-      hideProp(window, '__OCEAN_STORAGE__', storage);
+      hideProp(window, '__LEXUS_STORAGE__', storage);
       if (typeof callback === 'function') callback();
     },
   };
@@ -257,7 +257,7 @@
     storage: { local: storageLocal },
   });
 
-  hideProp(window, '__oceanDispatchMessage', function (message) {
+  hideProp(window, '__lexusDispatchMessage', function (message) {
     for (const fn of msgListeners.slice()) {
       try {
         fn(message, { id: 'extension' }, () => {});
@@ -265,5 +265,5 @@
     }
   });
 
-  hideProp(window, '__OCEAN_STORAGE__', storage);
+  hideProp(window, '__LEXUS_STORAGE__', storage);
 })();

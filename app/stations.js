@@ -242,7 +242,7 @@
     });
 
     window.addEventListener('resize', reposition);
-    const scrollParent = input.closest('.modal-panel, .ocean-form, body');
+    const scrollParent = input.closest('.modal-panel, .lexus-form, body');
     if (scrollParent) {
       scrollParent.addEventListener(
         'scroll',
@@ -314,7 +314,7 @@
     return { ok: problems.length === 0, problems };
   }
 
-  window.OceanStations = {
+  window.LexusStations = {
     loadStations,
     getStationMatches,
     isKnownStation,

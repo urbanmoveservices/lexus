@@ -1,6 +1,6 @@
 /**
- * Ocean/STAR-style local proxy for Chrome.
- * Prefer proxy-chain anonymizeProxy (Ocean); fall back to CONNECT auth inject.
+ * Lexus/STAR-style local proxy for Chrome.
+ * Prefer proxy-chain anonymizeProxy (Lexus); fall back to CONNECT auth inject.
  */
 
 const net = require('net');
@@ -96,7 +96,7 @@ async function startRawAuthTunnel(cfg) {
 
   const key = `raw:${localPort}`;
   tunnels.set(key, { kind: 'raw', localPort, server });
-  console.log(`[Ocean Proxy] raw tunnel 127.0.0.1:${localPort} → ${remoteHost}:${remotePort}`);
+  console.log(`[LEXUS Proxy] raw tunnel 127.0.0.1:${localPort} → ${remoteHost}:${remotePort}`);
   return {
     localPort,
     proxyServerArg: `http://127.0.0.1:${localPort}`,
@@ -116,7 +116,7 @@ async function startAuthProxyTunnel(proxyCfg) {
   // No auth → Chrome can talk to upstream directly (caller uses host:port)
   if (!cfg.username) return null;
 
-  // Ocean path: proxy-chain
+  // Lexus path: proxy-chain
   try {
     const ProxyChain = require('proxy-chain');
     const oldUrl = upstreamUrl(cfg);
@@ -125,7 +125,7 @@ async function startAuthProxyTunnel(proxyCfg) {
     const localPort = m ? Number(m[1]) : 0;
     const key = `chain:${anonymizedUrl}`;
     tunnels.set(key, { kind: 'chain', localPort, anonymizedUrl });
-    console.log(`[Ocean Proxy] proxy-chain ${anonymizedUrl} → ${cfg.host}:${cfg.port}`);
+    console.log(`[LEXUS Proxy] proxy-chain ${anonymizedUrl} → ${cfg.host}:${cfg.port}`);
     return {
       localPort,
       proxyServerArg: anonymizedUrl.replace(/\/$/, ''),
@@ -138,7 +138,7 @@ async function startAuthProxyTunnel(proxyCfg) {
       _key: key,
     };
   } catch (e) {
-    console.warn('[Ocean Proxy] proxy-chain unavailable, raw tunnel:', e.message || e);
+    console.warn('[LEXUS Proxy] proxy-chain unavailable, raw tunnel:', e.message || e);
     return startRawAuthTunnel(cfg);
   }
 }
@@ -162,7 +162,7 @@ function stopAuthProxyTunnel(localPortOrKey) {
           entry.server.close();
         } catch (_) {}
       }
-      console.log(`[Ocean Proxy] stopped ${key}`);
+      console.log(`[LEXUS Proxy] stopped ${key}`);
       return;
     }
   }

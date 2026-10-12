@@ -16,7 +16,7 @@ class IpayQRHandlerJS {
     this.minWaitMs = 10500;
     this.port = 'JS-Direct';
     this._flowLog =
-      typeof OceanQrFileLog !== 'undefined' ? OceanQrFileLog.create('iPay QR') : null;
+      typeof LexusQrFileLog !== 'undefined' ? LexusQrFileLog.create('iPay QR') : null;
   }
 
   _secChUa() {
@@ -64,8 +64,8 @@ class IpayQRHandlerJS {
       return;
     }
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus('iPay: ' + line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus('iPay: ' + line);
       }
     } catch (_) {}
   }
@@ -77,8 +77,8 @@ class IpayQRHandlerJS {
     console.log(`[${this.port}] [iPay-Direct] ${line}`);
     if (this._flowLog) this._flowLog.logUi(line);
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus(line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus(line);
         return;
       }
     } catch (_) {}
@@ -699,9 +699,9 @@ class IpayQRHandlerJS {
             }
             const { pnr, error: err } = this._parseBookingDataPayload(data);
             if (pnr) {
-              if (typeof window.__oceanReportBookingFull === 'function') {
+              if (typeof window.__lexusReportBookingFull === 'function') {
                 try {
-                  await window.__oceanReportBookingFull(data);
+                  await window.__lexusReportBookingFull(data);
                 } catch (_) {}
               }
               this.panelStatus(`SUCCESS! PNR: ${pnr}`);
@@ -736,8 +736,8 @@ class IpayQRHandlerJS {
 
   show_qr(qr_b64) {
     try {
-      if (window.oceanDirectHost && typeof window.oceanDirectHost.showQr === 'function') {
-        window.oceanDirectHost.showQr(qr_b64);
+      if (window.lexusDirectHost && typeof window.lexusDirectHost.showQr === 'function') {
+        window.lexusDirectHost.showQr(qr_b64);
         this.log('🖼️ QR on ticket panel.');
         return;
       }
@@ -792,8 +792,8 @@ class IpayQRHandlerJS {
 
   hide_qr() {
     try {
-      if (window.oceanDirectHost && typeof window.oceanDirectHost.hideQr === 'function') {
-        window.oceanDirectHost.hideQr();
+      if (window.lexusDirectHost && typeof window.lexusDirectHost.hideQr === 'function') {
+        window.lexusDirectHost.hideQr();
       }
     } catch (_) {}
     try {

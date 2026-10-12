@@ -1,5 +1,5 @@
 /**
- * Find Brave Browser executable on Windows (Ocean-style host).
+ * Find Brave Browser executable on Windows (Lexus-style host).
  */
 const fs = require('fs');
 const path = require('path');
@@ -23,8 +23,8 @@ function candidates() {
 }
 
 function findBravePath() {
-  if (process.env.OCEAN_BRAVE_PATH && fs.existsSync(process.env.OCEAN_BRAVE_PATH)) {
-    return process.env.OCEAN_BRAVE_PATH;
+  if ((process.env.LEXUS_BRAVE_PATH || process.env.OCEAN_BRAVE_PATH) && fs.existsSync((process.env.LEXUS_BRAVE_PATH || process.env.OCEAN_BRAVE_PATH))) {
+    return (process.env.LEXUS_BRAVE_PATH || process.env.OCEAN_BRAVE_PATH);
   }
   for (const p of candidates()) {
     try {

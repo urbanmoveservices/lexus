@@ -1,6 +1,6 @@
 const { screen } = require('electron');
 
-/** Shared window sizes — tune here for all Ocean windows. */
+/** Shared window sizes — tune here for all Lexus windows. */
 const LAYOUT = {
   shell: {
     /** Bottom toolbar only — expands upward when Settings/About menu opens */

@@ -1,13 +1,13 @@
 /**
  * IRCTC preload — isolated-world bridge ONLY.
- * No window.__oceanNative / oceanBridge at launch (Akamai fingerprint).
+ * No window.__lexusNative / lexusBridge at launch (Akamai fingerprint).
  * Main-world automation talks via window.postMessage({ source: 'oc-nw', ... }).
  */
 const { ipcRenderer } = require('electron');
 
 function readSessionId() {
-  const arg = process.argv.find((a) => a.startsWith('--ocean-session-id='));
-  if (arg) return arg.slice('--ocean-session-id='.length);
+  const arg = process.argv.find((a) => a.startsWith('--lexus-session-id='));
+  if (arg) return arg.slice('--lexus-session-id='.length);
   return '';
 }
 

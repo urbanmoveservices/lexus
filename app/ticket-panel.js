@@ -178,8 +178,8 @@ function renderSuccessStatus(text) {
   setFinalHitAnimation(false);
   const t = String(text || '').trim();
   const m =
-    t.match(/^(Success By Ocean\s+\S+)\s*[·\-–—]\s*PNR\s+(\d{3,})/i) ||
-    t.match(/^(Success By Ocean.+?)\s+PNR\s+(\d{3,})/i);
+    t.match(/^(Success By (?:LEXUS|Lexus)\s+\S+)\s*[·\-–—]\s*PNR\s+(\d{3,})/i) ||
+    t.match(/^(Success By (?:LEXUS|Lexus).+?)\s+PNR\s+(\d{3,})/i);
   let head = t;
   let pnrMasked = '';
   if (m) {
@@ -248,7 +248,7 @@ function isTerminalRunStatus(text) {
   if (/\(\d+\)\s*\((?:Akamai|high-load|510|Client IP)/i.test(t)) return false;
 
   if (/^SCRIPT END/i.test(t)) return true;
-  if (/^Success By Ocean/i.test(t)) return true;
+  if (/^Success By (?:LEXUS|Lexus)/i.test(t)) return true;
   if (/^NOT AVAILABLE$/i.test(t) || /^REGRET$/i.test(t)) return true;
   if (/^No seats available/i.test(t) || /^Seat not open/i.test(t)) return true;
   if (/RAC · No seat|WL · No seat/i.test(t)) return true;
@@ -499,7 +499,7 @@ function setPanelStatus(message) {
   ingestStatusMetrics(text);
   if (metricsOnly) return;
   const statusBar = document.getElementById('statusBar');
-  if (/^Success By Ocean/i.test(text)) {
+  if (/^Success By (?:LEXUS|Lexus)/i.test(text)) {
     hidePtFareProceed();
     markSuccessUi();
     renderSuccessStatus(text);
@@ -609,7 +609,7 @@ async function launch(engineKey) {
   if (result?.ok) {
     if (result.pnr) {
       const msg = String(result.run?.statusMessage || '').trim();
-      if (/^Success By Ocean/i.test(msg)) {
+      if (/^Success By (?:LEXUS|Lexus)/i.test(msg)) {
         setPanelStatus(msg);
       } else {
         setPanelStatus(`BOOKED PNR=${result.pnr}`);

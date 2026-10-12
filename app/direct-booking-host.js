@@ -86,18 +86,18 @@ async function applyCookiesToSession(ses, cookies) {
  */
 async function runDirectBookingHost(opts) {
   const sessionId = opts.sessionId || `direct-${Date.now()}`;
-  const partition = `persist:ocean-direct-host-${sessionId}`;
+  const partition = `persist:lexus-direct-host-${sessionId}`;
   const ses = session.fromPartition(partition);
   try {
     const rawProxy = profileStore.getProxyConfig({ proxyId: opts.proxyId || null });
     const ipMode = opts.ipMode || 'auto';
     const proxyCfg = resolveProxyForIpMode(ipMode, rawProxy);
     if (proxyCfg.error) {
-      console.warn('[Ocean DirectHost] proxy:', proxyCfg.error);
+      console.warn('[LEXUS DirectHost] proxy:', proxyCfg.error);
     }
     await applyProxyToSession(ses, proxyCfg);
   } catch (e) {
-    console.warn('[Ocean DirectHost] proxy attach failed:', e.message || e);
+    console.warn('[LEXUS DirectHost] proxy attach failed:', e.message || e);
   }
   try {
     attachElectronIrctcNetwork(ses);
@@ -129,12 +129,12 @@ async function runDirectBookingHost(opts) {
   const showHost = qrOnly ? false : opts.showHost === true;
   const hostTitle =
     opts.mode === 'paytm'
-      ? 'OCEAN Paytm (hidden)'
+      ? 'LEXUS Paytm (hidden)'
       : opts.mode === 'razorpay'
-        ? 'OCEAN Razorpay (hidden)'
+        ? 'LEXUS Razorpay (hidden)'
         : opts.mode === 'phonepe'
-          ? 'OCEAN PhonePe (hidden)'
-          : 'OCEAN Direct Booking (host)';
+          ? 'LEXUS PhonePe (hidden)'
+          : 'LEXUS Direct Booking (host)';
 
   const win = new BrowserWindow({
     ...centerBounds(wa, width, height, 20),
@@ -152,9 +152,9 @@ async function runDirectBookingHost(opts) {
       session: ses,
       spellcheck: false,
       additionalArguments: [
-        `--ocean-run-session=${opts.runSessionId || sessionId.replace(/-(phonepe|paytm|razorpay)$/i, '')}`,
-        `--ocean-panel-journey=${opts.panelJourneyId || ''}`,
-        `--ocean-panel-pair=${opts.panelPairIndex || 1}`,
+        `--lexus-run-session=${opts.runSessionId || sessionId.replace(/-(phonepe|paytm|razorpay)$/i, '')}`,
+        `--lexus-panel-journey=${opts.panelJourneyId || ''}`,
+        `--lexus-panel-pair=${opts.panelPairIndex || 1}`,
       ],
     },
   });
@@ -167,8 +167,8 @@ async function runDirectBookingHost(opts) {
   } catch (_) {}
 
   win.webContents.on('console-message', (_e, _level, message) => {
-    if (opts.onStatus && /\[OCEAN DirectHost\]|\[JS-Direct\]/.test(String(message))) {
-      opts.onStatus(String(message).replace(/^.*\[OCEAN DirectHost\]\s*/, ''));
+    if (opts.onStatus && /\[(?:LEXUS|LEXUS) DirectHost\]|\[JS-Direct\]/.test(String(message))) {
+      opts.onStatus(String(message).replace(/^.*\[(?:LEXUS|LEXUS) DirectHost\]\s*/, ''));
     }
   });
 
@@ -178,9 +178,9 @@ async function runDirectBookingHost(opts) {
   // Bridge status from host page → caller
   try {
     await win.webContents.executeJavaScript(
-      `window.oceanDirectHost = window.oceanDirectHost || {};
-       window.oceanDirectHost.status = (msg) => {
-         try { console.log('[OCEAN DirectHost]', msg); } catch (_) {}
+      `window.lexusDirectHost = window.lexusDirectHost || {};
+       window.lexusDirectHost.status = (msg) => {
+         try { console.log('[LEXUS DirectHost]', msg); } catch (_) {}
        };
        true;`,
       true
@@ -198,7 +198,7 @@ async function runDirectBookingHost(opts) {
   };
 
   console.log(
-    '[Ocean DirectHost] starting',
+    '[LEXUS DirectHost] starting',
     opts.mode === 'paytm'
       ? 'Paytm (off IRCTC tab)…'
       : opts.mode === 'razorpay'
@@ -209,13 +209,13 @@ async function runDirectBookingHost(opts) {
   );
   let expr;
   if (opts.mode === 'paytm') {
-    expr = `window.__oceanRunPaytmOnly(${JSON.stringify(payload)})`;
+    expr = `window.__lexusRunPaytmOnly(${JSON.stringify(payload)})`;
   } else if (opts.mode === 'razorpay') {
-    expr = `window.__oceanRunRazorpayOnly(${JSON.stringify(payload)})`;
+    expr = `window.__lexusRunRazorpayOnly(${JSON.stringify(payload)})`;
   } else if (opts.mode === 'phonepe') {
-    expr = `window.__oceanRunPhonePeOnly(${JSON.stringify(payload)})`;
+    expr = `window.__lexusRunPhonePeOnly(${JSON.stringify(payload)})`;
   } else {
-    expr = `window.__oceanRunDirectBooking(${JSON.stringify(payload)})`;
+    expr = `window.__lexusRunDirectBooking(${JSON.stringify(payload)})`;
   }
   const result = await win.webContents.executeJavaScript(expr, true);
 

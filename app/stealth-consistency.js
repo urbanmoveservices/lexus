@@ -6,7 +6,7 @@
  * Do NOT rely on --disable-blink-features=AutomationControlled (yellow bar leak).
  */
 
-/** Ocean-style: real browser — strip driver leftovers + block WebRTC IP leak. No UA spoof. */
+/** Lexus-style: real browser — strip driver leftovers + block WebRTC IP leak. No UA spoof. */
 function getHostBrowserStealthSource() {
   return `(() => {
   try {
@@ -73,13 +73,13 @@ function getHostBrowserStealthSource() {
     }
   } catch (_) {}
 
-  // Hide accidental Ocean / CDP bridge keys from simple enumerations
+  // Hide accidental Lexus / CDP bridge keys from simple enumerations
   try {
     for (const k of Object.getOwnPropertyNames(window)) {
       if (
-        k.indexOf('__ocean') === 0 ||
-        k.indexOf('__OCEAN') === 0 ||
-        k === 'oceanBridge' ||
+        k.indexOf('__lexus') === 0 ||
+        k.indexOf('__LEXUS') === 0 ||
+        k === 'lexusBridge' ||
         k.indexOf('__oc') === 0
       ) {
         try {
@@ -95,7 +95,7 @@ function getHostBrowserStealthSource() {
   // WebRTC: drop host/srflx candidates that expose real client / LAN IP
   try {
     const Orig = window.RTCPeerConnection || window.webkitRTCPeerConnection;
-    if (typeof Orig === 'function' && !Orig.__oceanRtcPatched) {
+    if (typeof Orig === 'function' && !Orig.__lexusRtcPatched) {
       const wrap = function (config, constraints) {
         const pc = arguments.length >= 2
           ? new Orig(config, constraints)
@@ -123,7 +123,7 @@ function getHostBrowserStealthSource() {
           try { wrap[k] = Orig[k]; } catch (_) {}
         });
       } catch (_) {}
-      wrap.__oceanRtcPatched = true;
+      wrap.__lexusRtcPatched = true;
       try { wrap.toString = () => Orig.toString(); } catch (_) {}
       try {
         window.RTCPeerConnection = wrap;
@@ -232,10 +232,10 @@ function getConsistencyStealthSource() {
     }
   } catch (_) {}
 
-  // Make any accidental Ocean keys non-enumerable
+  // Make any accidental Lexus keys non-enumerable
   try {
     for (const k of Object.getOwnPropertyNames(window)) {
-      if (k.indexOf('__ocean') === 0 || k.indexOf('__OCEAN') === 0 || k === 'oceanBridge' || k.indexOf('__oc') === 0) {
+      if (k.indexOf('__lexus') === 0 || k.indexOf('__LEXUS') === 0 || k === 'lexusBridge' || k.indexOf('__oc') === 0) {
         try {
           const v = window[k];
           Object.defineProperty(window, k, {

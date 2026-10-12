@@ -1,5 +1,5 @@
 /**
- * SpaceX-style device "MAC" for Ocean license:
+ * SpaceX-style device "MAC" for Lexus license:
  * WMI Win32_ComputerSystemProduct.UUID → "UUID >> <uuid>" → MD5 → dashed hex
  */
 const { execFile } = require('child_process');
@@ -92,7 +92,7 @@ async function readHardwareUuid() {
     // Non-Windows fallback — stable per machine hostname+user (dev only)
     const fake = crypto
       .createHash('sha1')
-      .update(`${os.hostname()}|${os.userInfo().username}|ocean`)
+      .update(`${os.hostname()}|${os.userInfo().username}|lexus`)
       .digest('hex')
       .slice(0, 32)
       .toUpperCase();

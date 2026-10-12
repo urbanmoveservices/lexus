@@ -5,11 +5,11 @@ function readArg(prefix) {
   return arg ? arg.slice(prefix.length) : '';
 }
 
-const runSessionId = readArg('--ocean-run-session=');
-const panelJourneyId = readArg('--ocean-panel-journey=');
-const panelPairIndex = Number(readArg('--ocean-panel-pair=') || '1') || 1;
+const runSessionId = readArg('--lexus-run-session=');
+const panelJourneyId = readArg('--lexus-panel-journey=');
+const panelPairIndex = Number(readArg('--lexus-panel-pair=') || '1') || 1;
 
-contextBridge.exposeInMainWorld('oceanDirectHost', {
+contextBridge.exposeInMainWorld('lexusDirectHost', {
   status: (msg) =>
     ipcRenderer.send('direct-host:status', { sessionId: runSessionId, msg: String(msg || '') }),
   showQr: (qr) =>

@@ -15,7 +15,7 @@ test('railway and ISO date formats match the same booking date', () => {
 });
 function renderer(data) {
   const button = { textContent:'', style:{}, children:[], appendChild(node){this.children.push(node);} };
-  const context = { window: { LexusAvailabilityFormat: format, oceanTrains: { fetchAvailability: async () => data } },
+  const context = { window: { LexusAvailabilityFormat: format, lexusTrains: { fetchAvailability: async () => data } },
     document: { addEventListener(){}, getElementById: () => button, createElement: tag => ({tag}), createTextNode: text => ({text}) }, console };
   vm.createContext(context); vm.runInContext(fs.readFileSync('app/train-results.js','utf8'),context);
   return { context, button };

@@ -1,10 +1,10 @@
 /**
- * Ocean-style Brave: one host CDP socket → many slot profiles (multi-pair).
+ * Lexus-style Brave: one host CDP socket → many slot profiles (multi-pair).
  *
  * 1) ensureBraveHost() — once: dedicated user-data-dir + ocean_host + CDP port
  *    (window off-screen). Brave/Chrome 136+ ignores debugging on *system* Default
- *    User Data, so we use Ocean's brave-ocean-userdata (override via OCEAN_BRAVE_USER_DATA).
- * 2) openBraveSlot(pair) — same user-data-dir + same port + ocean_pN + --new-window
+ *    User Data, so we use Lexus's brave-ocean-userdata (override via OCEAN_BRAVE_USER_DATA).
+ * 2) openBraveSlot(pair) — same user-data-dir + same port + lexus_pN + --new-window
  *    → Chromium attaches to host process (no second Brave). Driver picks new target.
  */
 
@@ -20,9 +20,9 @@ process.env.REBROWSER_PATCHES_UTILITY_WORLD_NAME =
 
 const puppeteer = require('rebrowser-puppeteer-core');
 
-const TAG = '[Ocean Brave]';
-const HOST_PROFILE = process.env.OCEAN_BRAVE_HOST_PROFILE || 'ocean_host';
-const HOST_MASTER_KEY = 'ocean-host';
+const TAG = '[LEXUS Brave]';
+const HOST_PROFILE = (process.env.LEXUS_BRAVE_HOST_PROFILE || process.env.OCEAN_BRAVE_HOST_PROFILE) || 'ocean_host';
+const HOST_MASTER_KEY = 'lexus-host';
 
 /** @type {{
  *  port: number,
@@ -39,8 +39,8 @@ function sleep(ms) {
 }
 
 function getBraveUserDataRoot() {
-  if (process.env.OCEAN_BRAVE_USER_DATA && String(process.env.OCEAN_BRAVE_USER_DATA).trim()) {
-    return String(process.env.OCEAN_BRAVE_USER_DATA).trim();
+  if ((process.env.LEXUS_BRAVE_USER_DATA || process.env.OCEAN_BRAVE_USER_DATA) && String((process.env.LEXUS_BRAVE_USER_DATA || process.env.OCEAN_BRAVE_USER_DATA)).trim()) {
+    return String((process.env.LEXUS_BRAVE_USER_DATA || process.env.OCEAN_BRAVE_USER_DATA)).trim();
   }
   // Non-default dir required so --remote-debugging-port is honored (Brave/Chrome ≥136)
   try {
@@ -59,13 +59,15 @@ function hostProfileDirectory() {
   return HOST_PROFILE;
 }
 
-/** Stable slot profile per pair — alag cookie jar, same Ocean user-data tree */
+/** Stable slot profile per pair — alag cookie jar, same Lexus user-data tree */
 function profileForPair(pairIndex) {
   const pi = Math.max(1, Number(pairIndex) || 1);
-  if (pi === 1 && process.env.OCEAN_BRAVE_PROFILE) return process.env.OCEAN_BRAVE_PROFILE;
-  if (pi === 2 && process.env.OCEAN_BRAVE_PROFILE_2) return process.env.OCEAN_BRAVE_PROFILE_2;
-  const envKey = `OCEAN_BRAVE_PROFILE_${pi}`;
+  if (pi === 1 && (process.env.LEXUS_BRAVE_PROFILE || process.env.OCEAN_BRAVE_PROFILE)) return (process.env.LEXUS_BRAVE_PROFILE || process.env.OCEAN_BRAVE_PROFILE);
+  if (pi === 2 && (process.env.LEXUS_BRAVE_PROFILE_2 || process.env.OCEAN_BRAVE_PROFILE_2)) return (process.env.LEXUS_BRAVE_PROFILE_2 || process.env.OCEAN_BRAVE_PROFILE_2);
+  const envKey = `LEXUS_BRAVE_PROFILE_${pi}`;
   if (process.env[envKey]) return process.env[envKey];
+  const legacyEnvKey = `OCEAN_BRAVE_PROFILE_${pi}`;
+  if (process.env[legacyEnvKey]) return process.env[legacyEnvKey];
   return `ocean_p${pi}`;
 }
 
@@ -249,7 +251,7 @@ async function ensureBraveHost(opts) {
   fs.mkdirSync(userDataRoot, { recursive: true });
   const wantProxy = opts.proxyServer || null;
   const profileDirectory = hostProfileDirectory();
-  ensureProfileSeed(userDataRoot, profileDirectory, 'Ocean Host');
+  ensureProfileSeed(userDataRoot, profileDirectory, 'Lexus Host');
 
   if (hostState && (await cdpAlive(hostState.port))) {
     if ((hostState.proxyServer || null) !== wantProxy) {
@@ -258,7 +260,7 @@ async function ensureBraveHost(opts) {
       );
       killHostProcess();
     } else {
-      console.log(`${TAG} reuse Ocean host port=${hostState.port}`);
+      console.log(`${TAG} reuse Lexus host port=${hostState.port}`);
       return hostState;
     }
   } else if (hostState) {
@@ -271,10 +273,10 @@ async function ensureBraveHost(opts) {
   if (savedPort && (await cdpAlive(savedPort))) {
     if (wantProxy) {
       throw new Error(
-        'Ocean Brave host already open without this proxy. Close ALL Ocean Brave windows, then launch again with IP=Proxy.'
+        'Lexus Brave host already open without this proxy. Close ALL Lexus Brave windows, then launch again with IP=Proxy.'
       );
     }
-    console.log(`${TAG} attach Ocean host via registry port=${savedPort}`);
+    console.log(`${TAG} attach Lexus host via registry port=${savedPort}`);
     hostState = {
       port: savedPort,
       chromeProc: null,
@@ -289,7 +291,7 @@ async function ensureBraveHost(opts) {
   const port = opts.port || (await opts.getFreePort());
 
   console.log(
-    `${TAG} spawn Ocean HOST user-data-dir=${userDataRoot} profile=${profileDirectory} port=${port} proxy=${wantProxy || 'off'}`
+    `${TAG} spawn Lexus HOST user-data-dir=${userDataRoot} profile=${profileDirectory} port=${port} proxy=${wantProxy || 'off'}`
   );
 
   const chromeProc = opts.spawnBrave({
@@ -308,7 +310,7 @@ async function ensureBraveHost(opts) {
     try {
       chromeProc.kill();
     } catch (_) {}
-    throw new Error(`Brave Ocean host CDP not ready on port ${port}`);
+    throw new Error(`Brave Lexus host CDP not ready on port ${port}`);
   }
 
   reg.hostPort = port;
@@ -334,7 +336,7 @@ async function openBraveSlot(opts) {
   const pairIndex = Math.max(1, Number(opts.pairIndex) || 1);
   const host = await ensureBraveHost(opts);
   const profileDirectory = profileForPair(pairIndex);
-  ensureProfileSeed(host.userDataRoot, profileDirectory, `Ocean Pair ${pairIndex}`);
+  ensureProfileSeed(host.userDataRoot, profileDirectory, `Lexus Pair ${pairIndex}`);
 
   host.refCount = (host.refCount || 0) + 1;
 
@@ -362,7 +364,7 @@ async function openBraveSlot(opts) {
         pairIndex,
         reused: true,
         ownedSpawn: false,
-        isOceanSlot: true,
+        isLexusSlot: true,
       };
     }
     host.slots.delete(pairIndex);
@@ -419,11 +421,11 @@ async function openBraveSlot(opts) {
     pairIndex,
     reused: false,
     ownedSpawn: false,
-    isOceanSlot: true,
+    isLexusSlot: true,
   };
 }
 
-/** @deprecated name kept for chrome-runner — now Ocean openBraveSlot */
+/** @deprecated name kept for chrome-runner — now Lexus openBraveSlot */
 async function acquireBraveMaster(opts) {
   return openBraveSlot(opts);
 }
@@ -432,7 +434,7 @@ function releaseBraveMaster(handle) {
   if (!handle || handle.browserKind !== 'brave') return;
   if (!hostState) return;
   hostState.refCount = Math.max(0, (hostState.refCount || 1) - 1);
-  // Keep host + other slots alive (Ocean): disconnect CDP client only
+  // Keep host + other slots alive (Lexus): disconnect CDP client only
 }
 
 function clearSlot(pairIndex) {
@@ -446,12 +448,12 @@ function closeBraveMaster(handle) {
     return { killProcess: true };
   }
   releaseBraveMaster(handle);
-  // Never kill shared Ocean host from a single pair close
+  // Never kill shared Lexus host from a single pair close
   return { killProcess: false };
 }
 
-/** Test / manual shutdown of entire Ocean Brave process */
-function shutdownOceanHost() {
+/** Test / manual shutdown of entire Lexus Brave process */
+function shutdownLexusHost() {
   killHostProcess();
 }
 
@@ -465,7 +467,7 @@ module.exports = {
   releaseBraveMaster,
   clearSlot,
   closeBraveMaster,
-  shutdownOceanHost,
+  shutdownLexusHost,
   /** @deprecated use hostState via ensure — kept empty Map for old callers */
   get masters() {
     return new Map();

@@ -36,12 +36,12 @@ button {
   cursor: pointer;
 }
 
-.ocean-app {
+.lexus-app {
   min-height: 100vh;
   background: transparent;
 }
 
-.ocean-form {
+.lexus-form {
   min-height: 100vh;
 }
 
@@ -475,13 +475,13 @@ body.view-toolbar.toolbar-menu-open {
   overflow: visible;
 }
 
-body.view-toolbar.toolbar-menu-open .ocean-app,
-body.view-toolbar.toolbar-menu-open .ocean-form {
+body.view-toolbar.toolbar-menu-open .lexus-app,
+body.view-toolbar.toolbar-menu-open .lexus-form {
   overflow: visible;
 }
 
-body.view-toolbar .ocean-app,
-body.view-toolbar .ocean-form {
+body.view-toolbar .lexus-app,
+body.view-toolbar .lexus-form {
   min-height: 0;
   height: 100%;
   flex: 1;
@@ -496,7 +496,7 @@ body.view-toolbar .modal-layer {
   display: none !important;
 }
 
-body.view-toolbar .ocean-toolbar {
+body.view-toolbar .lexus-toolbar {
   position: relative;
   left: auto;
   right: auto;
@@ -515,8 +515,8 @@ body.view-toolbar .tb-btn,
 body.view-toolbar .tb-chip,
 body.view-toolbar .tb-close,
 body.view-toolbar .tb-clock,
-body.view-toolbar .ocean-toolbar details,
-body.view-toolbar .ocean-toolbar summary,
+body.view-toolbar .lexus-toolbar details,
+body.view-toolbar .lexus-toolbar summary,
 body.view-toolbar .dropdown-card,
 body.view-toolbar .dropdown-card *,
 body.view-toolbar .toast {
@@ -557,8 +557,8 @@ body.view-modal .modal-head a {
   -webkit-app-region: no-drag;
 }
 
-body.view-modal .ocean-app,
-body.view-modal .ocean-form {
+body.view-modal .lexus-app,
+body.view-modal .lexus-form {
   height: 100%;
   min-height: 0;
   max-height: 100%;
@@ -566,7 +566,7 @@ body.view-modal .ocean-form {
   flex-direction: column;
 }
 
-body.view-modal .ocean-toolbar {
+body.view-modal .lexus-toolbar {
   display: none !important;
 }
 
@@ -2100,7 +2100,7 @@ body.view-modal .modal-panel .accounts-stats > span {
   font-size: 12px;
 }
 
-.ocean-toolbar {
+.lexus-toolbar {
   position: fixed;
   left: 14px;
   right: 14px;
@@ -2125,15 +2125,15 @@ body.view-modal .modal-panel .accounts-stats > span {
   font-size: 13px;
 }
 
-.ocean-toolbar details {
+.lexus-toolbar details {
   position: relative;
 }
 
-.ocean-toolbar summary {
+.lexus-toolbar summary {
   list-style: none;
 }
 
-.ocean-toolbar summary::-webkit-details-marker {
+.lexus-toolbar summary::-webkit-details-marker {
   display: none;
 }
 
@@ -2154,7 +2154,7 @@ body.view-modal .modal-panel .accounts-stats > span {
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
 
-/* Ref: dark OCEAN PRO pill — white text, green PRO, not white bar */
+/* Ref: dark LEXUS PRO pill — white text, green PRO, not white bar */
 .tb-brand {
   padding: 0 12px 0 8px;
   border: 1px solid rgba(0, 180, 255, 0.35);
@@ -2668,7 +2668,7 @@ body.view-modal .modal-panel .accounts-stats > span {
 }
 
 @media (max-width: 760px) {
-  .ocean-toolbar {
+  .lexus-toolbar {
     left: 10px;
     right: 10px;
     gap: 6px;

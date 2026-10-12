@@ -1,6 +1,6 @@
 /**
  * SQLite profile store (sql.js WASM — no native rebuild).
- * DB file: userData/ocean-data/ocean.sqlite
+ * DB file: userData/lexus-data/lexus.sqlite
  */
 const fs = require('fs');
 const path = require('path');
@@ -16,10 +16,28 @@ let workspaceDataRoot=null;
 let workspaceTransition=Promise.resolve();
 
 function ensureDirs() {
-  const dir = path.join(workspaceDataRoot||app.getPath('userData'), 'ocean-data');
+  const root = workspaceDataRoot||app.getPath('userData');
+  const dir = path.join(root, 'lexus-data');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  dbPath = path.join(dir, 'ocean.sqlite');
-  keyPath = path.join(dir, '.ocean-key');
+  dbPath = path.join(dir, 'lexus.sqlite');
+  keyPath = path.join(dir, '.lexus-key');
+  migrateLegacyStore(root);
+}
+
+/** One-time copy from the pre-rename store (ocean-data/ocean.sqlite + .ocean-key). Legacy files are kept as a backup. */
+function migrateLegacyStore(root) {
+  try {
+    if (fs.existsSync(dbPath)) return;
+    const legacyDir = path.join(root, 'ocean-data');
+    const legacyDb = path.join(legacyDir, 'ocean.sqlite');
+    if (!fs.existsSync(legacyDb)) return;
+    // Key and database must move together or encrypted fields become unreadable.
+    const legacyKey = path.join(legacyDir, '.ocean-key');
+    if (fs.existsSync(legacyKey)) fs.copyFileSync(legacyKey, keyPath);
+    fs.copyFileSync(legacyDb, dbPath);
+  } catch (e) {
+    console.warn('[LEXUS] legacy data migration failed:', e && e.message ? e.message : e);
+  }
 }
 
 function getOrCreateKey() {
@@ -443,8 +461,8 @@ function getUiState() {
 /** TrueCaptcha for login/booking when IRCTC actually sends a captcha image. */
 function getTrueCaptchaCredentials() {
   const ui = getUiState();
-  const userId = String(ui.trueCaptchaUserId || process.env.OCEAN_TRUECAPTCHA_USER || '').trim();
-  const apiKeyRaw = String(ui.trueCaptchaApiKey || process.env.OCEAN_TRUECAPTCHA_KEY || '').trim();
+  const userId = String(ui.trueCaptchaUserId || (process.env.LEXUS_TRUECAPTCHA_USER || process.env.OCEAN_TRUECAPTCHA_USER) || '').trim();
+  const apiKeyRaw = String(ui.trueCaptchaApiKey || (process.env.LEXUS_TRUECAPTCHA_KEY || process.env.OCEAN_TRUECAPTCHA_KEY) || '').trim();
   const apiKey = apiKeyRaw.startsWith('v1:') ? decrypt(apiKeyRaw) : apiKeyRaw;
   const enabledFlag = String(ui.trueCaptchaEnabled ?? '1') !== '0';
   const enabled = enabledFlag && Boolean(userId && apiKey);

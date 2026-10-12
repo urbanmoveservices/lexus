@@ -31,7 +31,7 @@ async function applyProxyToSession(ses, proxyCfg) {
         rules = `http=127.0.0.1:${tunnel.localPort};https=127.0.0.1:${tunnel.localPort}`;
       }
     } catch (e) {
-      console.warn('[Ocean Proxy] tunnel for Electron failed:', e.message || e);
+      console.warn('[LEXUS Proxy] tunnel for Electron failed:', e.message || e);
     }
   }
 
@@ -43,8 +43,8 @@ async function applyProxyToSession(ses, proxyCfg) {
     proxyBypassRules: '<local>',
   });
 
-  if (hasProxyAuth(cfg) && !tunnel && !ses.__oceanProxyLoginHooked) {
-    ses.__oceanProxyLoginHooked = true;
+  if (hasProxyAuth(cfg) && !tunnel && !ses.__lexusProxyLoginHooked) {
+    ses.__lexusProxyLoginHooked = true;
     ses.on('login', (event, _wc, _details, authInfo, callback) => {
       if (!authInfo || !authInfo.isProxy) return;
       event.preventDefault();
@@ -53,7 +53,7 @@ async function applyProxyToSession(ses, proxyCfg) {
   }
 
   console.log(
-    '[Ocean Proxy] session proxy set:',
+    '[LEXUS Proxy] session proxy set:',
     rules,
     tunnel ? '(tunnel auth)' : hasProxyAuth(cfg) ? '(login auth)' : ''
   );

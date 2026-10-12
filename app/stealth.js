@@ -25,7 +25,7 @@ let SPOOF_NOT_A_VERSION = '99';
 function syncChromeVersionFromSystem() {
   const info = detectChromeVersion();
   if (!info || !info.major) {
-    console.warn('[Ocean Stealth] Chrome version detect failed — using defaults v' + SPOOF_CHROME_MAJOR);
+    console.warn('[LEXUS Stealth] Chrome version detect failed — using defaults v' + SPOOF_CHROME_MAJOR);
     return { major: SPOOF_CHROME_MAJOR, full: SPOOF_CHROME_FULL_REAL, detected: false };
   }
   SPOOF_CHROME_MAJOR = info.major;
@@ -37,7 +37,7 @@ function syncChromeVersionFromSystem() {
     SPOOF_NOT_A_VERSION = '99';
   }
   console.log(
-    `[Ocean Stealth] Synced to System Chrome ${info.full} (UA ${SPOOF_CHROME_FULL}, sec-ch-ua v${SPOOF_CHROME_MAJOR})`
+    `[LEXUS Stealth] Synced to System Chrome ${info.full} (UA ${SPOOF_CHROME_FULL}, sec-ch-ua v${SPOOF_CHROME_MAJOR})`
   );
   return { major: info.major, full: info.full, detected: true, path: info.path };
 }
@@ -96,8 +96,8 @@ const LEAKY_HEADER_KEYS = [
  * Also registers stealth-only frame preload (before page scripts).
  */
 function applyStealthToSession(ses, userAgent) {
-  if (!ses || ses.__oceanStealthApplied) return;
-  ses.__oceanStealthApplied = true;
+  if (!ses || ses.__lexusStealthApplied) return;
+  ses.__lexusStealthApplied = true;
 
   const ua = userAgent || getChromeUserAgent();
   ses.setUserAgent(ua);
@@ -113,7 +113,7 @@ function applyStealthToSession(ses, userAgent) {
       ses.setPreloads([...prev, filePath]);
     }
   } catch (e) {
-    console.warn('[Ocean Stealth] preload register failed:', e && e.message ? e.message : e);
+    console.warn('[LEXUS Stealth] preload register failed:', e && e.message ? e.message : e);
   }
 
   const hints = getClientHintHeaders();
@@ -170,7 +170,7 @@ async function installNewDocumentStealth(webContents) {
     return true;
   } catch (err) {
     console.warn(
-      '[Ocean Stealth] new-document CDP skipped:',
+      '[LEXUS Stealth] new-document CDP skipped:',
       err && err.message ? err.message : err
     );
     try {
@@ -181,7 +181,7 @@ async function installNewDocumentStealth(webContents) {
 }
 
 /**
- * Main-world stealth patch. No Ocean-named globals. webdriver === false (Chrome-like).
+ * Main-world stealth patch. No Lexus-named globals. webdriver === false (Chrome-like).
  * Idempotent via non-enumerable mark on Navigator.prototype.
  */
 function getStealthInjectSource() {
@@ -389,9 +389,9 @@ function getStealthInjectSource() {
     for (const k of Object.getOwnPropertyNames(window)) {
       if (!k) continue;
       if (
-        k.indexOf('__ocean') === 0 ||
-        k.indexOf('__OCEAN') === 0 ||
-        k === 'oceanBridge'
+        k.indexOf('__lexus') === 0 ||
+        k.indexOf('__LEXUS') === 0 ||
+        k === 'lexusBridge'
       ) {
         try {
           const v = window[k];

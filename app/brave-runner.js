@@ -1,6 +1,6 @@
 /**
- * Ocean-style Brave host engine.
- * One host CDP → many slot profiles (ocean_p1 / ocean_p2 / …) for multi-pair.
+ * Lexus-style Brave host engine.
+ * One host CDP → many slot profiles (lexus_p1 / lexus_p2 / …) for multi-pair.
  * Chrome runner unchanged for system-chrome engine.
  */
 const chromeRunner = require('./chrome-runner');
@@ -29,5 +29,5 @@ module.exports = {
   profileForPair: braveHost.profileForPair,
   ensureBraveHost: braveHost.ensureBraveHost,
   openBraveSlot: braveHost.openBraveSlot,
-  shutdownOceanHost: braveHost.shutdownOceanHost,
+  shutdownLexusHost: braveHost.shutdownLexusHost,
 };

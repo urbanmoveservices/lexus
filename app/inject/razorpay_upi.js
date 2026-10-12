@@ -25,7 +25,7 @@ class RazorpayUPIHandlerJS {
     this.razorpay_signature = null;
     this.final_order_id = null;
     this._flowLog =
-      typeof OceanQrFileLog !== 'undefined' ? OceanQrFileLog.create('Razorpay UPI') : null;
+      typeof LexusQrFileLog !== 'undefined' ? LexusQrFileLog.create('Razorpay UPI') : null;
   }
 
   getFileLogLines() {
@@ -74,8 +74,8 @@ class RazorpayUPIHandlerJS {
       return;
     }
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus('Razorpay: ' + line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus('Razorpay: ' + line);
       }
     } catch (_) {}
   }
@@ -87,8 +87,8 @@ class RazorpayUPIHandlerJS {
     console.log(`[${this.port}] [Razorpay-Direct] ${line}`);
     if (this._flowLog) this._flowLog.logUi(line);
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus(line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus(line);
         return;
       }
     } catch (_) {}
@@ -551,7 +551,7 @@ class RazorpayUPIHandlerJS {
   }
 
   // ======================================================
-  // STEP 7: BankResponse (Ocean PhonePe/Paytm parity)
+  // STEP 7: BankResponse (Lexus PhonePe/Paytm parity)
   // ======================================================
   async submit_bank_response_direct(finalEncdata) {
     const GATE_SEC = 10.5;
@@ -662,7 +662,7 @@ class RazorpayUPIHandlerJS {
   }
 
   // ======================================================
-  // STEP 8: bookingData (Ocean Final Hit animation)
+  // STEP 8: bookingData (Lexus Final Hit animation)
   // ======================================================
   async fetch_pnr_direct() {
     try {
@@ -717,9 +717,9 @@ class RazorpayUPIHandlerJS {
             const { pnr, error: err } = this._parseBookingDataPayload(data);
 
             if (pnr) {
-              if (typeof window.__oceanReportBookingFull === 'function') {
+              if (typeof window.__lexusReportBookingFull === 'function') {
                 try {
-                  await window.__oceanReportBookingFull(data);
+                  await window.__lexusReportBookingFull(data);
                 } catch (_) {}
               }
               this.panelStatus(`SUCCESS! PNR: ${pnr}`);

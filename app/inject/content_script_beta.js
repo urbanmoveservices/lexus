@@ -85,8 +85,8 @@ async function lexusSelectGender(el, value) {
         const line = String(msg || "").trim();
         if (!line) return;
         try {
-            if (typeof window.__oceanPushPanelStatus === "function") {
-                window.__oceanPushPanelStatus(line);
+            if (typeof window.__lexusPushPanelStatus === "function") {
+                window.__lexusPushPanelStatus(line);
                 return;
             }
         } catch (_) { /* */ }
@@ -155,7 +155,7 @@ async function lexusSelectGender(el, value) {
             try {
                 const el = document.querySelector(selector);
                 if (el && isLogoutish(el)) {
-                    console.warn("[OCEAN Beta] Blocked click on LOGOUT-ish element:", selector);
+                    console.warn("[LEXUS Beta] Blocked click on LOGOUT-ish element:", selector);
                     reject(new Error("Refusing to click LOGOUT"));
                     return;
                 }
@@ -313,7 +313,7 @@ async function lexusSelectGender(el, value) {
             }
             await sleep(150);
         }
-        console.warn("[OCEAN Beta] Loader still visible after timeout — proceeding anyway.");
+        console.warn("[LEXUS Beta] Loader still visible after timeout — proceeding anyway.");
         return false;
     }
 
@@ -328,7 +328,7 @@ async function lexusSelectGender(el, value) {
             }
             await sleep(500);
         }
-        console.warn("[OCEAN Beta] Login success not detected within timeout.");
+        console.warn("[LEXUS Beta] Login success not detected within timeout.");
         return false;
     }
 
@@ -368,7 +368,7 @@ async function lexusSelectGender(el, value) {
                 log("Login success while waiting — skip Header LOGIN.");
                 return false;
             }
-            console.warn("[OCEAN Beta] Header LOGIN not found within timeout.");
+            console.warn("[LEXUS Beta] Header LOGIN not found within timeout.");
             return false;
         }
 
@@ -383,7 +383,7 @@ async function lexusSelectGender(el, value) {
             return false;
         }
 
-        const sel = markTempId(btn, "ocean-header-login");
+        const sel = markTempId(btn, "lexus-header-login");
         log("Debugger-click Header LOGIN…");
         btn.scrollIntoView({ block: "center", inline: "center" });
         await sleep(100);
@@ -396,7 +396,7 @@ async function lexusSelectGender(el, value) {
         log("Waiting for login username field…");
         const userEl = await waitForElVisible(USERNAME);
         if (!userEl) {
-            console.warn("[OCEAN Beta] Username field not found.");
+            console.warn("[LEXUS Beta] Username field not found.");
             return false;
         }
         await sleep(300);
@@ -405,17 +405,17 @@ async function lexusSelectGender(el, value) {
         const passSel = resolveSelector(["#password", "input[formcontrolname='password']"]);
         const manualLogin = await isManualLoginEnabled();
         if (!userSel || (!manualLogin && !passSel)) {
-            console.warn("[OCEAN Beta] Could not resolve username/password selectors.");
+            console.warn("[LEXUS Beta] Could not resolve username/password selectors.");
             return false;
         }
 
         const { userName, password } = await getIrctcCredentials();
         if (!userName) {
-            console.warn("[OCEAN Beta] irctc_credentials username missing. Save login in popup first.");
+            console.warn("[LEXUS Beta] irctc_credentials username missing. Save login in popup first.");
             return false;
         }
         if (!manualLogin && !password) {
-            console.warn("[OCEAN Beta] irctc_credentials missing in storage. Save login in popup first.");
+            console.warn("[LEXUS Beta] irctc_credentials missing in storage. Save login in popup first.");
             return false;
         }
 
@@ -438,7 +438,7 @@ async function lexusSelectGender(el, value) {
         log("Waiting for active Submit LOGIN…", SUBMIT_LOGIN);
         const submitBtn = await waitForElVisible(SUBMIT_LOGIN, 15000);
         if (!submitBtn) {
-            console.warn("[OCEAN Beta] Active Submit LOGIN not found.");
+            console.warn("[LEXUS Beta] Active Submit LOGIN not found.");
             return false;
         }
 
@@ -457,8 +457,8 @@ async function lexusSelectGender(el, value) {
         if (!el) return null;
         const id = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         el.setAttribute("id", id);
-        el.setAttribute("data-ocean-click", id);
-        return `[data-ocean-click="${id}"]`;
+        el.setAttribute("data-lexus-click", id);
+        return `[data-lexus-click="${id}"]`;
     }
 
     /** Never click LOGOUT / header account menu items */
@@ -494,23 +494,23 @@ async function lexusSelectGender(el, value) {
      */
     async function mouseClickEl(element, offsetYPercent = 50) {
         if (!element) {
-            console.warn("[OCEAN Beta] mouseClick: invalid element");
+            console.warn("[LEXUS Beta] mouseClick: invalid element");
             return false;
         }
         if (element.disabled || element.classList?.contains("disable-book")) {
-            console.warn("[OCEAN Beta] mouseClick: disabled element");
+            console.warn("[LEXUS Beta] mouseClick: disabled element");
             return false;
         }
         if (isLogoutish(element)) {
-            console.warn("[OCEAN Beta] mouseClick: blocked logout-ish");
+            console.warn("[LEXUS Beta] mouseClick: blocked logout-ish");
             return false;
         }
-        const sel = markTempId(element, "ocean-mouse");
+        const sel = markTempId(element, "lexus-mouse");
         try {
             await debuggerClick(sel, 50, offsetYPercent);
             return true;
         } catch (e) {
-            console.warn("[OCEAN Beta] mouseClick failed:", e && e.message ? e.message : e);
+            console.warn("[LEXUS Beta] mouseClick failed:", e && e.message ? e.message : e);
             return false;
         }
     }
@@ -669,14 +669,14 @@ async function lexusSelectGender(el, value) {
         while (Date.now() - start < timeoutMs) {
             const hit = findOptionByText(needle);
             if (hit) {
-                const sel = markTempId(hit, "ocean-beta-opt");
+                const sel = markTempId(hit, "lexus-beta-opt");
                 log("Option click:", needle, "→", (hit.innerText || "").trim().replace(/\s+/g, " "));
                 await debuggerClick(sel);
                 return true;
             }
             await sleep(120);
         }
-        console.warn("[OCEAN Beta] Option not found:", needle);
+        console.warn("[LEXUS Beta] Option not found:", needle);
         return false;
     }
 
@@ -688,12 +688,12 @@ async function lexusSelectGender(el, value) {
             if (hit) {
                 const preview = (hit.innerText || "").trim().replace(/\s+/g, " ").slice(0, 80);
                 log("Station option click:", needle, "→", preview);
-                await debuggerClick(markTempId(hit, "ocean-station-opt"));
+                await debuggerClick(markTempId(hit, "lexus-station-opt"));
                 return true;
             }
             await sleep(150);
         }
-        console.warn("[OCEAN Beta] Station option not found:", needle);
+        console.warn("[LEXUS Beta] Station option not found:", needle);
         return false;
     }
 
@@ -728,14 +728,14 @@ async function lexusSelectGender(el, value) {
     async function fillStationCombobox(boxSelector, stationRaw, tempId) {
         const code = extractStationCode(stationRaw);
         if (!code) {
-            console.warn("[OCEAN Beta] Empty station code for", boxSelector);
+            console.warn("[LEXUS Beta] Empty station code for", boxSelector);
             return false;
         }
 
         log(`Station fill → ${code}`, boxSelector);
         const box = await waitForElVisible(boxSelector, 15000);
         if (!box) {
-            console.warn("[OCEAN Beta] Station box not found:", boxSelector);
+            console.warn("[LEXUS Beta] Station box not found:", boxSelector);
             return false;
         }
 
@@ -755,7 +755,7 @@ async function lexusSelectGender(el, value) {
             inputSel = await resolveOpenInputSelector(boxSelector, tempId);
         }
         if (!inputSel) {
-            console.warn("[OCEAN Beta] Station input not found after opening", boxSelector);
+            console.warn("[LEXUS Beta] Station input not found after opening", boxSelector);
             return false;
         }
 
@@ -778,7 +778,7 @@ async function lexusSelectGender(el, value) {
         }
 
         // Retry once: reopen + type + first option / Enter
-        console.warn("[OCEAN Beta] Station not confirmed, retry once:", code);
+        console.warn("[LEXUS Beta] Station not confirmed, retry once:", code);
         await debuggerClick(boxSelector);
         await sleep(400);
         inputSel = await resolveOpenInputSelector(boxSelector, tempId + "-r");
@@ -847,10 +847,10 @@ async function lexusSelectGender(el, value) {
             : "a.ui-datepicker-next";
         const el = Array.from(document.querySelectorAll(sel)).find(isVisible);
         if (!el) {
-            console.warn("[OCEAN Beta] Calendar", direction, "not found");
+            console.warn("[LEXUS Beta] Calendar", direction, "not found");
             return false;
         }
-        await debuggerClick(markTempId(el, direction === "prev" ? "ocean-cal-prev" : "ocean-cal-next"));
+        await debuggerClick(markTempId(el, direction === "prev" ? "lexus-cal-prev" : "lexus-cal-next"));
         return true;
     }
 
@@ -881,19 +881,19 @@ async function lexusSelectGender(el, value) {
         }
 
         if (!hit) {
-            console.warn("[OCEAN Beta] Calendar day not found / disabled:", day);
+            console.warn("[LEXUS Beta] Calendar day not found / disabled:", day);
             return false;
         }
 
         log("Click calendar day:", dayNum);
-        await debuggerClick(markTempId(hit, "ocean-cal-day"));
+        await debuggerClick(markTempId(hit, "lexus-cal-day"));
         return true;
     }
 
     async function fillJourneyDate(dateStr) {
         const parsed = parseJourneyDate(dateStr);
         if (!parsed) {
-            console.warn("[OCEAN Beta] Invalid journey date:", dateStr);
+            console.warn("[LEXUS Beta] Invalid journey date:", dateStr);
             return false;
         }
 
@@ -902,7 +902,7 @@ async function lexusSelectGender(el, value) {
 
         const box = await waitForElVisible(DATE_BOX, 15000);
         if (!box) {
-            console.warn("[OCEAN Beta] Date box not found");
+            console.warn("[LEXUS Beta] Date box not found");
             return false;
         }
 
@@ -916,7 +916,7 @@ async function lexusSelectGender(el, value) {
             if (!cur) await sleep(150);
         }
         if (!cur) {
-            console.warn("[OCEAN Beta] Calendar month/year header not readable");
+            console.warn("[LEXUS Beta] Calendar month/year header not readable");
             return false;
         }
 
@@ -943,7 +943,7 @@ async function lexusSelectGender(el, value) {
 
         cur = readOpenCalendarMonthYear();
         if (!cur || cur.year !== parsed.year || cur.monthIndex !== parsed.monthIndex) {
-            console.warn("[OCEAN Beta] Could not reach target month", parsed.monthIndex + 1, parsed.year,
+            console.warn("[LEXUS Beta] Could not reach target month", parsed.monthIndex + 1, parsed.year,
                 "— now at", cur);
             return false;
         }
@@ -959,7 +959,7 @@ async function lexusSelectGender(el, value) {
 
         const box = await waitForElVisible(QUOTA_BOX, 15000);
         if (!box) {
-            console.warn("[OCEAN Beta] Quota box not found");
+            console.warn("[LEXUS Beta] Quota box not found");
             return false;
         }
 
@@ -981,7 +981,7 @@ async function lexusSelectGender(el, value) {
                 .filter(isVisible)
                 .find((el) => (el.innerText || "").toUpperCase().includes(label));
             if (hit) {
-                await debuggerClick(markTempId(hit, "ocean-quota-opt"));
+                await debuggerClick(markTempId(hit, "lexus-quota-opt"));
                 ok = true;
             }
         }
@@ -995,7 +995,7 @@ async function lexusSelectGender(el, value) {
     async function clickSearchTrains() {
         const sel = resolveSelector([SEARCH_BTN, "button[type='submit'].search-btn", "form button[type='submit']"]);
         if (!sel) {
-            console.warn("[OCEAN Beta] Search Trains button not found");
+            console.warn("[LEXUS Beta] Search Trains button not found");
             return false;
         }
         log("Clicking Search Trains…", sel);
@@ -1007,28 +1007,28 @@ async function lexusSelectGender(el, value) {
         log("Journey fill started…");
         const journey = await getJourneyDetails();
         if (!journey?.from || !journey?.destination || !journey?.date) {
-            console.warn("[OCEAN Beta] journey_details incomplete in storage. Save Journey section in popup.", journey);
+            console.warn("[LEXUS Beta] journey_details incomplete in storage. Save Journey section in popup.", journey);
             return false;
         }
 
         // Search form ready
         const fromReady = await waitForElVisible(FROM_BOX, 20000);
         if (!fromReady) {
-            console.warn("[OCEAN Beta] From station field not on page — are we on train-search?");
+            console.warn("[LEXUS Beta] From station field not on page — are we on train-search?");
             return false;
         }
         await sleep(300);
 
         try {
-            await fillStationCombobox(FROM_BOX, journey.from, "ocean-beta-from-inp");
-            await fillStationCombobox(TO_BOX, journey.destination, "ocean-beta-to-inp");
+            await fillStationCombobox(FROM_BOX, journey.from, "lexus-beta-from-inp");
+            await fillStationCombobox(TO_BOX, journey.destination, "lexus-beta-to-inp");
             await fillJourneyDate(journey.date);
             await fillQuota(journey.quota || "GN");
             await clickSearchTrains();
             log("✅ Journey details filled + Search clicked.");
             return true;
         } catch (e) {
-            console.error("[OCEAN Beta] Journey fill failed:", e);
+            console.error("[LEXUS Beta] Journey fill failed:", e);
             return false;
         }
     }
@@ -1246,10 +1246,10 @@ async function lexusSelectGender(el, value) {
     }
 
     function showBookingWaitBanner(requiredBookingTime) {
-        let banner = document.getElementById("ocean-wait-banner");
+        let banner = document.getElementById("lexus-wait-banner");
         if (!banner) {
             banner = document.createElement("div");
-            banner.id = "ocean-wait-banner";
+            banner.id = "lexus-wait-banner";
             Object.assign(banner.style, {
                 position: "fixed",
                 top: "0px",
@@ -1271,8 +1271,8 @@ async function lexusSelectGender(el, value) {
         return banner;
     }
 
-    function removeOceanBanner() {
-        const banner = document.getElementById("ocean-wait-banner");
+    function removeLexusBanner() {
+        const banner = document.getElementById("lexus-wait-banner");
         if (banner) banner.remove();
     }
 
@@ -1302,7 +1302,7 @@ async function lexusSelectGender(el, value) {
             const now = currentClockHms();
             if (now >= requiredBookingTime) {
                 log("Clock already past required time:", now, "≥", requiredBookingTime);
-                removeOceanBanner();
+                removeLexusBanner();
                 resolve(true);
                 return;
             }
@@ -1317,7 +1317,7 @@ async function lexusSelectGender(el, value) {
                 done = true;
                 if (observer) try { observer.disconnect(); } catch (_) { /* */ }
                 if (intervalId) clearInterval(intervalId);
-                removeOceanBanner();
+                removeLexusBanner();
                 log("Clock reached", requiredBookingTime, "— starting booking clicks.");
                 resolve(true);
             };
@@ -1333,7 +1333,7 @@ async function lexusSelectGender(el, value) {
                 }
                 try {
                     if (waitCounter === 0) showBookingWaitBanner(requiredBookingTime);
-                    const banner = document.getElementById("ocean-wait-banner");
+                    const banner = document.getElementById("lexus-wait-banner");
                     if (banner) {
                         banner.style.backgroundColor = waitCounter % 2 === 0 ? "green" : "red";
                         banner.textContent = `Please wait... Booking will start at ${requiredBookingTime} (now ${currentTimeString})`;
@@ -1575,7 +1575,7 @@ async function lexusSelectGender(el, value) {
         selectJourneyRunning = true;
         sjBookAttempted = false;
         disconnectSjObservers();
-        removeOceanBanner();
+        removeLexusBanner();
         log("selectJourney shuru…", location.href);
 
         try {
@@ -1585,7 +1585,7 @@ async function lexusSelectGender(el, value) {
             const otherPrefs = data.other_preferences || journey.other_preferences || {};
             const trainNoRaw = journey["train-no"];
             if (!trainNoRaw) {
-                console.warn("[OCEAN Beta] train-no missing in journey_details");
+                console.warn("[LEXUS Beta] train-no missing in journey_details");
                 selectJourneyRunning = false;
                 return false;
             }
@@ -1594,7 +1594,7 @@ async function lexusSelectGender(el, value) {
 
             const trainBlock = findTrainCard(trainNoRaw);
             if (!trainBlock) {
-                console.warn("[OCEAN Beta] Train list me nahi mili — retry:", trainNoRaw);
+                console.warn("[LEXUS Beta] Train list me nahi mili — retry:", trainNoRaw);
                 retrySelectJourney();
                 return false;
             }
@@ -1609,7 +1609,7 @@ async function lexusSelectGender(el, value) {
             }
 
             await waitForBookingClock(journey, prefs, otherPrefs);
-            removeOceanBanner();
+            removeLexusBanner();
 
             const useSlowMode = !!(otherPrefs.useSlowMode === true || otherPrefs.useSlowMode === "true");
             const classCode = (journey.class || "").trim().toUpperCase();
@@ -1706,7 +1706,7 @@ async function lexusSelectGender(el, value) {
             // Observers async finish karenge — yahan true = flow arm ho gaya
             return true;
         } catch (e) {
-            console.error("[OCEAN Beta] selectJourney failed:", e);
+            console.error("[LEXUS Beta] selectJourney failed:", e);
             disconnectSjObservers();
             selectJourneyRunning = false;
             return false;
@@ -1753,7 +1753,7 @@ async function lexusSelectGender(el, value) {
     async function openNewPassengerModal() {
         const btn = await waitForElVisible("button.btn.btn-new-passenger", 12000);
         if (!btn) {
-            console.warn("[OCEAN Beta] + New Passenger button not found");
+            console.warn("[LEXUS Beta] + New Passenger button not found");
             return false;
         }
         await debuggerClick("button.btn.btn-new-passenger");
@@ -1777,7 +1777,7 @@ async function lexusSelectGender(el, value) {
             return clickMatchingOption(label);
         }
 
-        const sel = markTempId(box, "ocean-psg-dd");
+        const sel = markTempId(box, "lexus-psg-dd");
         await debuggerClick(sel);
         await sleep(350);
         const ok = await clickMatchingOption(label, 5000);
@@ -1803,12 +1803,12 @@ async function lexusSelectGender(el, value) {
         )).filter(isVisible);
         const genderBox = boxes.find((el) => /GENDER/i.test(el.innerText || ""));
         if (!genderBox) {
-            console.warn("[OCEAN Beta] Gender field not found");
+            console.warn("[LEXUS Beta] Gender field not found");
             return false;
         }
 
         log("Open Gender → select", label);
-        await debuggerClick(markTempId(genderBox, "ocean-psg-gender"));
+        await debuggerClick(markTempId(genderBox, "lexus-psg-gender"));
         await sleep(300);
 
         // Wait until Male/Female/Transgender list visible, then debugger-click exact label
@@ -1823,12 +1823,12 @@ async function lexusSelectGender(el, value) {
             .filter(isVisible)
             .find((el) => (el.innerText || "").trim() === label && el.getBoundingClientRect().height < 48);
         if (hit) {
-            await debuggerClick(markTempId(hit, "ocean-psg-gender-opt"));
+            await debuggerClick(markTempId(hit, "lexus-psg-gender-opt"));
             await sleep(150);
             return true;
         }
 
-        console.warn("[OCEAN Beta] Gender option click failed:", label);
+        console.warn("[LEXUS Beta] Gender option click failed:", label);
         return false;
     }
 
@@ -1856,7 +1856,7 @@ async function lexusSelectGender(el, value) {
         }
 
         if (!radioBox) {
-            console.warn("[OCEAN Beta] BHIM/UPI radio not found");
+            console.warn("[LEXUS Beta] BHIM/UPI radio not found");
             return false;
         }
 
@@ -1869,7 +1869,7 @@ async function lexusSelectGender(el, value) {
 
         radioBox.scrollIntoView({ block: "center", inline: "center" });
         await sleep(200);
-        await debuggerClick(markTempId(radioBox, "ocean-bhim-upi-radio"));
+        await debuggerClick(markTempId(radioBox, "lexus-bhim-upi-radio"));
         await sleep(300);
 
         const ok = radioBox.getAttribute("aria-checked") === "true" ||
@@ -1894,10 +1894,10 @@ async function lexusSelectGender(el, value) {
         if (!nameSel) {
             const nameEl = document.querySelector("div.ap-container input[type='text']") ||
                 document.querySelector("p-autocomplete[formcontrolname='passengerName'] input");
-            if (nameEl) nameSel = markTempId(nameEl, "ocean-psg-name");
+            if (nameEl) nameSel = markTempId(nameEl, "lexus-psg-name");
         }
         if (!nameSel) {
-            console.warn("[OCEAN Beta] Name input not found");
+            console.warn("[LEXUS Beta] Name input not found");
             return false;
         }
         if (!await lexusDirectFill(nameSel, psgn.name)) await debuggerType(nameSel, psgn.name);
@@ -1911,7 +1911,7 @@ async function lexusSelectGender(el, value) {
         ]);
         if (!ageSel) {
             const ageEl = document.querySelector("input[formcontrolname='passengerAge']");
-            if (ageEl) ageSel = markTempId(ageEl, "ocean-psg-age");
+            if (ageEl) ageSel = markTempId(ageEl, "lexus-psg-age");
         }
         if (ageSel) {
             if (!await lexusDirectFill(ageSel, String(psgn.age))) await debuggerType(ageSel, String(psgn.age));
@@ -1934,11 +1934,11 @@ async function lexusSelectGender(el, value) {
         // Add
         const addBtn = await waitForElVisible("button.btn.ap-add-btn.w-100, button.ap-add-btn", 8000);
         if (!addBtn) {
-            console.warn("[OCEAN Beta] Add button not found in passenger modal");
+            console.warn("[LEXUS Beta] Add button not found in passenger modal");
             return false;
         }
         const addSel = resolveSelector(["button.btn.ap-add-btn.w-100", "button.ap-add-btn"]) ||
-            markTempId(addBtn, "ocean-psg-add");
+            markTempId(addBtn, "lexus-psg-add");
         log("Clicking Add…");
         await debuggerClick(addSel);
         await sleep(600);
@@ -1952,7 +1952,7 @@ async function lexusSelectGender(el, value) {
         if (prefs.confirmberths === true || prefs.confirmberths === "true") {
             const box = document.querySelector("p-checkbox[formcontrolname='bookOnlyIfCnf'] div[role='checkbox']");
             if (box && isVisible(box) && box.getAttribute("aria-checked") !== "true" && !box.classList.contains("ui-state-active")) {
-                const sel = markTempId(box, "ocean-cnf-berth");
+                const sel = markTempId(box, "lexus-cnf-berth");
                 log("Enable confirm berths…");
                 await debuggerClick(sel);
                 await sleep(200);
@@ -1963,7 +1963,7 @@ async function lexusSelectGender(el, value) {
         if (prefs.autoUpgradation === true || prefs.autoUpgradation === "true") {
             const box = document.querySelector("p-checkbox[formcontrolname='autoUpgradationSelected'] div[role='checkbox']");
             if (box && isVisible(box) && box.getAttribute("aria-checked") !== "true" && !box.classList.contains("ui-state-active")) {
-                const sel = markTempId(box, "ocean-auto-upg");
+                const sel = markTempId(box, "lexus-auto-upg");
                 log("Enable auto upgradation…");
                 await debuggerClick(sel);
                 await sleep(200);
@@ -2017,7 +2017,7 @@ async function lexusSelectGender(el, value) {
     async function clickCalculateFareBtn() {
         const calc = getCalculateFareBtn();
         if (!calc) {
-            console.warn("[OCEAN Beta] Calculate Fare button not found — fail (no bottom scroll)");
+            console.warn("[LEXUS Beta] Calculate Fare button not found — fail (no bottom scroll)");
             return false;
         }
         try {
@@ -2028,7 +2028,7 @@ async function lexusSelectGender(el, value) {
             } catch (_) {}
         }
         await sleep(150);
-        const sel = markTempId(calc, "ocean-calc-fare");
+        const sel = markTempId(calc, "lexus-calc-fare");
         log("Debugger click: Calculate Fare (into view)…");
         await debuggerClick(sel);
         return true;
@@ -2100,7 +2100,7 @@ async function lexusSelectGender(el, value) {
         try {
             const ready = await waitForPassengerPage();
             if (!ready) {
-                console.warn("[OCEAN Beta] Passenger page not found");
+                console.warn("[LEXUS Beta] Passenger page not found");
                 return false;
             }
             await sleep(500);
@@ -2110,14 +2110,14 @@ async function lexusSelectGender(el, value) {
             const prefs = data.other_preferences || {};
 
             if (!passengers.length) {
-                console.warn("[OCEAN Beta] No passenger_details in storage. Save Passenger section in popup.");
+                console.warn("[LEXUS Beta] No passenger_details in storage. Save Passenger section in popup.");
                 return false;
             }
 
             for (let i = 0; i < passengers.length; i++) {
                 const ok = await addOnePassenger(passengers[i], i);
                 if (!ok) {
-                    console.warn("[OCEAN Beta] Failed adding passenger", i + 1);
+                    console.warn("[LEXUS Beta] Failed adding passenger", i + 1);
                     // continue others
                 }
                 await sleep(400);
@@ -2133,14 +2133,14 @@ async function lexusSelectGender(el, value) {
             // content.js jaisa: observer + high-load retry, NO 20s loader timeout
             const submitted = await attemptCalculateFareSubmit();
             if (!submitted) {
-                console.warn("[OCEAN Beta] Calculate Fare submit nahi hua.");
+                console.warn("[LEXUS Beta] Calculate Fare submit nahi hua.");
                 return false;
             }
 
             log("✅ fillPassengerDetails done.");
             return true;
         } catch (e) {
-            console.error("[OCEAN Beta] fillPassengerDetails failed:", e);
+            console.error("[LEXUS Beta] fillPassengerDetails failed:", e);
             return false;
         } finally {
             fillPassengerRunning = false;
@@ -2227,13 +2227,13 @@ async function lexusSelectGender(el, value) {
                 }
 
                 // Fresh mark each attempt (Angular may re-render)
-                const sel = markTempId(btn, "ocean-continue-payment");
+                const sel = markTempId(btn, "lexus-continue-payment");
                 log(`Debugger click: Continue To Payment (try ${attempt}/4)…`, sel);
                 try {
                     // Slightly lower hit — sticky headers / overlays
                     await debuggerClick(sel, 50, 60);
                 } catch (e) {
-                    console.warn("[OCEAN Beta] Continue click error:", e && e.message ? e.message : e);
+                    console.warn("[LEXUS Beta] Continue click error:", e && e.message ? e.message : e);
                 }
 
                 await sleep(900);
@@ -2249,7 +2249,7 @@ async function lexusSelectGender(el, value) {
             log("⚠️ Continue To Payment — retries exhausted, still on review.");
             return false;
         } catch (e) {
-            console.error("[OCEAN Beta] reviewBooking failed:", e);
+            console.error("[LEXUS Beta] reviewBooking failed:", e);
             return false;
         } finally {
             reviewBookingRunning = false;
@@ -2564,18 +2564,18 @@ async function lexusSelectGender(el, value) {
         const hit = findBetaPaymentOption(mapping);
         const el = hit?.el || found;
         const clickTarget = el.querySelector?.(".bank-card") || el;
-        const bankSel = markTempId(clickTarget, "ocean-pay-bank");
+        const bankSel = markTempId(clickTarget, "lexus-pay-bank");
         log("Debugger click payment:", hit?.label || mapping.optionLabels[0], "| section:", hit?.section || "?");
         await debuggerClick(bankSel);
         return true;
     }
 
     function showCustomConfirm(message, onYes, onNo) {
-        const existing = document.getElementById("ocean-custom-confirm");
+        const existing = document.getElementById("lexus-custom-confirm");
         if (existing) existing.remove();
 
         const confirmDiv = document.createElement("div");
-        confirmDiv.id = "ocean-custom-confirm";
+        confirmDiv.id = "lexus-custom-confirm";
         confirmDiv.style.cssText = `
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background-color: #fff; border: 1px solid #ccc; border-radius: 8px;
@@ -2584,15 +2584,15 @@ async function lexusSelectGender(el, value) {
         `;
         confirmDiv.innerHTML = `
             <p style="font-size:16px;font-weight:600;margin:0 0 16px;line-height:1.4;">${message}</p>
-            <button id="ocean-confirm-yes" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:6px;margin-right:10px;cursor:pointer;font-weight:600;">Yes</button>
-            <button id="ocean-confirm-no" style="padding:8px 18px;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">No</button>
+            <button id="lexus-confirm-yes" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:6px;margin-right:10px;cursor:pointer;font-weight:600;">Yes</button>
+            <button id="lexus-confirm-no" style="padding:8px 18px;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">No</button>
         `;
         document.body.appendChild(confirmDiv);
-        document.getElementById("ocean-confirm-yes").onclick = () => {
+        document.getElementById("lexus-confirm-yes").onclick = () => {
             confirmDiv.remove();
             if (onYes) onYes();
         };
-        document.getElementById("ocean-confirm-no").onclick = () => {
+        document.getElementById("lexus-confirm-no").onclick = () => {
             confirmDiv.remove();
             if (onNo) onNo();
         };
@@ -2745,7 +2745,7 @@ async function lexusSelectGender(el, value) {
                     log("❌ iPay QR — 'Click to pay' button not found.");
                     return false;
                 }
-                const qrSel = markTempId(qrBtn, "ocean-ipay-qr-pay");
+                const qrSel = markTempId(qrBtn, "lexus-ipay-qr-pay");
                 log("Debugger click: iPay QR — Click to pay (Pay & Book skip)…");
                 await debuggerClick(qrSel);
                 log("✅ bkgPaymentOptions done (iPay QR).");
@@ -2758,13 +2758,13 @@ async function lexusSelectGender(el, value) {
                 return false;
             }
 
-            const paySel = markTempId(payBtn, "ocean-pay-book");
+            const paySel = markTempId(payBtn, "lexus-pay-book");
             log("Debugger click: Pay & Book…");
             await debuggerClick(paySel);
             log("✅ bkgPaymentOptions done.");
             return true;
         } catch (e) {
-            console.error("[OCEAN Beta] bkgPaymentOptions failed:", e);
+            console.error("[LEXUS Beta] bkgPaymentOptions failed:", e);
             return false;
         } finally {
             bkgPaymentRunning = false;
@@ -2975,7 +2975,7 @@ async function lexusSelectGender(el, value) {
             log("Success data — PNR:", pnrNum, "Fare:", fare, "Pay:", paymentMethod);
 
             const newCss = `
-            .ocean-tatkal-success-message {
+            .lexus-tatkal-success-message {
                 position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); z-index: 99999;
                 border-radius: 12px; overflow: hidden; text-align: center;
@@ -2984,12 +2984,12 @@ async function lexusSelectGender(el, value) {
                 animation: slideUp 0.5s ease-out forwards;
             }
             @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
-            .ocean-header { background-color: #005A9C; color: #fff; padding: 12px 15px; font-size: 18px; font-weight: bold; }
-            .ocean-body {
+            .lexus-header { background-color: #005A9C; color: #fff; padding: 12px 15px; font-size: 18px; font-weight: bold; }
+            .lexus-body {
                 background-color: #2E8B57; color: #fff; padding: 20px;
                 font-size: 16px; line-height: 1.8; font-weight: bold;
             }
-            #ocean-welcome-message {
+            #lexus-welcome-message {
                 position: fixed; top: 50%; left: 50%;
                 transform: translate(-50%, -50%) scale(0);
                 z-index: 9999999;
@@ -3001,7 +3001,7 @@ async function lexusSelectGender(el, value) {
                 animation: finalRollAndStay 8s ease-in-out forwards;
             }
             @media (max-width: 600px) {
-                #ocean-welcome-message {
+                #lexus-welcome-message {
                     font-size: 22px; padding: 20px 25px; white-space: normal;
                 }
             }
@@ -3018,20 +3018,20 @@ async function lexusSelectGender(el, value) {
             }
         `;
 
-            if (!document.getElementById("ocean-tatkal-style-v2")) {
+            if (!document.getElementById("lexus-tatkal-style-v2")) {
                 const styleElement = document.createElement("style");
-                styleElement.id = "ocean-tatkal-style-v2";
+                styleElement.id = "lexus-tatkal-style-v2";
                 styleElement.textContent = newCss;
                 document.head.appendChild(styleElement);
             }
 
-            document.querySelector(".ocean-tatkal-success-message")?.remove();
+            document.querySelector(".lexus-tatkal-success-message")?.remove();
 
             const successMessageDiv = document.createElement("div");
-            successMessageDiv.className = "ocean-tatkal-success-message ocean-ignore";
+            successMessageDiv.className = "lexus-tatkal-success-message lexus-ignore";
             successMessageDiv.innerHTML = `
-            <div class="ocean-header">🌊 Success By Ocean Beta 🌊</div>
-            <div class="ocean-body">
+            <div class="lexus-header">🌊 Success By LEXUS Beta 🌊</div>
+            <div class="lexus-body">
                 <span>${fareString}</span><br>
                 <span>PNRTIME: ${pnrTime}</span><br>
                 <span>PAYMENT: ${paymentMethod}</span><br>
@@ -3044,7 +3044,7 @@ async function lexusSelectGender(el, value) {
             log("✅ Success popup shown.");
 
             try {
-                const targetEl = document.querySelector(".ocean-tatkal-success-message");
+                const targetEl = document.querySelector(".lexus-tatkal-success-message");
                 if (targetEl && typeof html2canvas === "function") {
                     try {
                         targetEl.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
@@ -3084,38 +3084,33 @@ async function lexusSelectGender(el, value) {
                     };
 
                     log("POST /api/app/success", { ...successData, base64image: "[omitted]" });
-                    const resp = await fetch("https://oceanxsoft.com/api/app/success", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(successData),
-                    });
-                    const text = await resp.text();
-                    log("Server response:", resp.status, text);
+                    // LEXUS: external success upload removed (no third-party server).
+                    log("success upload disabled");
                 } else {
                     log("html2canvas missing — skip screenshot upload.");
                 }
             } catch (e) {
-                console.error("[OCEAN Beta] Screenshot upload error:", e);
+                console.error("[LEXUS Beta] Screenshot upload error:", e);
             }
 
             setTimeout(() => {
-                document.querySelector("#ocean-welcome-message")?.remove();
+                document.querySelector("#lexus-welcome-message")?.remove();
                 const welcomeMessageDiv = document.createElement("div");
-                welcomeMessageDiv.id = "ocean-welcome-message";
-                welcomeMessageDiv.className = "ocean-ignore";
-                welcomeMessageDiv.textContent = "Thank you for using Ocean Tatkal";
+                welcomeMessageDiv.id = "lexus-welcome-message";
+                welcomeMessageDiv.className = "lexus-ignore";
+                welcomeMessageDiv.textContent = "Thank you for using LEXUS";
                 document.body.appendChild(welcomeMessageDiv);
                 log("Welcome animation started.");
             }, 1000);
 
             return true;
         } catch (e) {
-            console.error("[OCEAN Beta] showPnrAnimation failed:", e);
+            console.error("[LEXUS Beta] showPnrAnimation failed:", e);
             return false;
         } finally {
             // Keep running flag true so we don't re-fire on same page
             // (reset only if failed before show — allow retry on timeout)
-            if (!document.querySelector(".ocean-tatkal-success-message")) {
+            if (!document.querySelector(".lexus-tatkal-success-message")) {
                 pnrAnimRunning = false;
             }
         }
@@ -3171,7 +3166,7 @@ async function lexusSelectGender(el, value) {
 
         if (isBookingConfirmUrl()) {
             log("On booking-confirm at start — wait PNR+CNF then success animation.");
-            showPnrAnimation().catch((e) => console.error("[OCEAN Beta] PNR anim", e));
+            showPnrAnimation().catch((e) => console.error("[LEXUS Beta] PNR anim", e));
             return;
         }
 
@@ -3231,5 +3226,5 @@ async function lexusSelectGender(el, value) {
         if (ok) await afterLoginContinue();
     }
 
-    start().catch((e) => console.error("[OCEAN Beta] start failed", e));
+    start().catch((e) => console.error("[LEXUS Beta] start failed", e));
 })();

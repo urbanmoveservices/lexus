@@ -18,7 +18,7 @@ const { attachElectronIrctcNetwork } = require('./irctc-network');
 const { applyProxyToSession } = require('./proxy-session');
 const { resolveProxyForIpMode } = require('./proxy-util');
 const { LAYOUT, centerBounds, clampSize, getWorkArea } = require('./window-layout');
-const oceanSuccess = require('./ocean-success');
+const lexusSuccess = require('./ocean-success');
 
 const IRCTC_URLS = {
   nget: 'https://www.irctc.co.in/nget/train-search',
@@ -39,7 +39,7 @@ let panelPtFareEmitter = null;
 let panelQrEmitter = null;
 let panelQrHideEmitter = null;
 /** @type {null | ((sessionId: string, pnr: string) => void | Promise<void>)} */
-let onOceanApiSuccess = null;
+let onLexusApiSuccess = null;
 
 /** @type {Map<string, { resolve: (ok: boolean) => void }>} */
 const ptFareWaiters = new Map();
@@ -55,7 +55,7 @@ function configure({
   emitPanelPtFare,
   emitPanelQr,
   emitPanelQrHide,
-  onOceanApiSuccess: onSuccess,
+  onLexusApiSuccess: onSuccess,
 }) {
   controlWindowGetter = getControlWindow;
   chromeUA = userAgent || getChromeUserAgent();
@@ -63,7 +63,7 @@ function configure({
   panelPtFareEmitter = typeof emitPanelPtFare === 'function' ? emitPanelPtFare : null;
   panelQrEmitter = typeof emitPanelQr === 'function' ? emitPanelQr : null;
   panelQrHideEmitter = typeof emitPanelQrHide === 'function' ? emitPanelQrHide : null;
-  onOceanApiSuccess = typeof onSuccess === 'function' ? onSuccess : null;
+  onLexusApiSuccess = typeof onSuccess === 'function' ? onSuccess : null;
 }
 
 function pushRunStatus(sessionId, message) {
@@ -73,20 +73,20 @@ function pushRunStatus(sessionId, message) {
   if (!msg) return;
 
   // After Direct PNR success: lock Success status (STAR-style) — ignore all later lines
-  if (entry.meta.oceanSuccessDone) return;
+  if (entry.meta.lexusSuccessDone) return;
 
-  const pnr = oceanSuccess.extractPnr(msg);
-  if (pnr && oceanSuccess.isDirectRun(entry.meta)) {
-    entry.meta.oceanSuccessDone = true;
+  const pnr = lexusSuccess.extractPnr(msg);
+  if (pnr && lexusSuccess.isDirectRun(entry.meta)) {
+    entry.meta.lexusSuccessDone = true;
     entry.meta.pnr = pnr;
     entry.meta.status = 'booked';
-    msg = oceanSuccess.formatSuccessStatus(entry.meta.uiEngine, {
+    msg = lexusSuccess.formatSuccessStatus(entry.meta.uiEngine, {
       pnr,
     });
-    if (onOceanApiSuccess) {
+    if (onLexusApiSuccess) {
       const fullData = entry.meta.bookingFullData || null;
-      Promise.resolve(onOceanApiSuccess(sessionId, pnr, fullData)).catch((e) => {
-        console.warn('[Ocean Success] report failed', e?.message || e);
+      Promise.resolve(onLexusApiSuccess(sessionId, pnr, fullData)).catch((e) => {
+        console.warn('[LEXUS Success] report failed', e?.message || e);
       });
     }
   }
@@ -101,7 +101,7 @@ function pushRunStatus(sessionId, message) {
   // Mirror status to desktop.stdout.log; the ms countdown is throttled to ~1/s.
   if (!/^Passenger Submit in /i.test(msg) || Date.now() - (entry.meta._lastCountdownLog || 0) > 1000) {
     if (/^Passenger Submit in /i.test(msg)) entry.meta._lastCountdownLog = Date.now();
-    console.log(`[Ocean Status] ${String(sessionId).slice(0, 8)} ${msg}`);
+    console.log(`[LEXUS Status] ${String(sessionId).slice(0, 8)} ${msg}`);
   }
   const fareM = String(msg || '').match(
     /(?:Available|AVL|RAC|WL)-\d+\s*\|\s*([\d.]+)/i
@@ -127,7 +127,7 @@ async function injectStealth(webContents) {
     await webContents.executeJavaScript(getConsistencyStealthSource(), true);
     await webContents.executeJavaScript(getStealthInjectSource(), true);
   } catch (err) {
-    console.warn('[Ocean] Stealth inject failed:', err && err.message ? err.message : err);
+    console.warn('[LEXUS] Stealth inject failed:', err && err.message ? err.message : err);
   }
 }
 
@@ -221,7 +221,7 @@ async function getRunCookies(sessionId) {
       return await entry.chrome.page.cookies();
     }
   } catch (e) {
-    console.warn('[Ocean] getRunCookies chrome:', e.message || e);
+    console.warn('[LEXUS] getRunCookies chrome:', e.message || e);
   }
   try {
     const partition = entry.meta && entry.meta.partition;
@@ -230,7 +230,7 @@ async function getRunCookies(sessionId) {
       return await ses.cookies.get({});
     }
   } catch (e) {
-    console.warn('[Ocean] getRunCookies electron:', e.message || e);
+    console.warn('[LEXUS] getRunCookies electron:', e.message || e);
   }
   return [];
 }
@@ -265,7 +265,7 @@ function waitForEvent(emitter, eventName, timeoutMs = 30000) {
 
 /**
  * Best combo createRun:
- * engine: 'system-chrome' | 'brave' (Ocean host+slot CDP) | 'electron' (fallback)
+ * engine: 'system-chrome' | 'brave' (Lexus host+slot CDP) | 'electron' (fallback)
  */
 async function createRun({
   journeyId,
@@ -339,7 +339,7 @@ async function createRun({
     engine: eng,
     uiEngine: resolvedUiEngine,
     status: 'opening',
-    partition: wantHost ? null : `persist:ocean-slot-${sessionId}`,
+    partition: wantHost ? null : `persist:lexus-slot-${sessionId}`,
     url: startUrl,
     title: '',
     journeyName: bundle.journey.name,
@@ -350,7 +350,7 @@ async function createRun({
     proxyId: resolvedProxyId,
     statusMessage: 'LAUNCHING…',
     error: null,
-    oceanSuccessDone: false,
+    lexusSuccessDone: false,
     bookingFullData: null,
     createdAt: new Date().toISOString(),
   };
@@ -375,7 +375,7 @@ async function createRun({
     if (!result.ok) {
       if(eng==='headless'){runs.delete(sessionId);broadcast();return {ok:false,error:result.error||'Headless launch failed'};}
       console.warn(
-        `[Ocean] ${eng === 'brave' ? 'Brave' : 'System Chrome'} failed, falling back to Electron:`,
+        `[LEXUS] ${eng === 'brave' ? 'Brave' : 'System Chrome'} failed, falling back to Electron:`,
         result.error
       );
       runs.delete(sessionId);
@@ -405,7 +405,7 @@ async function createRun({
 
 async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMessage }) {
   meta.engine = 'electron';
-  meta.partition = `persist:ocean-slot-${sessionId}`;
+  meta.partition = `persist:lexus-slot-${sessionId}`;
   const partition = meta.partition;
   const irctcSession = session.fromPartition(partition);
   applyStealthToSession(irctcSession);
@@ -417,15 +417,15 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
     }
     await applyProxyToSession(irctcSession, proxyCfg);
     console.log(
-      `[Ocean] Electron IP mode=${meta.ipMode || 'auto'} proxy=${proxyCfg.enabled ? 'on' : 'off'}`
+      `[LEXUS] Electron IP mode=${meta.ipMode || 'auto'} proxy=${proxyCfg.enabled ? 'on' : 'off'}`
     );
   } catch (e) {
-    console.warn('[Ocean] Electron proxy attach failed:', e.message || e);
+    console.warn('[LEXUS] Electron proxy attach failed:', e.message || e);
   }
   try {
     attachElectronIrctcNetwork(irctcSession);
   } catch (e) {
-    console.warn('[Ocean] Electron DNR attach failed:', e.message || e);
+    console.warn('[LEXUS] Electron DNR attach failed:', e.message || e);
   }
   const ua = chromeUA || getChromeUserAgent();
   const wa = getWorkArea(screen.getPrimaryDisplay());
@@ -450,7 +450,7 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
       sandbox: true,
       partition,
       spellcheck: false,
-      additionalArguments: [`--ocean-session-id=${sessionId}`],
+      additionalArguments: [`--lexus-session-id=${sessionId}`],
     },
   });
 
@@ -461,12 +461,12 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
     pushRunStatus(sessionId, 'LAUNCHING…');
     win.webContents.on('console-message', (_e, _level, message) => {
       const text = String(message || '');
-      const nget = text.match(/\[OCEAN nget\]\s*(.+)/);
+      const nget = text.match(/\[(?:LEXUS|LEXUS) nget\]\s*(.+)/);
       if (nget) {
         onStatusMessage(nget[1].trim());
         return;
       }
-      const directPage = text.match(/\[OCEAN Direct\]\s*(.+)/);
+      const directPage = text.match(/\[(?:LEXUS|LEXUS) Direct\]\s*(.+)/);
       if (directPage) {
         onStatusMessage(directPage[1].trim());
         return;
@@ -515,7 +515,7 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
   });
 
   try {
-    console.log('[Ocean Stealth] Electron boot about:blank + CDP…');
+    console.log('[LEXUS Stealth] Electron boot about:blank + CDP…');
     await win.loadURL('about:blank');
     try {
       await waitForEvent(win.webContents, 'did-finish-load', 10000);
@@ -546,12 +546,12 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
           source: tokenInjector,
         });
       } catch (te) {
-        console.warn('[Ocean Stealth] token-injector skip:', te.message);
+        console.warn('[LEXUS Stealth] token-injector skip:', te.message);
       }
       dbg.detach();
     } catch (e) {
       await installNewDocumentStealth(win.webContents);
-      console.warn('[Ocean Stealth] CDP partial:', e.message);
+      console.warn('[LEXUS Stealth] CDP partial:', e.message);
     }
 
     await win.loadURL(startUrl, { userAgent: ua });
@@ -567,7 +567,7 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
       broadcast();
       setTimeout(() => {
         if (win.isDestroyed() || !runs.has(sessionId)) return;
-        console.log('[Ocean Auto] grace done — attaching automation (Electron)', meta.mode);
+        console.log('[LEXUS Auto] grace done — attaching automation (Electron)', meta.mode);
         attachAutomation(sessionId, win, bundle, {
           graceAlreadyWaited: true,
           mode: meta.mode,
@@ -584,7 +584,7 @@ async function createElectronRun({ sessionId, startUrl, bundle, meta, onStatusMe
     broadcast();
     return { ok: true, run: publicMeta(meta, win, null) };
   } catch (err) {
-    console.error('[Ocean Stealth] Electron launch failed', err);
+    console.error('[LEXUS Stealth] Electron launch failed', err);
     meta.error = err.message || String(err);
     meta.status = 'error';
     try {
@@ -663,7 +663,7 @@ function markInitPaymentSuccess(journeyId, pairIndex, sessionId) {
     sessionId: sessionId || '',
     at: Date.now(),
   });
-  console.log(`[Ocean] initPayment flag set journey=${journeyId} pair=${pi}`);
+  console.log(`[LEXUS] initPayment flag set journey=${journeyId} pair=${pi}`);
   return { ok: true };
 }
 
@@ -743,7 +743,7 @@ async function waitIfSiblingInitPayment(sessionId) {
   const sibling = getSiblingInitPayment(entry.meta.journeyId, entry.meta.pairIndex || 1);
   if (!sibling) return true;
   console.log(
-    `[Ocean] sibling initPayment already pair=${sibling.pairIndex} → wait journey=${entry.meta.journeyId}`
+    `[LEXUS] sibling initPayment already pair=${sibling.pairIndex} → wait journey=${entry.meta.journeyId}`
   );
   return waitForProceedAnyway(sessionId, {
     statusMessage: 'ANOTHER PAIR ALREADY PROCEED',
@@ -791,7 +791,7 @@ async function stopRunsForPair(journeyId, pairIndex) {
     try {
       await stopRun(sessionId);
     } catch (e) {
-      console.warn('[Ocean] stopRunsForPair failed', sessionId, e.message || e);
+      console.warn('[LEXUS] stopRunsForPair failed', sessionId, e.message || e);
     }
     if (directHost) {
       try {
@@ -802,7 +802,7 @@ async function stopRunsForPair(journeyId, pairIndex) {
     }
   }
   console.log(
-    `[Ocean] panel closed → stopped ${toStop.length} run(s) for journey=${journeyId} pair=${pi}`
+    `[LEXUS] panel closed → stopped ${toStop.length} run(s) for journey=${journeyId} pair=${pi}`
   );
   return { ok: true, stopped: toStop.length, sessionIds: toStop };
 }

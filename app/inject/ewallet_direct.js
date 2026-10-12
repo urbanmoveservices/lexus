@@ -4,7 +4,7 @@
  *   wait ~11s → WPS verifyPayment/{cid} → PNR
  * No PaymentRedirect / BankResponse.
  *
- * Status (Ocean): Final Count → Final Hit For Pnr → SUCCESS! PNR
+ * Status (Lexus): Final Count → Final Hit For Pnr → SUCCESS! PNR
  */
 class EwalletDirectHandlerJS {
   constructor(userId, clientTxnId, TOK, onLog, opts) {
@@ -26,20 +26,20 @@ class EwalletDirectHandlerJS {
       return;
     }
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus('eWallet: ' + line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus('eWallet: ' + line);
       }
     } catch (_) {}
   }
 
-  /** Exact Ocean panel strings (Final Hit animation / success). */
+  /** Exact Lexus panel strings (Final Hit animation / success). */
   panelStatus(msg) {
     const line = String(msg || '').trim();
     if (!line) return;
     console.log(`[${this.port}] [eWallet-Direct] ${line}`);
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus(line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus(line);
         return;
       }
     } catch (_) {}
@@ -76,7 +76,7 @@ class EwalletDirectHandlerJS {
     return { pnr: okPnr ? pnr : '', error: err };
   }
 
-  /** Ocean iPay-style countdown (keeps Final Hit strip for exact status later). */
+  /** Lexus iPay-style countdown (keeps Final Hit strip for exact status later). */
   async waitMinPaymentElapsed(waitMs) {
     const total = Math.max(0, Number(waitMs) || 11000);
     const start = Date.now();
@@ -184,9 +184,9 @@ class EwalletDirectHandlerJS {
 
       const { pnr, error: err } = this._parseBookingDataPayload(data);
       if (pnr) {
-        if (typeof window.__oceanReportBookingFull === 'function') {
+        if (typeof window.__lexusReportBookingFull === 'function') {
           try {
-            await window.__oceanReportBookingFull(data);
+            await window.__lexusReportBookingFull(data);
           } catch (_) {}
         }
         this.panelStatus(`SUCCESS! PNR: ${pnr}`);
@@ -211,7 +211,7 @@ class EwalletDirectHandlerJS {
   async start_process() {
     this.log('🚀 eWallet Direct — wait then verifyPayment');
     await this.waitMinPaymentElapsed(this.waitMs);
-    // Exact string → Ocean panel Final Hit animation (same as PhonePe/Paytm/Razorpay)
+    // Exact string → Lexus panel Final Hit animation (same as PhonePe/Paytm/Razorpay)
     this.panelStatus('Final Hit For Pnr');
     return await this.verifyPayment();
   }

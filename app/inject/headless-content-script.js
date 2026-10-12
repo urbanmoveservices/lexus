@@ -39,7 +39,7 @@ async function lexusSelectGender(el, value) {
  * IRCTC Classic (/nget) autofill  -  Electron inject of extension content_script.js
  */
 if (!location.href.includes("/nget")) {
-  console.log("[OCEAN nget] skip  -  not classic site");
+  console.log("[LEXUS nget] skip  -  not classic site");
 } else {
 
 // à¤‡à¤¨ à¤µà¥‡à¤°à¤¿à¤à¤¬à¤²à¥à¤¸ à¤•à¥‹ à¤¸à¥à¤•à¥à¤°à¤¿à¤ªà¥à¤Ÿ à¤®à¥‡à¤‚ à¤¸à¤¬à¤¸à¥‡ à¤Šà¤ªà¤° à¤°à¤–à¥‡à¤‚
@@ -66,15 +66,15 @@ window.addEventListener("message", (event) => {
   // Check if the message is the one we are looking for from injector.js
   if (event.data && event.data.type === "FROM_IRCTC_PAGE" && event.data.tokenPart) {
     
-    console.log('OCEAN Content Script: Received tokens from page ->', event.data.tokenPart);
+    console.log('LEXUS Content Script: Received tokens from page ->', event.data.tokenPart);
     
     // Forward the captured token data to the background script
     chrome.runtime.sendMessage(event.data, (response) => {
       if (chrome.runtime.lastError) {
         // This error can happen if the popup is not open, which is normal.
-        // console.error('OCEAN Content Script: Error sending message to background.', chrome.runtime.lastError.message);
+        // console.error('LEXUS Content Script: Error sending message to background.', chrome.runtime.lastError.message);
       } else {
-        // console.log('OCEAN Content Script: Message sent to background successfully.');
+        // console.log('LEXUS Content Script: Message sent to background successfully.');
       }
     });
   }
@@ -109,15 +109,15 @@ window.addEventListener("message", (event) => {
   // Check if the message is the one we are looking for from injector.js
   if (event.data && event.data.type === "FROM_IRCTC_PAGE" && event.data.tokenPart) {
     
-    console.log('OCEAN Content Script: Received tokens from page ->', event.data.tokenPart);
+    console.log('LEXUS Content Script: Received tokens from page ->', event.data.tokenPart);
     
     // Forward the captured token data to the background script
     chrome.runtime.sendMessage(event.data, (response) => {
       if (chrome.runtime.lastError) {
         // This error can happen if the popup is not open, which is normal.
-        // console.error('OCEAN Content Script: Error sending message to background.', chrome.runtime.lastError.message);
+        // console.error('LEXUS Content Script: Error sending message to background.', chrome.runtime.lastError.message);
       } else {
-        // console.log('OCEAN Content Script: Message sent to background successfully.');
+        // console.log('LEXUS Content Script: Message sent to background successfully.');
       }
     });
   }
@@ -130,7 +130,7 @@ window.addEventListener("message", (event) => {
 
 
 // === LOGIC TO HANDLE LANGUAGE PREFERENCE POP-UP ===
-function oceanLangBtnText(el) {
+function lexusLangBtnText(el) {
     return ((el && (el.innerText || el.textContent)) || '').replace(/\s+/g, ' ').trim();
 }
 
@@ -143,7 +143,7 @@ function findLanguagePreferenceEnglishBtn() {
     ];
 
     const looksLikeLangDialog = (root) => {
-        const t = oceanLangBtnText(root).toLowerCase();
+        const t = lexusLangBtnText(root).toLowerCase();
         return (
             t.includes('preferred language') ||
             t.includes('welcome to irctc') ||
@@ -154,11 +154,11 @@ function findLanguagePreferenceEnglishBtn() {
     const pickEnglish = (root) => {
         const nodes = [...root.querySelectorAll('button, a, span.ui-button-text, .ui-button, input[type="submit"]')];
         for (const btn of nodes) {
-            const label = oceanLangBtnText(btn);
+            const label = lexusLangBtnText(btn);
             if (/^english$/i.test(label)) return btn.closest('button, a, .ui-button') || btn;
         }
         for (const btn of nodes) {
-            const label = oceanLangBtnText(btn);
+            const label = lexusLangBtnText(btn);
             if (/english/i.test(label) && !/hindi|à¤¹à¤¿à¤‚à¤¦à¥€/i.test(label)) {
                 return btn.closest('button, a, .ui-button') || btn;
             }
@@ -175,10 +175,10 @@ function findLanguagePreferenceEnglishBtn() {
     // Fallback: page-level English button next to Hindi (no dialog match)
     const allBtns = [...document.querySelectorAll('button, a.btn, .ui-button')];
     for (const btn of allBtns) {
-        if (!/^english$/i.test(oceanLangBtnText(btn))) continue;
+        if (!/^english$/i.test(lexusLangBtnText(btn))) continue;
         const parent = btn.closest('div, section, form, [role="dialog"]') || btn.parentElement;
         if (!parent) continue;
-        const pt = oceanLangBtnText(parent).toLowerCase();
+        const pt = lexusLangBtnText(parent).toLowerCase();
         if (
             pt.includes('preferred language') ||
             pt.includes('welcome to irctc') ||
@@ -194,9 +194,9 @@ async function clickLanguagePreferencePopup() {
     const btn = findLanguagePreferenceEnglishBtn();
     if (!btn) return false;
 
-    console.log('[OCEAN nget] Language popup  -  clicking English...');
+    console.log('[LEXUS nget] Language popup  -  clicking English...');
     try {
-        const sel = typeof markTempId === 'function' ? markTempId(btn, 'ocean-lang-en') : null;
+        const sel = typeof markTempId === 'function' ? markTempId(btn, 'lexus-lang-en') : null;
         if (sel && typeof debuggerClick === 'function') {
             await debuggerClick(sel);
         } else {
@@ -204,7 +204,7 @@ async function clickLanguagePreferencePopup() {
         }
         return true;
     } catch (e) {
-        console.warn('[OCEAN nget] Language click failed:', e && e.message ? e.message : e);
+        console.warn('[LEXUS nget] Language click failed:', e && e.message ? e.message : e);
         try {
             btn.click();
             return true;
@@ -216,18 +216,18 @@ async function clickLanguagePreferencePopup() {
 
 /** Keep dismissing language alert whenever IRCTC shows it (classic + direct). */
 function startLanguagePreferenceWatcher() {
-    if (window.__OCEAN_LANG_WATCH__) return;
-    window.__OCEAN_LANG_WATCH__ = true;
+    if (window.__LEXUS_LANG_WATCH__) return;
+    window.__LEXUS_LANG_WATCH__ = true;
 
     let clicking = false;
     const tryClick = async (reason) => {
         if (clicking) return;
         // Login form / fill ke dauran kuch mat chhedo
-        if (typeof oceanLoginUiBusy === 'function' && oceanLoginUiBusy()) return;
+        if (typeof lexusLoginUiBusy === 'function' && lexusLoginUiBusy()) return;
         if (!findLanguagePreferenceEnglishBtn()) return;
         clicking = true;
         try {
-            oceanLog('lang watcher: ' + reason);
+            lexusLog('lang watcher: ' + reason);
             await clickLanguagePreferencePopup();
             await new Promise((r) => setTimeout(r, 300));
         } catch (_) {
@@ -277,21 +277,21 @@ function startSystemTimeEmitter() {
         const seconds = String(now.getSeconds()).padStart(2, '0');
         const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
         const timeString = `${hours}:${minutes}:${seconds}:${milliseconds}`;
-        document.dispatchEvent(new CustomEvent('ocean-time-update', {
+        document.dispatchEvent(new CustomEvent('lexus-time-update', {
             detail: { timeString: timeString }
         }));
     }, 100);
-    console.log("OCEAN: system time emitter started (100ms)");
+    console.log("LEXUS: system time emitter started (100ms)");
 }
 
 function showOnScreenNotification(message, duration = 4000) {
-    const oldNotification = document.getElementById('ocean-fallback-notification');
+    const oldNotification = document.getElementById('lexus-fallback-notification');
     if (oldNotification) {
         oldNotification.remove();
     }
     const notificationDiv = document.createElement('div');
-    notificationDiv.id = 'ocean-fallback-notification';
-    notificationDiv.textContent = `[OCEAN]: ${message}`;
+    notificationDiv.id = 'lexus-fallback-notification';
+    notificationDiv.textContent = `[LEXUS]: ${message}`;
     Object.assign(notificationDiv.style, {
         position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
         backgroundColor: 'rgba(217, 30, 24, 0.9)', color: 'white', padding: '12px 25px',
@@ -300,7 +300,7 @@ function showOnScreenNotification(message, duration = 4000) {
     });
     document.body.appendChild(notificationDiv);
     setTimeout(() => {
-        const currentNotification = document.getElementById('ocean-fallback-notification');
+        const currentNotification = document.getElementById('lexus-fallback-notification');
         if (currentNotification) {
             currentNotification.remove();
         }
@@ -366,9 +366,9 @@ function dispatchInitialData(userData) {
         initialStatus: initialStatusKey
     };
 
-    console.log("OCEAN: Dispatching 'ocean-init-data' with payload:", initPayload);
+    console.log("LEXUS: Dispatching 'lexus-init-data' with payload:", initPayload);
     setTimeout(() => {
-        document.dispatchEvent(new CustomEvent('ocean-init-data', { detail: initPayload }));
+        document.dispatchEvent(new CustomEvent('lexus-init-data', { detail: initPayload }));
     }, 500);
 }
 
@@ -394,7 +394,7 @@ function statusUpdate(statusKey) {
     // =================================================================
     // STEP 2: KEEP - à¤†à¤ªà¤•à¥‡ à¤¨à¤ à¤à¤¨à¥€à¤®à¥‡à¤¶à¤¨ à¤²à¥‰à¤œà¤¿à¤• à¤•à¥‡ à¤²à¤¿à¤ à¤¡à¥‡à¤Ÿà¤¾ à¤¤à¥ˆà¤¯à¤¾à¤° à¤•à¤°à¥‡à¤‚
     // =================================================================
-    console.log(`OCEAN: Dispatching 'ocean-status-update' for [${statusKey}]`);
+    console.log(`LEXUS: Dispatching 'lexus-status-update' for [${statusKey}]`);
 
     // à¤¯à¤¹ user_data à¤ - à¥à¤²à¥‹à¤¬à¤² à¤µà¥ˆà¤°à¤¿à¤à¤¬à¤² à¤¸à¥‡ journey_details à¤‘à¤¬à¥à¤œà¥‡à¤•à¥à¤Ÿ à¤•à¥‹ à¤¨à¤¿à¤•à¤¾à¤²à¤¤à¤¾ à¤¹à¥ˆ
     const journeyDetailsForAnimation = user_data.journey_details || {};
@@ -413,7 +413,7 @@ function statusUpdate(statusKey) {
     // =================================================================
     // STEP 3: KEEP - à¤‡à¤¨-à¤ªà¥‡à¤œ à¤à¤¨à¥€à¤®à¥‡à¤¶à¤¨ à¤¸à¥à¤•à¥à¤°à¤¿à¤ªà¥à¤Ÿ à¤•à¥‹ à¤‡à¤µà¥‡à¤‚à¤Ÿ à¤­à¥‡à¤œà¥‡à¤‚
     // =================================================================
-    document.dispatchEvent(new CustomEvent('ocean-status-update', { detail: updatePayloadForAnimation }));
+    document.dispatchEvent(new CustomEvent('lexus-status-update', { detail: updatePayloadForAnimation }));
 }
 // ==============================================================================
 // === CORE HELPER FUNCTIONS (Optimized for Speed) ===
@@ -546,13 +546,13 @@ function markTempId(el, prefix) {
     if (!el) return null;
     const id = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
     el.setAttribute("id", id);
-    el.setAttribute("data-ocean-click", id);
-    return `[data-ocean-click="${id}"]`;
+    el.setAttribute("data-lexus-click", id);
+    return `[data-lexus-click="${id}"]`;
 }
 
 async function slowClick(element) {
     if (!element) return;
-    const sel = markTempId(element, "ocean-nget");
+    const sel = markTempId(element, "lexus-nget");
     if (sel) await debuggerClick(sel, 50, 58);
 }
 
@@ -566,27 +566,27 @@ async function slowClick(element) {
  * @returns {Promise<boolean>} - à¤¯à¤¦à¤¿ à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆ à¤¤à¥‹ 'true' à¤²à¥Œà¤Ÿà¤¤à¤¾ à¤¹à¥ˆ, à¤...à¤¨à¥à¤¯à¤¥à¤¾ 'false'à¥¤
  */
 async function ensureValidSession() {
-    console.log("OCEAN: IRCTC à¤¸à¥‡à¤¶à¤¨ à¤•à¥€ à¤µà¥ˆà¤§à¤¤à¤¾ à¤•à¥€ à¤œà¤¾à¤‚à¤š à¤•à¥€ à¤œà¤¾ à¤°à¤¹à¥€ à¤¹à¥ˆ...");
+    console.log("LEXUS: IRCTC à¤¸à¥‡à¤¶à¤¨ à¤•à¥€ à¤µà¥ˆà¤§à¤¤à¤¾ à¤•à¥€ à¤œà¤¾à¤‚à¤š à¤•à¥€ à¤œà¤¾ à¤°à¤¹à¥€ à¤¹à¥ˆ...");
     try {
         // â˜...â˜...â˜... à¤¸à¤¹à¥€ à¤”à¤° à¤Ÿà¥‡à¤¸à¥à¤Ÿ à¤•à¤¿à¤¯à¤¾ à¤¹à¥à¤† URL â˜...â˜...â˜...
         const response = await fetch('https://www.irctc.co.in/eticketing/protected/mapps1/validateUser?source=3');
 
         if (response.status === 200) {
-            console.log("OCEAN: à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤”à¤° à¤¸à¤•à¥à¤°à¤¿à¤¯ à¤¹à¥ˆà¥¤");
+            console.log("LEXUS: à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤”à¤° à¤¸à¤•à¥à¤°à¤¿à¤¯ à¤¹à¥ˆà¥¤");
             return true; // à¤¸à¥‡à¤¶à¤¨ à¤ à¥€à¤• à¤¹à¥ˆà¥¤
         } 
         
         if (response.status === 401) {
-            console.error("OCEAN: à¤¸à¥‡à¤¶à¤¨ à¤¸à¤®à¤¾à¤ªà¥à¤¤ à¤¹à¥‹ à¤ - à¤¯à¤¾ à¤¹à¥ˆ (401 Unauthorized)!");
+            console.error("LEXUS: à¤¸à¥‡à¤¶à¤¨ à¤¸à¤®à¤¾à¤ªà¥à¤¤ à¤¹à¥‹ à¤ - à¤¯à¤¾ à¤¹à¥ˆ (401 Unauthorized)!");
             return false; // à¤¸à¥‡à¤¶à¤¨ à¤à¤•à¥à¤¸à¤ªà¤¾à¤¯à¤° à¤¹à¥‹ à¤ - à¤¯à¤¾ à¤¹à¥ˆà¥¤
         }
         
         // à¤•à¤¿à¤¸à¥€ à¤­à¥€ à¤...à¤¨à¥à¤¯ à¤à¤°à¤° à¤•à¥‡ à¤²à¤¿à¤
-        console.warn(`OCEAN: à¤¸à¥‡à¤¶à¤¨ à¤œà¤¾à¤‚à¤š à¤®à¥‡à¤‚ à¤à¤• à¤...à¤ªà¥à¤°à¤¤à¥à¤¯à¤¾à¤¶à¤¿à¤¤ à¤¸à¥à¤Ÿà¥‡à¤Ÿà¤¸ à¤†à¤¯à¤¾: ${response.status}`);
+        console.warn(`LEXUS: à¤¸à¥‡à¤¶à¤¨ à¤œà¤¾à¤‚à¤š à¤®à¥‡à¤‚ à¤à¤• à¤...à¤ªà¥à¤°à¤¤à¥à¤¯à¤¾à¤¶à¤¿à¤¤ à¤¸à¥à¤Ÿà¥‡à¤Ÿà¤¸ à¤†à¤¯à¤¾: ${response.status}`);
         return false;
 
     } catch (error) {
-        console.error("OCEAN: à¤¸à¥‡à¤¶à¤¨ à¤œà¤¾à¤‚à¤š à¤•à¥‡ à¤¦à¥Œà¤°à¤¾à¤¨ à¤¨à¥‡à¤Ÿà¤µà¤°à¥à¤• à¤à¤°à¤°à¥¤", error);
+        console.error("LEXUS: à¤¸à¥‡à¤¶à¤¨ à¤œà¤¾à¤‚à¤š à¤•à¥‡ à¤¦à¥Œà¤°à¤¾à¤¨ à¤¨à¥‡à¤Ÿà¤µà¤°à¥à¤• à¤à¤°à¤°à¥¤", error);
         return false; // à¤¨à¥‡à¤Ÿà¤µà¤°à¥à¤• à¤¸à¤®à¤¸à¥à¤¯à¤¾, à¤®à¤¾à¤¨ à¤²à¥‡à¤‚ à¤•à¤¿ à¤¸à¥‡à¤¶à¤¨ à¤...à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆà¥¤
     }
 }
@@ -601,7 +601,7 @@ async function ensureValidSession() {
 // content_script.js
 async function getStoredDeviceId() {
   try {
-    console.groupCollapsed("[OCEAN] getStoredDeviceId()");
+    console.groupCollapsed("[LEXUS] getStoredDeviceId()");
     const obj = await chrome.storage.local.get(["deviceId", "Machine"]);
     console.log("storage:", obj);
     const id = (obj.deviceId || obj.Machine || "").trim();
@@ -609,7 +609,7 @@ async function getStoredDeviceId() {
     console.groupEnd();
     return id || "UNKNOWN-DEVICE";
   } catch (e) {
-    console.warn("[OCEAN] getStoredDeviceId() error:", e);
+    console.warn("[LEXUS] getStoredDeviceId() error:", e);
     return "UNKNOWN-DEVICE";
   }
 }
@@ -623,129 +623,8 @@ async function getStoredDeviceId() {
 
 
 
-async function validateBtsLicense(){
-  console.groupCollapsed("%c[OCEAN License] validateBtsLicense() start","color:#0aa");
-  try {
-    // 1) storage à¤¸à¥‡ licencekey à¤”à¤° deviceId à¤‰à¤ à¤¾à¤“
-    const { licencekey } = await chrome.storage.local.get("licencekey");
-    const { deviceId, Machine } = await chrome.storage.local.get(["deviceId","Machine"]);
+// LEXUS: removed unused external licence check
 
-    const key = (licencekey || "").trim();
-    const deviceIdFinal = (deviceId || Machine || "").trim();
-
-    console.log("Key (masked):", key ? key.slice(0,4)+"***" : "(empty)");
-    console.log("Machine:", deviceIdFinal);
-
-    if(!key || !deviceIdFinal){
-      console.warn("[OCEAN License] key à¤¯à¤¾ deviceId à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾");
-      console.groupEnd();
-      return { ok:false, code:"NO_KEY_OR_DEVICE", reason:"Key/Device missing" };
-    }
-
-    // 2) fauth payload — key + Machine + MSG (oceanxsoft.com)
-    const raw = JSON.stringify({ key: key, Machine: deviceIdFinal, MSG: true });
-    console.log("RAW payload:", raw);
-
-    // 3) fetch call to fauth  -  3s timeout + fallback ONLY on timeout
-    const url = "https://oceanxsoft.com/api/app/fauth";
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    let response;
-    try {
-      response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type":"application/json", "Accept":"application/json" },
-        body: raw,
-        signal: controller.signal
-      });
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (err && (err.name === "AbortError" || /aborted|timeout/i.test(String(err)))) {
-        console.warn("%c[OCEAN License] TIMEOUT (3s) -> fallback = VALID","color:#c60;font-weight:bold;");
-        console.groupEnd();
-        return { ok:true, code:"TIMEOUT_FALLBACK", raw:null };
-      }
-      console.error("[OCEAN License] Network/Fetch error (non-timeout):", err);
-      console.groupEnd();
-      return { ok:false, code:"FETCH_ERROR", reason:String(err) };
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    console.log("HTTP status:", response.status);
-
-    // 4) body à¤•à¥‹ robust à¤¤à¤°à¥€à¤•à¥‡ à¤¸à¥‡ à¤ªà¤¢à¤¼à¥‹ (json -> text fallback)
-    let bodyText = "";
-    let result; // could be boolean | object | string
-    try {
-      result = await response.json();
-      console.log("Server JSON:", result);
-    } catch (jsonErr) {
-      console.warn("JSON parse failed, falling back to text:", jsonErr);
-      try {
-        bodyText = await response.text();
-        console.log("Server TEXT:", bodyText);
-        result = bodyText;
-      } catch(textErr){
-        console.error("Reading text also failed:", textErr);
-        console.groupEnd();
-        return { ok:false, code:"BAD_BODY", reason:"Cannot parse server body" };
-      }
-    }
-
-    // 5) HTTP error guard (timeout à¤¨à¤¹à¥€à¤‚ à¤¥à¤¾, à¤‡à¤¸à¤²à¤¿à¤ à¤¯à¤¹à¤¾à¤ true à¤¨à¤¹à¥€à¤‚ à¤¦à¥‡à¤‚à¤ - à¥‡)
-    if (!response.ok) {
-      const msg = (typeof result === "object" && result?.message) ? result.message : "HTTP error";
-      console.warn("Non-2xx HTTP:", response.status, msg);
-      console.groupEnd();
-      return { ok:false, code:"HTTP_"+response.status, reason: msg, raw: result ?? bodyText };
-    }
-
-    // 6) normalize validity for all possible shapes
-    function normalizeValidity(res){
-      if (typeof res === "boolean") return res;                    // true/false
-      if (typeof res === "string") {
-        const s = res.trim().toLowerCase();
-        if (["true","1","ok","valid","success","yes"].includes(s)) return true;
-        if (["false","0","invalid","error","no"].includes(s))      return false;
-        return undefined;
-      }
-      if (res && typeof res === "object") {
-        if (typeof res.success === "boolean") return res.success;
-        if (typeof res.valid   === "boolean") return res.valid;
-        if (typeof res.ok      === "boolean") return res.ok;
-        if (typeof res.status  === "string")  return /^(ok|valid|success|true)$/i.test(res.status);
-        if (typeof res.code    === "number")  return res.code === 1;
-      }
-      return undefined;
-    }
-
-    const isValid = normalizeValidity(result);
-    console.log("[OCEAN License] normalized validity:", isValid);
-
-    if (isValid === true) {
-      console.log("%c[OCEAN License] VALID âœ...","color:green;font-weight:bold;", result);
-      console.groupEnd();
-      return { ok:true, code:"VALID", raw:result };
-    }
-    if (isValid === false) {
-      console.warn("%c[OCEAN License] INVALID âŒ","color:#c00;font-weight:bold;", result);
-      console.groupEnd();
-      return { ok:false, code:"INVALID", raw:result };
-    }
-
-    // ambiguous response
-    console.warn("%c[OCEAN License] UNKNOWN â“","color:#c60;font-weight:bold;", result);
-    console.groupEnd();
-    return { ok:false, code:"UNKNOWN_RESPONSE", raw:result };
-
-  } catch (err) {
-    console.error("[OCEAN License] Exception:", err);
-    console.groupEnd();
-    return { ok:false, code:"EXCEPTION", reason: String(err) };
-  }
-}
 
 
 
@@ -783,7 +662,7 @@ async function fastClick(element) {
         console.warn("Attempted to click on an invalid/disabled element:", element);
         return;
     }
-    const sel = markTempId(element, "ocean-nget");
+    const sel = markTempId(element, "lexus-nget");
     if (sel) await debuggerClick(sel, 50, 50);
 }
 
@@ -846,58 +725,58 @@ function isManualLoginEnabled() {
 }
 
 function startLoginSuccessWatcher() {
-    oceanSetLoginPhase('signed_in_wait', isManualLoginEnabled() ? 'manual login wait' : 'after SIGN IN');
+    lexusSetLoginPhase('signed_in_wait', isManualLoginEnabled() ? 'manual login wait' : 'after SIGN IN');
     if (!isManualLoginEnabled()) {
-        oceanLog('waiting for panel Logout (no fa-user while form open)...');
+        lexusLog('waiting for panel Logout (no fa-user while form open)...');
     }
-    if (window.__OCEAN_DIRECT_BOOK__) {
+    if (window.__LEXUS_DIRECT_BOOK__) {
         try {
             localStorage.removeItem('ir:tokens');
         } catch (_) {}
-        window.__OCEAN_LOGIN_TOKEN_BASELINE__ = Date.now();
+        window.__LEXUS_LOGIN_TOKEN_BASELINE__ = Date.now();
     }
     let checkCount = 0;
     let panelNudge = 0;
     const loginSuccessWatcher = setInterval(async () => {
-        if (window.__OCEAN_DIRECT_BOOK__ && oceanHasIrTokens()) {
+        if (window.__LEXUS_DIRECT_BOOK__ && lexusHasIrTokens()) {
             clearInterval(loginSuccessWatcher);
-            window.__OCEAN_LOGIN_FILLING__ = false;
-            oceanLog('login ok  -  fresh tokens after SIGN IN');
-            oceanFirePostLoginOnce('ir_tokens');
+            window.__LEXUS_LOGIN_FILLING__ = false;
+            lexusLog('login ok  -  fresh tokens after SIGN IN');
+            lexusFirePostLoginOnce('ir_tokens');
             return;
         }
         if (isLoginFormOpen()) {
             checkCount++;
-            if (checkCount % 6 === 0) oceanLog('still on login form... captcha/error? #' + checkCount, 'warn');
+            if (checkCount % 6 === 0) lexusLog('still on login form... captcha/error? #' + checkCount, 'warn');
             if (checkCount > 60) {
                 clearInterval(loginSuccessWatcher);
-                window.__OCEAN_LOGIN_FILLING__ = false;
-                oceanLog('login form still open after wait  -  stop', 'error');
+                window.__LEXUS_LOGIN_FILLING__ = false;
+                lexusLog('login form still open after wait  -  stop', 'error');
             }
             return;
         }
-        if (oceanIsLoggedIn()) {
+        if (lexusIsLoggedIn()) {
             clearInterval(loginSuccessWatcher);
-            window.__OCEAN_LOGIN_FILLING__ = false;
-            oceanLog('login ok  -  panel Logout');
-            oceanFirePostLoginOnce('signed_in_wait');
+            window.__LEXUS_LOGIN_FILLING__ = false;
+            lexusLog('login ok  -  panel Logout');
+            lexusFirePostLoginOnce('signed_in_wait');
             return;
         }
         checkCount++;
         if (panelNudge < 3 && checkCount % 10 === 0) {
             panelNudge++;
-            oceanLog('nudge panel for Logout #' + panelNudge);
+            lexusLog('nudge panel for Logout #' + panelNudge);
             try {
                 await openUserSidePanel({ force: true });
             } catch (_) {}
         }
         if (checkCount > 50) {
             clearInterval(loginSuccessWatcher);
-            window.__OCEAN_LOGIN_FILLING__ = false;
-            oceanLog('login not confirmed (no panel Logout)', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
+            lexusLog('login not confirmed (no panel Logout)', 'error');
         }
     }, 500);
-    window.__OCEAN_LOGIN_WATCH_IV__ = loginSuccessWatcher;
+    window.__LEXUS_LOGIN_WATCH_IV__ = loginSuccessWatcher;
 }
 function getMsg(e, t) { return { msg: { type: t, data: e }, sender: "content_script", id: "irctc" }; }
 function classTranslator(e) {
@@ -933,7 +812,7 @@ function quotaTranslator(e) {
 
 
 
-console.log("[Ocean Log] Step 1: content_script.js loaded successfully.");
+console.log("[LEXUS Log] Step 1: content_script.js loaded successfully.");
 
 // à¤à¤• à¤ - à¥à¤²à¥‹à¤¬à¤² à¤µà¥ˆà¤°à¤¿à¤à¤¬à¤² à¤¤à¤¾à¤•à¤¿ à¤à¤¨à¥€à¤®à¥‡à¤¶à¤¨ à¤¸à¤¿à¤°à¥à¤« à¤à¤• à¤¬à¤¾à¤° à¤šà¤²à¥‡
 let animationHasRun = false;
@@ -944,11 +823,11 @@ let animationHasRun = false;
  */
 function waitForPnrAndShowAnimation() {
     if (animationHasRun) {
-        console.log("[Ocean Log] Step 4a: Animation has already run. Skipping.");
+        console.log("[LEXUS Log] Step 4a: Animation has already run. Skipping.");
         return;
     }
     
-    console.log("[Ocean Log] Step 4: Waiting for EXACT 3 conditions (Congratulations, PNR, CNF)...");
+    console.log("[LEXUS Log] Step 4: Waiting for EXACT 3 conditions (Congratulations, PNR, CNF)...");
 
     const checkInterval = setInterval(() => {
         if (animationHasRun) {
@@ -962,7 +841,7 @@ function waitForPnrAndShowAnimation() {
         const hasCnf = pageText.includes("CNF");
 
         if (hasCongrats && hasPnr && hasCnf) {
-            console.log("[Ocean Log] Ocean! Teeno elements mil gaye. Animation fire.");
+            console.log("[LEXUS Log] Lexus! Teeno elements mil gaye. Animation fire.");
             clearInterval(checkInterval);
             animationHasRun = true;
             showPnrAnimation();
@@ -977,17 +856,17 @@ function waitForPnrAndShowAnimation() {
  * à¤“à¤°à¤¿à¤œà¤¿à¤¨à¤² à¤ªà¥‰à¤ª-à¤...à¤ª à¤•à¥‡ 1 à¤¸à¥‡à¤•à¤‚à¤¡ à¤¬à¤¾à¤¦ à¤µà¥‡à¤²à¤•à¤® à¤à¤¨à¥€à¤®à¥‡à¤¶à¤¨ à¤¶à¥à¤°à¥‚ à¤¹à¥‹à¤ - à¤¾à¥¤
  */
 async function showPnrAnimation() {
-    console.log("[Ocean Log] Step 6: showPnrAnimation() function called.");
+    console.log("[LEXUS Log] Step 6: showPnrAnimation() function called.");
 
     try {
-        console.log("[Ocean Log] Step 6.1: Attempting to get data from chrome.storage.");
+        console.log("[LEXUS Log] Step 6.1: Attempting to get data from chrome.storage.");
         const storedData = await chrome.storage.local.get(['journey_details', 'other_preferences']);
         
         const jd = storedData.journey_details || {};
         const op = storedData.other_preferences || {};
         
-        console.log("[Ocean Log] Step 6.2: Journey details from storage:", jd);
-        console.log("[Ocean Log] Step 6.2a: Other preferences from storage:", op);
+        console.log("[LEXUS Log] Step 6.2: Journey details from storage:", jd);
+        console.log("[LEXUS Log] Step 6.2a: Other preferences from storage:", op);
 
         const timeObject = new Date();
         timeObject.setSeconds(timeObject.getSeconds() - 15);
@@ -1023,7 +902,7 @@ async function showPnrAnimation() {
                 paymentMethod = "IRCTC iPay"; break;
             default: paymentMethod = paymentKey;
         }
-        console.log(`[Ocean Log] Payment method determined as: ${paymentMethod}`);
+        console.log(`[LEXUS Log] Payment method determined as: ${paymentMethod}`);
         
         let fare = "N/A";
         const fareSelectors = ['.line-def .orange-text strong', 'span.pull-right.orange-text strong', 'span.font-bold.pull-right', '.fare-summary .amount'];
@@ -1033,7 +912,7 @@ async function showPnrAnimation() {
                 const cleanedFare = fareElement.innerText.replace(/[^0-9.]/g, '');
                 if (cleanedFare) {
                     fare = cleanedFare;
-                    console.log(`[Ocean Log] Fare found with selector '${selector}': ${fare}`);
+                    console.log(`[LEXUS Log] Fare found with selector '${selector}': ${fare}`);
                     break;
                 }
             }
@@ -1045,10 +924,10 @@ async function showPnrAnimation() {
 
 
 
-        console.log("[Ocean Log] Step 6.3: All data processed. Creating CSS and pop-ups now.");
+        console.log("[LEXUS Log] Step 6.3: All data processed. Creating CSS and pop-ups now.");
         
         const newCss = `
-            .ocean-tatkal-success-message {
+            .lexus-tatkal-success-message {
                 position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); z-index: 99999;
                 border-radius: 12px; overflow: hidden; text-align: center;
@@ -1057,12 +936,12 @@ async function showPnrAnimation() {
                 animation: slideUp 0.5s ease-out forwards;
             }
             @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
-            .ocean-header { background-color: #005A9C; color: #fff; padding: 12px 15px; font-size: 18px; font-weight: bold; }
-            .ocean-body {
+            .lexus-header { background-color: #005A9C; color: #fff; padding: 12px 15px; font-size: 18px; font-weight: bold; }
+            .lexus-body {
                 background-color: #2E8B57; color: #fff; padding: 20px;
                 font-size: 16px; line-height: 1.8; font-weight: bold;
             }
-            #ocean-welcome-message {
+            #lexus-welcome-message {
                 position: fixed; top: 50%; left: 50%;
                 transform: translate(-50%, -50%) scale(0);
                 z-index: 9999999;
@@ -1074,7 +953,7 @@ async function showPnrAnimation() {
                 animation: finalRollAndStay 8s ease-in-out forwards;
             }
             @media (max-width: 600px) {
-                #ocean-welcome-message {
+                #lexus-welcome-message {
                     font-size: 22px; padding: 20px 25px; white-space: normal;
                 }
             }
@@ -1092,19 +971,19 @@ async function showPnrAnimation() {
         `;
 
         const styleElement = document.createElement('style');
-        styleElement.id = 'ocean-tatkal-style-v2';
+        styleElement.id = 'lexus-tatkal-style-v2';
         styleElement.textContent = newCss;
         document.head.appendChild(styleElement);
 
         // à¤ªà¤¹à¤²à¤¾ à¤ªà¥‰à¤ª-à¤...à¤ª: à¤“à¤°à¤¿à¤œà¤¿à¤¨à¤² à¤¸à¤•à¥à¤¸à¥‡à¤¸ à¤®à¥ˆà¤¸à¥‡à¤œ
-        const existingMessage = document.querySelector('.ocean-tatkal-success-message');
+        const existingMessage = document.querySelector('.lexus-tatkal-success-message');
         if (existingMessage) existingMessage.remove();
 
         const successMessageDiv = document.createElement('div');
-        successMessageDiv.className = 'ocean-tatkal-success-message ocean-ignore'; // à¤•à¥à¤²à¤¾à¤¸ à¤œà¥‹à¤¡à¤¼à¥€ à¤ - à¤ˆ
+        successMessageDiv.className = 'lexus-tatkal-success-message lexus-ignore'; // à¤•à¥à¤²à¤¾à¤¸ à¤œà¥‹à¤¡à¤¼à¥€ à¤ - à¤ˆ
         successMessageDiv.innerHTML = `
-            <div class="ocean-header">ðŸŒŠ Success By Ocean ðŸŒŠ</div>
-            <div class="ocean-body">
+            <div class="lexus-header">ðŸŒŠ Success By LEXUS ðŸŒŠ</div>
+            <div class="lexus-body">
                 <span>${fareString}</span><br>
                 <span>PNRTIME: ${pnrTime}</span><br>
                 <span>PAYMENT: ${paymentMethod}</span><br>
@@ -1113,17 +992,17 @@ async function showPnrAnimation() {
             </div>
         `;
         document.body.appendChild(successMessageDiv);
-        console.log("[Ocean Log] Step 7: Original success message displayed.");
+        console.log("[LEXUS Log] Step 7: Original success message displayed.");
 
 
 
 
   // === PATCH: Step 7.1  -  capture & send successData + screenshot (base64) ===
 try {
-  const targetEl = document.querySelector('.ocean-tatkal-success-message');
+  const targetEl = document.querySelector('.lexus-tatkal-success-message');
 
   if (targetEl && typeof html2canvas === 'function') {
-    console.log("[Ocean Log] Step 7.1: Capturing screenshot of success popup (base64)...");
+    console.log("[LEXUS Log] Step 7.1: Capturing screenshot of success popup (base64)...");
 
     // 1) popup à¤•à¥‹ viewport à¤•à¥‡ à¤¬à¥€à¤š à¤®à¥‡à¤‚ à¤²à¤¾à¤“ (smooth à¤¨à¤¹à¥€à¤‚, à¤¤à¥à¤°à¤‚à¤¤)
     try {
@@ -1175,22 +1054,16 @@ try {
     };
 
     // Console à¤®à¥‡à¤‚ print
-    console.log("=== Ocean PNR Data (with base64 image) ===", successData);
+    console.log("=== Lexus PNR Data (with base64 image) ===", successData);
 
     // API call (JSON)
-    const resp = await fetch("https://oceanxsoft.com/api/app/success", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(successData)
-    });
-
-    const text = await resp.text();
-    console.log("[Ocean Log] Data+Screenshot upload response:", resp.status, text);
+    // LEXUS: external success upload removed (no third-party server).
+    console.log("[LEXUS] success upload disabled");
   } else {
-    console.warn("[Ocean Log] Screenshot: target or html2canvas missing.");
+    console.warn("[LEXUS Log] Screenshot: target or html2canvas missing.");
   }
 } catch (e) {
-  console.error("[Ocean Log] Screenshot(base64) upload error:", e);
+  console.error("[LEXUS Log] Screenshot(base64) upload error:", e);
 }
 // === PATCH END ===
 
@@ -1201,20 +1074,20 @@ try {
         // --- à¤¬à¤¦à¤²à¤¾à¤µ à¤¯à¤¹à¤¾à¤ à¤¹à¥ˆ: 1 à¤¸à¥‡à¤•à¤‚à¤¡ à¤•à¤¾ à¤¡à¤¿à¤²à¥‡ ---
         setTimeout(() => {
             // à¤¦à¥‚à¤¸à¤°à¤¾ à¤ªà¥‰à¤ª-à¤...à¤ª: à¤µà¥‡à¤²à¤•à¤® à¤®à¥ˆà¤¸à¥‡à¤œ
-            const existingWelcomeMessage = document.querySelector('#ocean-welcome-message');
+            const existingWelcomeMessage = document.querySelector('#lexus-welcome-message');
             if (existingWelcomeMessage) existingWelcomeMessage.remove();
 
             const welcomeMessageDiv = document.createElement('div');
-            welcomeMessageDiv.id = 'ocean-welcome-message';
-            welcomeMessageDiv.className = 'ocean-ignore'; // à¤•à¥à¤²à¤¾à¤¸ à¤œà¥‹à¤¡à¤¼à¥€ à¤ - à¤ˆ
-            welcomeMessageDiv.textContent = 'Thank you for using Ocean Tatkal';
+            welcomeMessageDiv.id = 'lexus-welcome-message';
+            welcomeMessageDiv.className = 'lexus-ignore'; // à¤•à¥à¤²à¤¾à¤¸ à¤œà¥‹à¤¡à¤¼à¥€ à¤ - à¤ˆ
+            welcomeMessageDiv.textContent = 'Thank you for using LEXUS';
             document.body.appendChild(welcomeMessageDiv);
 
-            console.log("[Ocean Log] Step 8: Welcome animation started after 1-second delay.");
+            console.log("[LEXUS Log] Step 8: Welcome animation started after 1-second delay.");
         }, 1000); // 1000ms = 1 à¤¸à¥‡à¤•à¤‚à¤¡
         
     } catch (error) {
-        console.error("[Ocean Log] Critical Error in showPnrAnimation:", error);
+        console.error("[LEXUS Log] Critical Error in showPnrAnimation:", error);
     }
 }
 
@@ -1224,12 +1097,12 @@ try {
  * ==============================================================================
  */
 
-/*console.log("[Ocean Log] Step 2: Setting up message listener.");
+/*console.log("[LEXUS Log] Step 2: Setting up message listener.");
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const messageType = (message && message.type) || (message && message.msg && message.msg.type);
 
     if (messageType === "showPnrAnimation") {
-        console.log("[Ocean Log] Step 3: Message 'showPnrAnimation' received. Triggering animation check.");
+        console.log("[LEXUS Log] Step 3: Message 'showPnrAnimation' received. Triggering animation check.");
         waitForPnrAndShowAnimation();
         sendResponse({ status: "PNR check initiated." });
     }
@@ -1305,7 +1178,7 @@ chrome.runtime.onMessage.addListener(async (messageEvent, sender, sendResponse) 
     try {
         // 1. Ek nayi div banayein
         const waitMessageDiv = document.createElement("div");
-        waitMessageDiv.id = "ocean-wait-banner";
+        waitMessageDiv.id = "lexus-wait-banner";
         waitMessageDiv.textContent = `Please wait... Booking will start at ${requiredBookingTime}`;
         
         // 2. Fixed positioning (Hamesha screen ke top par)
@@ -1332,7 +1205,7 @@ chrome.runtime.onMessage.addListener(async (messageEvent, sender, sendResponse) 
 
 try {
     // 4. Ab direct ID se pakdo (Selector path ki jhanjhat khatam)
-    const waitIndicatorDiv = document.getElementById("ocean-wait-banner");
+    const waitIndicatorDiv = document.getElementById("lexus-wait-banner");
     if (waitIndicatorDiv) {
         waitIndicatorDiv.style.backgroundColor = waitCounter % 2 === 0 ? "green" : "red";
     }
@@ -1498,7 +1371,7 @@ const smartClickAndProcess = async (buttonSelector, loaderSelector) => {
 const autoClickConfirm = async (methodKey) => {
   if (!String(methodKey).toUpperCase().includes("IRCWA")) return; // à¤¸à¤¿à¤°à¥à¤« eWallet à¤•à¥‡à¤¸
 
-  console.log("OCEAN: eWallet à¤šà¥à¤¨à¤¾ à¤ - à¤¯à¤¾  -  à¤...à¤¬ CONFIRM à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤¬à¤¾à¤°-à¤¬à¤¾à¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚à¤ - à¥‡ à¤œà¤¬ à¤¤à¤• à¤¹à¥‹ à¤¨ à¤œà¤¾à¤à¥¤");
+  console.log("LEXUS: eWallet à¤šà¥à¤¨à¤¾ à¤ - à¤¯à¤¾  -  à¤...à¤¬ CONFIRM à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤¬à¤¾à¤°-à¤¬à¤¾à¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚à¤ - à¥‡ à¤œà¤¬ à¤¤à¤• à¤¹à¥‹ à¤¨ à¤œà¤¾à¤à¥¤");
 
   const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toUpperCase();
 
@@ -1509,7 +1382,7 @@ const autoClickConfirm = async (methodKey) => {
     if (btn) {
       try { btn.scrollIntoView({ block: "center", inline: "center" }); } catch(_) {}
       btn.click();
-      console.log("OCEAN: CONFIRM à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤¦à¤¿à¤¯à¤¾à¥¤");
+      console.log("LEXUS: CONFIRM à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤¦à¤¿à¤¯à¤¾à¥¤");
 
       clearInterval(intervalId); // à¤à¤• à¤¬à¤¾à¤° à¤•à¥à¤²à¤¿à¤• à¤•à¥‡ à¤¬à¤¾à¤¦ à¤°à¥à¤• à¤œà¤¾à¤
     }
@@ -1522,13 +1395,13 @@ const autoClickConfirm = async (methodKey) => {
 
 
     statusUpdate('bkgPaymentOptions');
-    console.log("OCEAN: bkgPaymentOptions à¤à¤•à¥à¤¶à¤¨ à¤®à¤¿à¤²à¤¾à¥¤");
+    console.log("LEXUS: bkgPaymentOptions à¤à¤•à¥à¤¶à¤¨ à¤®à¤¿à¤²à¤¾à¥¤");
     const isSlowMode = user_data.other_preferences.useSlowMode;
 
     const executePayment = async (methodKey) => {
         if (!methodKey) return { success: false };
         let paymentCategory, paymentOptionText;
-        console.log(`OCEAN: à¤ªà¥‡à¤®à¥‡à¤‚à¤Ÿ à¤•à¤¾ à¤ªà¥à¤°à¤¯à¤¾à¤¸: ${methodKey}`);
+        console.log(`LEXUS: à¤ªà¥‡à¤®à¥‡à¤‚à¤Ÿ à¤•à¤¾ à¤ªà¥à¤°à¤¯à¤¾à¤¸: ${methodKey}`);
         
         // --- à¤ªà¥‡à¤®à¥‡à¤‚à¤Ÿ à¤®à¥ˆà¤ªà¤¿à¤‚à¤ -  à¤•à¤¾ à¤ªà¥‚à¤°à¤¾ à¤²à¥‰à¤œà¤¿à¤• ---
         if (methodKey.includes("PAYTMUPI")) { paymentCategory = "BHIM/ UPI/ USSD"; paymentOptionText = "Paytm UPI"; }
@@ -1559,10 +1432,10 @@ const autoClickConfirm = async (methodKey) => {
             return text.includes(categoryKey) || (categoryKey.startsWith("irctcipay") && text.startsWith("irctcipay"));
         });
         if (!categoryElement) {
-            console.error(`OCEAN: à¤•à¥ˆà¤Ÿà¥‡à¤ - à¤°à¥€ '${paymentCategory}' à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¥€à¥¤`);
+            console.error(`LEXUS: à¤•à¥ˆà¤Ÿà¥‡à¤ - à¤°à¥€ '${paymentCategory}' à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¥€à¥¤`);
             return { success: false };
         }
-        console.log(`OCEAN: à¤•à¥ˆà¤Ÿà¥‡à¤ - à¤°à¥€ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚: '${paymentCategory}'`);
+        console.log(`LEXUS: à¤•à¥ˆà¤Ÿà¥‡à¤ - à¤°à¥€ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚: '${paymentCategory}'`);
         isSlowMode ? await slowClick(categoryElement) : fastClick(categoryElement);
         
         // à¤®à¥‹à¤¬à¤¾à¤‡à¤² à¤µà¥à¤¯à¥‚ à¤•à¥‡ à¤²à¤¿à¤ 'Continue' à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤•
@@ -1597,11 +1470,11 @@ const autoClickConfirm = async (methodKey) => {
         }
 
         if (optionElement) {
-            console.log(`OCEAN: à¤‘à¤ªà¥à¤¶à¤¨ '${paymentOptionText}' à¤®à¤¿à¤²à¤¾à¥¤ à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚à¥¤`);
+            console.log(`LEXUS: à¤‘à¤ªà¥à¤¶à¤¨ '${paymentOptionText}' à¤®à¤¿à¤²à¤¾à¥¤ à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚à¥¤`);
             isSlowMode ? await slowClick(optionElement) : fastClick(optionElement);
             return { success: true };
         } else {
-            console.warn(`OCEAN: à¤‘à¤ªà¥à¤¶à¤¨ '${paymentOptionText}' à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾à¥¤`);
+            console.warn(`LEXUS: à¤‘à¤ªà¥à¤¶à¤¨ '${paymentOptionText}' à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾à¥¤`);
             return { success: false };
         }
     };
@@ -1620,7 +1493,7 @@ const autoClickConfirm = async (methodKey) => {
 
          
             // STEP 2: à¤...à¤ - à¤° à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆ, à¤¤à¤­à¥€ à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
-            console.log("OCEAN: à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆà¥¤ à¤...à¤¬ 'Pay & Book' à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤¿à¤¯à¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆà¥¤");
+            console.log("LEXUS: à¤¸à¥‡à¤¶à¤¨ à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆà¥¤ à¤...à¤¬ 'Pay & Book' à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤¿à¤¯à¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆà¥¤");
 
 
 
@@ -1631,16 +1504,16 @@ const autoClickConfirm = async (methodKey) => {
             const delayInSeconds = parseInt(user_data.other_preferences.secSelectionDelay || "0", 10);
             if (delayInSeconds > 0) {
                 const delayInMilliseconds = delayInSeconds * 1000;
-                console.log(`OCEAN: à¤‰à¤ªà¤¯à¥‹à¤ - à¤•à¤°à¥à¤¤à¤¾ à¤¦à¥à¤µà¤¾à¤°à¤¾ à¤šà¥à¤¨à¥€ à¤ - à¤ˆ ${delayInSeconds} à¤¸à¥‡à¤•à¤‚à¤¡ à¤•à¥€ à¤¦à¥‡à¤°à¥€ à¤¶à¥à¤°à¥‚à¥¤`);
+                console.log(`LEXUS: à¤‰à¤ªà¤¯à¥‹à¤ - à¤•à¤°à¥à¤¤à¤¾ à¤¦à¥à¤µà¤¾à¤°à¤¾ à¤šà¥à¤¨à¥€ à¤ - à¤ˆ ${delayInSeconds} à¤¸à¥‡à¤•à¤‚à¤¡ à¤•à¥€ à¤¦à¥‡à¤°à¥€ à¤¶à¥à¤°à¥‚à¥¤`);
                 showOnScreenNotification(`Waiting for ${delayInSeconds} sec before clicking Pay & Book...`, delayInMilliseconds);
                 await new Promise(resolve => setTimeout(resolve, delayInMilliseconds));
-                console.log(`OCEAN: ${delayInSeconds} à¤¸à¥‡à¤•à¤‚à¤¡ à¤•à¥€ à¤¦à¥‡à¤°à¥€ à¤¸à¤®à¤¾à¤ªà¥à¤¤à¥¤ à¤...à¤¬ Pay & Book à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤¿à¤¯à¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆà¥¤`);
+                console.log(`LEXUS: ${delayInSeconds} à¤¸à¥‡à¤•à¤‚à¤¡ à¤•à¥€ à¤¦à¥‡à¤°à¥€ à¤¸à¤®à¤¾à¤ªà¥à¤¤à¥¤ à¤...à¤¬ Pay & Book à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤¿à¤¯à¤¾ à¤œà¤¾ à¤°à¤¹à¤¾ à¤¹à¥ˆà¥¤`);
             }
             
             // 3. "Pay & Book" à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
             const payButton = document.querySelector("button.btn-primary");
             if (payButton) {
-                console.log("OCEAN: 'Pay & Book' à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚à¥¤");
+                console.log("LEXUS: 'Pay & Book' à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚à¥¤");
                 isSlowMode ? await slowClick(payButton) : fastClick(payButton);
 
                  await autoClickConfirm(method);
@@ -1652,7 +1525,7 @@ const autoClickConfirm = async (methodKey) => {
     const primarySuccess = await handlePaymentFlow(primaryMethod);
 
     if (!primarySuccess) {
-        console.warn(`OCEAN: à¤ªà¥à¤°à¤¾à¤‡à¤®à¤°à¥€ à¤®à¥‡à¤¥à¤¡ à¤«à¥‡à¤²à¥¤ à¤¬à¥ˆà¤•à¤...à¤ª à¤•à¤¾ à¤ªà¥à¤°à¤¯à¤¾à¤¸ à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚: ${backupMethod}`);
+        console.warn(`LEXUS: à¤ªà¥à¤°à¤¾à¤‡à¤®à¤°à¥€ à¤®à¥‡à¤¥à¤¡ à¤«à¥‡à¤²à¥¤ à¤¬à¥ˆà¤•à¤...à¤ª à¤•à¤¾ à¤ªà¥à¤°à¤¯à¤¾à¤¸ à¤•à¤° à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚: ${backupMethod}`);
         if (backupMethod) {
             showOnScreenNotification(`Primary method failed. Switching to backup: ${backupMethod}`, 5000);
             await handlePaymentFlow(backupMethod);
@@ -1661,7 +1534,7 @@ const autoClickConfirm = async (methodKey) => {
         }
     }
 }  else if ("showPnrAnimation" === messageType) {
-    console.log("OCEAN: showPnrAnimation message received. Waiting for DOM to render PNR...");
+    console.log("LEXUS: showPnrAnimation message received. Waiting for DOM to render PNR...");
     
     // ðŸ”´ ONE-TIME CHECK HATA DIYA HAI. 
     // Apna setInterval wala wait function call karo jo 100% kaam karega.
@@ -1681,7 +1554,7 @@ const autoClickConfirm = async (methodKey) => {
  * Seat Availability Checker - Isse Review Booking se pehle check karenge
  */
 async function checkSeatAvailability() {
-    console.log("ðŸ” OCEAN: Checking seat availability status...");
+    console.log("ðŸ” LEXUS: Checking seat availability status...");
 
     // IRCTC ke CSS classes (HTML ke hisaab se adapt karna)
     // IRCTC mein availability status aksar span ya div mein hoti hai
@@ -1746,11 +1619,11 @@ async function proceedAfterFareCheck() {
 
 
 
-function removeOceanBanner() {
-    const banner = document.getElementById("ocean-wait-banner");
+function removeLexusBanner() {
+    const banner = document.getElementById("lexus-wait-banner");
     if (banner) {
         banner.remove();
-        console.log("OCEAN: Banner removed successfully.");
+        console.log("LEXUS: Banner removed successfully.");
     }
 }
 
@@ -1767,7 +1640,7 @@ function debuggerEnter() {
             type: "DEBUGGER_ENTER"
         }, (response) => {
             if (response && response.success) {
-                console.log("OCEAN: Debugger Enter Success");
+                console.log("LEXUS: Debugger Enter Success");
                 resolve();
             } else {
                 console.warn("Debugger Enter failed, using JS Fallback");
@@ -1808,10 +1681,10 @@ function getCaptchaBase64Content() {
 
 /** Captcha ke bina Continue / Sign-in submit */
 async function submitContinueWithoutCaptcha() {
-    console.log("ðŸš€ OCEAN: Captcha base64 nahi mila  -  direct Continue/Submit...");
+    console.log("ðŸš€ LEXUS: Captcha base64 nahi mila  -  direct Continue/Submit...");
 
     if (!document.querySelector("app-review-booking") && user_data?.other_preferences?.CaptchaSubmitMode !== "A") {
-        console.log("OCEAN: Auto Submit OFF  -  user khud Continue karega.");
+        console.log("LEXUS: Auto Submit OFF  -  user khud Continue karega.");
         return;
     }
 
@@ -1819,7 +1692,7 @@ async function submitContinueWithoutCaptcha() {
     const loginApp = document.querySelector("#divMain > app-login") || document.querySelector("app-login");
     if (loginApp) {
         if (isManualLoginEnabled()) {
-            console.log("OCEAN: Manual login ON — Sign In user karega.");
+            console.log("LEXUS: Manual login ON — Sign In user karega.");
             return;
         }
         const userIn = loginApp.querySelector("input[formcontrolname='userid']");
@@ -1833,13 +1706,13 @@ async function submitContinueWithoutCaptcha() {
             if (signInBtn) {
                 signInBtn.removeAttribute("disabled");
                 signInBtn.classList.remove("disable-book");
-                const btnId = "ocean-no-captcha-signin";
+                const btnId = "lexus-no-captcha-signin";
                 signInBtn.setAttribute("id", btnId);
-                console.log("OCEAN: Login  -  Sign In click (no captcha)...");
+                console.log("LEXUS: Login  -  Sign In click (no captcha)...");
                 await debuggerClick(`#${btnId}`);
                 return;
             }
-            console.log("OCEAN: Login  -  Enter press (no captcha)...");
+            console.log("LEXUS: Login  -  Enter press (no captcha)...");
             (userIn || passIn).focus();
             await debuggerEnter();
             return;
@@ -1858,11 +1731,11 @@ async function submitContinueWithoutCaptcha() {
             return showCustomConfirm(
                 "Seat  NOT AVAILABLE. Do you still want to proceed with booking?",
                 async () => {
-                    console.log("OCEAN: User opted to proceed despite seat status.");
+                    console.log("LEXUS: User opted to proceed despite seat status.");
                     await clickReviewContinue(reviewPage);
                 },
                 () => {
-                    console.log("OCEAN: User cancelled booking.");
+                    console.log("LEXUS: User cancelled booking.");
                     showCustomAlert("Booking cancelled by user.");
                 }
             );
@@ -1871,7 +1744,7 @@ async function submitContinueWithoutCaptcha() {
         return;
     }
 
-    console.warn("OCEAN: Login/Review page nahi mili  -  Continue skip.");
+    console.warn("LEXUS: Login/Review page nahi mili  -  Continue skip.");
 }
 
 async function clickReviewContinue(reviewPage) {
@@ -1909,7 +1782,7 @@ async function clickReviewContinue(reviewPage) {
 async function getCaptchaTC() {
     // A. Retry Limit Check (solve-loop ke liye)
     if (captchaRetry >= 100) {
-        console.error("ðŸš¨ OCEAN: Captcha retry limit reached (100). Stopping loop.");
+        console.error("ðŸš¨ LEXUS: Captcha retry limit reached (100). Stopping loop.");
         return;
     }
     captchaRetry++;
@@ -1919,7 +1792,7 @@ async function getCaptchaTC() {
     const isLoaderVisible = irctcLoader && window.getComputedStyle(irctcLoader).display !== "none";
 
     if (isLoaderVisible) {
-        console.log("â³ OCEAN: IRCTC Loader chal raha hai... 400ms wait.");
+        console.log("â³ LEXUS: IRCTC Loader chal raha hai... 400ms wait.");
         setTimeout(getCaptchaTC, 400);
         return;
     }
@@ -1928,7 +1801,7 @@ async function getCaptchaTC() {
     const imgContent = getCaptchaBase64Content();
 
     if (!imgContent) {
-        console.log("OCEAN: Captcha base64 nahi mila  -  direct Continue...");
+        console.log("LEXUS: Captcha base64 nahi mila  -  direct Continue...");
         captchaRetry = 0;
         await submitContinueWithoutCaptcha();
         return;
@@ -1936,7 +1809,7 @@ async function getCaptchaTC() {
 
     // â­ Base64 mil gaya -> solve flow
     captchaRetry = 0;
-    console.log("âœ... OCEAN: Captcha base64 mil gayi! Server ko bhej rahe hain...");
+    console.log("âœ... LEXUS: Captcha base64 mil gayi! Server ko bhej rahe hain...");
 
     try {
         // C. API Call (Custom or Default)
@@ -1948,7 +1821,7 @@ async function getCaptchaTC() {
         let response;
 
         if (useCustomApi) {
-            console.log("OCEAN: Using Custom True Captcha API.");
+            console.log("LEXUS: Using Custom True Captcha API.");
             response = await fetch("https://api.apitruecaptcha.org/one/gettext", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1960,7 +1833,7 @@ async function getCaptchaTC() {
             });
         } else {
             // No TrueCaptcha saved  -  don't call dead verifytool; manual / save settings
-            console.warn("OCEAN: Captcha aayi lekin TrueCaptcha nahi  -  manual fill.");
+            console.warn("LEXUS: Captcha aayi lekin TrueCaptcha nahi  -  manual fill.");
             showOnScreenNotification(
                 "Captcha aayi  -  Login tab me TrueCaptcha save karo, ya khud type karo",
                 5000
@@ -2017,7 +1890,7 @@ async function getCaptchaTC() {
         const captchaIn = document.querySelector(captchaSelector);
 
         if (captchaIn) {
-            console.log(`OCEAN: Filling Captcha '${filteredText}'...`);
+            console.log(`LEXUS: Filling Captcha '${filteredText}'...`);
             captchaIn.focus();
             await debuggerType(captchaSelector, filteredText);
         }
@@ -2049,7 +1922,7 @@ async function getCaptchaTC() {
 
                 if (userIn?.value && passIn?.value && captchaIn?.value) {
                     setTimeout(async () => {
-                        console.log("OCEAN: Submitting Login (Enter)...");
+                        console.log("LEXUS: Submitting Login (Enter)...");
                         captchaIn.focus();
                         await debuggerEnter();
                     }, 200);
@@ -2065,20 +1938,20 @@ async function getCaptchaTC() {
                     return showCustomConfirm(
                         "Seat  NOT AVAILABLE. Do you still want to proceed with booking?",
                         async () => {
-                            console.log("OCEAN: User opted to proceed despite seat status.");
+                            console.log("LEXUS: User opted to proceed despite seat status.");
                             setTimeout(async () => {
                                 captchaIn.focus();
                                 await debuggerEnter();
                             }, 200);
                         },
                         () => {
-                            console.log("OCEAN: User cancelled booking.");
+                            console.log("LEXUS: User cancelled booking.");
                             showCustomAlert("Booking cancelled by user.");
                         }
                     );
                 }
                 setTimeout(async () => {
-                    console.log("OCEAN: Submitting Review (Enter)...");
+                    console.log("LEXUS: Submitting Review (Enter)...");
                     captchaIn.focus();
                     await debuggerEnter();
                 }, 200);
@@ -2095,23 +1968,23 @@ async function getCaptchaTC() {
 
 
 async function loadLoginDetails() {
-    if (window.__OCEAN_LOGIN_FILLING__) {
-        oceanLog('loadLoginDetails already running  -  skip');
+    if (window.__LEXUS_LOGIN_FILLING__) {
+        lexusLog('loadLoginDetails already running  -  skip');
         return;
     }
-    window.__OCEAN_LOGIN_FILLING__ = true;
-    oceanSetLoginPhase('filling', 'loadLoginDetails');
+    window.__LEXUS_LOGIN_FILLING__ = true;
+    lexusSetLoginPhase('filling', 'loadLoginDetails');
     statusUpdate('loadLoginDetails');
-    oceanLog('Filling login (verify click/fill)...');
+    lexusLog('Filling login (verify click/fill)...');
 
     const userIdSelector = "app-login input[formcontrolname='userid'], input[formcontrolname='userid'], #userid, input[formcontrolname='userId']";
     const passwordSelector = "app-login input[formcontrolname='password'], input[formcontrolname='password'], #password";
 
     try {
         if (!isLoginFormOpen()) {
-            oceanLog('login form not open  -  abort fill', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
-            oceanSetLoginPhase('idle', 'form missing');
+            lexusLog('login form not open  -  abort fill', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
+            lexusSetLoginPhase('idle', 'form missing');
             return;
         }
 
@@ -2119,77 +1992,77 @@ async function loadLoginDetails() {
         const password = (user_data.irctc_credentials && user_data.irctc_credentials.password) || "";
         const manualLogin = isManualLoginEnabled();
         if (!userName || (!manualLogin && !password)) {
-            oceanLog(manualLogin ? 'username empty  -  save Login profile' : 'credentials empty  -  save Login profile', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            lexusLog(manualLogin ? 'username empty  -  save Login profile' : 'credentials empty  -  save Login profile', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
 
         const userEl = document.querySelector(userIdSelector);
         const passEl = document.querySelector(passwordSelector);
         if (!userEl || (!manualLogin && !passEl)) {
-            oceanLog('userid/password inputs not found', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            lexusLog('userid/password inputs not found', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
-        const userSel = markTempId(userEl, "ocean-nget-user");
+        const userSel = markTempId(userEl, "lexus-nget-user");
 
-        const userOk = await oceanVerifyFill(userSel, userName, 'username');
+        const userOk = await lexusVerifyFill(userSel, userName, 'username');
         if (!userOk) {
-            oceanLog('username fill verify failed', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            lexusLog('username fill verify failed', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
 
         if (manualLogin) {
-            oceanSetLoginPhase('manual_wait', 'manual login');
-            oceanPanelStatus('Fill pass aur SIGN IN dabao  -  Pass: ' + password);
+            lexusSetLoginPhase('manual_wait', 'manual login');
+            lexusPanelStatus('Fill pass aur SIGN IN dabao  -  Pass: ' + password);
             startLoginSuccessWatcher();
             return;
         }
 
-        const passSel = markTempId(passEl, "ocean-nget-pass");
+        const passSel = markTempId(passEl, "lexus-nget-pass");
         await new Promise((r) => setTimeout(r, 200));
-        const passOk = await oceanVerifyFill(passSel, password, 'password');
+        const passOk = await lexusVerifyFill(passSel, password, 'password');
         if (!passOk) {
-            oceanLog('fill verify failed  -  not clicking SIGN IN', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            lexusLog('fill verify failed  -  not clicking SIGN IN', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
         await new Promise((r) => setTimeout(r, 300));
 
         if (!isLoginFormOpen()) {
-            oceanLog('form closed during fill  -  abort SIGN IN', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
-            oceanSetLoginPhase('idle', 'form closed mid-fill');
+            lexusLog('form closed during fill  -  abort SIGN IN', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
+            lexusSetLoginPhase('idle', 'form closed mid-fill');
             return;
         }
 
         const signInBtn = findClassicSignInBtn();
         if (!signInBtn) {
-            oceanLog('SIGN IN button not found', 'error');
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            lexusLog('SIGN IN button not found', 'error');
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
         signInBtn.removeAttribute("disabled");
         signInBtn.classList.remove("disable-book");
-        const signed = await oceanVerifyClick(signInBtn, 'SIGN IN');
+        const signed = await lexusVerifyClick(signInBtn, 'SIGN IN');
         if (!signed) {
-            window.__OCEAN_LOGIN_FILLING__ = false;
+            window.__LEXUS_LOGIN_FILLING__ = false;
             return;
         }
 
         startLoginSuccessWatcher();
 
     } catch (error) {
-        window.__OCEAN_LOGIN_FILLING__ = false;
-        oceanLog('loadLoginDetails error: ' + (error && error.message ? error.message : error), 'error');
-        console.error("[OCEAN nget] loadLoginDetails error:", error);
+        window.__LEXUS_LOGIN_FILLING__ = false;
+        lexusLog('loadLoginDetails error: ' + (error && error.message ? error.message : error), 'error');
+        console.error("[LEXUS nget] loadLoginDetails error:", error);
     }
 }
 
 async function loadJourneyDetails() {
     statusUpdate('loadJourneyDetails');
-    console.log("OCEAN: Filling journey details via Debugger API (Date First Priority)...");
+    console.log("LEXUS: Filling journey details via Debugger API (Date First Priority)...");
 
     // --- Selectors ---
     const dateInputSelector = "app-jp-input form p-calendar[id='jDate'] input"; // à¤¤à¤¾à¤°à¥€à¤–
@@ -2262,7 +2135,7 @@ async function loadJourneyDetails() {
 
         // STEP 1: DATE SELECTION (à¤¸à¤¬à¤¸à¥‡ à¤ªà¤¹à¤²à¥‡ à¤¤à¤¾à¤°à¥€à¤– à¤šà¥à¤¨à¥‡à¤‚)
         // ============================================================
-        console.log("OCEAN: Priority Step - Selecting Date via Calendar Click...");
+        console.log("LEXUS: Priority Step - Selecting Date via Calendar Click...");
         
         // A. Parse Target Date
         const targetDate = new Date(user_data.journey_details.date);
@@ -2318,7 +2191,7 @@ async function loadJourneyDetails() {
                 console.log(`Day found! Clicking selector: ${daySelector}`);
                 await debuggerClick(daySelector);
             } else {
-                console.error("OCEAN: Day not found in calendar!");
+                console.error("LEXUS: Day not found in calendar!");
             }
         }
         
@@ -2340,11 +2213,11 @@ async function loadJourneyDetails() {
         
         if (targetClassEl) {
             // à¤‰à¤¸ à¤à¤²à¤¿à¤®à¥‡à¤‚à¤Ÿ à¤•à¥‹ à¤à¤• à¤¯à¥‚à¤¨à¤¿à¤• ID à¤¦à¥‡à¤‚ à¤”à¤° à¤‰à¤¸ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
-            const classBtnId = "ocean-class-opt-final";
+            const classBtnId = "lexus-class-opt-final";
             targetClassEl.setAttribute("id", classBtnId);
             await debuggerClick(`#${classBtnId}`);
         } else {
-            console.error(`OCEAN: Class '${className}' à¤²à¤¿à¤¸à¥à¤Ÿ à¤®à¥‡à¤‚ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¥€!`);
+            console.error(`LEXUS: Class '${className}' à¤²à¤¿à¤¸à¥à¤Ÿ à¤®à¥‡à¤‚ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¥€!`);
         }
         await new Promise(r => setTimeout(r, 300));
 
@@ -2360,24 +2233,24 @@ async function loadJourneyDetails() {
         
         if (targetQuotaEl) {
             // à¤‰à¤¸ à¤à¤²à¤¿à¤®à¥‡à¤‚à¤Ÿ à¤•à¥‹ à¤à¤• à¤¯à¥‚à¤¨à¤¿à¤• ID à¤¦à¥‡à¤‚ à¤”à¤° à¤‰à¤¸ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
-            const quotaBtnId = "ocean-quota-opt-final";
+            const quotaBtnId = "lexus-quota-opt-final";
             targetQuotaEl.setAttribute("id", quotaBtnId);
             await debuggerClick(`#${quotaBtnId}`);
         } else {
-            console.error(`OCEAN: Quota '${quotaName}' à¤²à¤¿à¤¸à¥à¤Ÿ à¤®à¥‡à¤‚ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾!`);
+            console.error(`LEXUS: Quota '${quotaName}' à¤²à¤¿à¤¸à¥à¤Ÿ à¤®à¥‡à¤‚ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾!`);
         }
         await new Promise(r => setTimeout(r, 300));
 
         // ============================================================
         // STEP 4: SEARCH (à¤...à¤‚à¤¤ à¤®à¥‡à¤‚ à¤¸à¤°à¥à¤š)
         // ============================================================
-        console.log("OCEAN: Clicking Search Button...");
+        console.log("LEXUS: Clicking Search Button...");
         await debuggerClick(searchBtnSelector);
 
-        console.log("OCEAN: Journey details filled and search initiated.");
+        console.log("LEXUS: Journey details filled and search initiated.");
 
     } catch (error) {
-        console.error("OCEAN: Error in loadJourneyDetails via Debugger:", error);
+        console.error("LEXUS: Error in loadJourneyDetails via Debugger:", error);
     }
 }
 // retrySelectJourney à¤«à¤‚à¤•à¥à¤¶à¤¨ à¤®à¥‡à¤‚ à¤•à¥‹à¤ˆ à¤¬à¤¦à¤²à¤¾à¤µ à¤¨à¤¹à¥€à¤‚ à¤¹à¥ˆ
@@ -2388,7 +2261,7 @@ function retrySelectJourney() {
 
 // selectJourney à¤«à¤‚à¤•à¥à¤¶à¤¨ à¤...à¤¬ async à¤¹à¥ˆ
 async function selectJourney() {
-    removeOceanBanner();
+    removeLexusBanner();
     statusUpdate('train-list');
     console.log("selectJourney à¤¶à¥à¤°à¥‚ à¤¹à¥à¤†...");
     const isSlowMode = user_data.other_preferences.useSlowMode;
@@ -2431,7 +2304,7 @@ async function selectJourney() {
                 errText.includes("Please try again") || 
                 errText.includes("client ip")) {
                 
-                console.warn("ðŸš¨ OCEAN: Error pakda gaya (Class Click ke baad)! Retry kar rahe hain...");
+                console.warn("ðŸš¨ LEXUS: Error pakda gaya (Class Click ke baad)! Retry kar rahe hain...");
                 
                 obs.disconnect(); // Is catcher ko band karein
                 mainObserver.disconnect(); // Niche wale Date observer ko bhi rokein taki wo wait na kare
@@ -2500,7 +2373,7 @@ async function waitForLoaderAndBook(trainElement) {
                 errText.includes("Unable to perform this transaction. Please try again") ||
                 errText.includes("Please try again") || 
                 errText.includes("client ip")) {
-                console.warn("ðŸš¨ OCEAN: High Load pakda gaya (Date Click ke baad)! Retry kar rahe hain...");
+                console.warn("ðŸš¨ LEXUS: High Load pakda gaya (Date Click ke baad)! Retry kar rahe hain...");
                 
                 observer.disconnect(); // Is observer ko cancel karein
                 
@@ -2585,7 +2458,7 @@ function waitForInputReady(index) {
 
 async function fillPassengerDetails() {
     statusUpdate('fillPassengerDetails');
-    console.log("OCEAN: Filling Passenger Details (Verified Direct Fill)...");
+    console.log("LEXUS: Filling Passenger Details (Verified Direct Fill)...");
 
     const passengerApp = document.querySelector("app-passenger-input");
     if (!passengerApp) return console.error("âŒ Passenger app not found.");
@@ -2619,16 +2492,16 @@ async function fillPassengerDetails() {
         const nameIn = document.querySelectorAll("app-passenger p-autocomplete input")[i];
         const ageIn = document.querySelectorAll("app-passenger input[formcontrolname='passengerAge']")[i];
         const genderIn = document.querySelectorAll("app-passenger select[formcontrolname='passengerGender']")[i];
-        if (!nameIn || !ageIn || !genderIn) { oceanLog('Passenger fields not ready', 'error'); return; }
-        nameIn.id = `ocean-name-${i}`; ageIn.id = `ocean-age-${i}`;
+        if (!nameIn || !ageIn || !genderIn) { lexusLog('Passenger fields not ready', 'error'); return; }
+        nameIn.id = `lexus-name-${i}`; ageIn.id = `lexus-age-${i}`;
         if (!await lexusDirectFill(nameIn, psgn.name)) {
-            if (!await oceanVerifyFill(`#${nameIn.id}`, psgn.name, 'passenger name')) return;
+            if (!await lexusVerifyFill(`#${nameIn.id}`, psgn.name, 'passenger name')) return;
         }
         if (!await lexusDirectFill(ageIn, String(psgn.age))) {
-            if (!await oceanVerifyFill(`#${ageIn.id}`, String(psgn.age), 'passenger age')) return;
+            if (!await lexusVerifyFill(`#${ageIn.id}`, String(psgn.age), 'passenger age')) return;
         }
         if (!await lexusSelectGender(genderIn, psgn.gender)) {
-            oceanLog('Passenger gender selection did not match saved profile', 'error'); showOnScreenNotification('Check passenger gender: saved option was not found.', 8000); return;
+            lexusLog('Passenger gender selection did not match saved profile', 'error'); showOnScreenNotification('Check passenger gender: saved option was not found.', 8000); return;
         }
 
         // --- E. BERTH (Dropdown: Click -> Key -> Enter) ---
@@ -2636,7 +2509,7 @@ async function fillPassengerDetails() {
         const berthIn = allBerths[i];
         
         if (berthIn && psgn.berth) {
-            const berthId = `ocean-berth-${i}`;
+            const berthId = `lexus-berth-${i}`;
             berthIn.setAttribute("id", berthId);
             
             await debuggerClick(`#${berthId}`);
@@ -2652,7 +2525,7 @@ async function fillPassengerDetails() {
             const allFoods = document.querySelectorAll("app-passenger select[formcontrolname='passengerFoodChoice']");
             const foodIn = allFoods[i];
             if (foodIn && psgn.food) {
-                const foodId = `ocean-food-${i}`;
+                const foodId = `lexus-food-${i}`;
                 foodIn.setAttribute("id", foodId);
                 await debuggerClick(`#${foodId}`);
                 await humanThinkTime(200, 500);
@@ -2675,7 +2548,7 @@ async function fillPassengerDetails() {
     const mobileEl = document.querySelector("input#mobileNumber");
     if (mobileEl && user_data.other_preferences.mobileNumber) {
         if (!await lexusDirectFill(mobileEl, user_data.other_preferences.mobileNumber)) {
-            if (!await oceanVerifyFill("input#mobileNumber", user_data.other_preferences.mobileNumber, 'mobile')) return;
+            if (!await lexusVerifyFill("input#mobileNumber", user_data.other_preferences.mobileNumber, 'mobile')) return;
         }
     }
 
@@ -2718,7 +2591,7 @@ if (payModeVal === "2") {
         const radioBox = document.querySelectorAll("app-passenger-input p-radiobutton .ui-radiobutton-box")[targetRadioIndex];
         if (radioBox) {
             radioBox.scrollIntoView({ behavior: "smooth", block: "center" });
-            const radioId = "ocean-pay-radio";
+            const radioId = "lexus-pay-radio";
             radioBox.setAttribute("id", radioId);
             await humanThinkTime(400, 800);
             await debuggerClick(`#${radioId}`);
@@ -2757,12 +2630,12 @@ if (payModeVal === "2") {
     const valuesReady = passengers.every((p,i) => names[i]?.value === String(p.name) && ages[i]?.value === String(p.age) &&
         normalizeGender(p.gender) && (normalizeGender(genders[i]?.value) === normalizeGender(p.gender) || normalizeGender(genders[i]?.selectedOptions[0]?.textContent.trim()) === normalizeGender(p.gender)));
     if (!valuesReady) { showOnScreenNotification('Passenger values changed or are incomplete. Check the form before Continue.', 8000); return; }
-    const invalid = Array.from(passengerApp.querySelectorAll('input[required],select[required]')).some(el => !el.disabled && isOceanVisible(el) && el.validity && !el.validity.valid);
+    const invalid = Array.from(passengerApp.querySelectorAll('input[required],select[required]')).some(el => !el.disabled && isLexusVisible(el) && el.validity && !el.validity.valid);
     if (invalid) { showOnScreenNotification('Complete the required passenger fields before Continue.', 8000); return; }
     const continueBtn = getVisiblePassengerContinueBtn();
     if (!continueBtn || continueBtn.disabled || continueBtn.getAttribute('aria-disabled') === 'true') { showOnScreenNotification('Passenger Continue is not ready.', 8000); return; }
     window.__lexusPassengerSubmitting = true;
-    continueBtn.id = 'ocean-psg-continue-btn';
+    continueBtn.id = 'lexus-psg-continue-btn';
     await new Promise(resolve => {
         let finished = false, timer;
         const finish = (reason, blocked = false) => {
@@ -2770,22 +2643,22 @@ if (payModeVal === "2") {
             finished = true; observer.disconnect(); clearTimeout(timer);
             window.__lexusPassengerSubmitting = false;
             if (blocked) window.__lexusPassengerSubmitBlocked = true;
-            if (reason) { oceanLog(reason, blocked ? 'error' : 'info'); showOnScreenNotification(reason, 10000); }
+            if (reason) { lexusLog(reason, blocked ? 'error' : 'info'); showOnScreenNotification(reason, 10000); }
             resolve();
         };
         const inspect = () => {
             const errors = Array.from(document.querySelectorAll('.ui-toast-detail,.ui-toast-message-text-content,.p-toast-detail,.p-toast-message-text-content,[role="alert"]'));
-            if (errors.some(el => isOceanVisible(el) && /unable to process request|unable to perform this transaction|client ip|high load|please retry|please try again/i.test(el.innerText || el.textContent || ''))) {
+            if (errors.some(el => isLexusVisible(el) && /unable to process request|unable to perform this transaction|client ip|high load|please retry|please try again/i.test(el.innerText || el.textContent || ''))) {
                 finish('IRCTC rejected Passenger Continue. Automatic retries stopped; check the site message.', true); return;
             }
             const review = document.querySelector('app-review-booking');
-            if (review && isOceanVisible(review)) finish('Passenger Continue succeeded. Review page reached.');
+            if (review && isLexusVisible(review)) finish('Passenger Continue succeeded. Review page reached.');
         };
         const observer = new MutationObserver(inspect);
         observer.observe(document.body, {childList:true,subtree:true,characterData:true,attributes:true});
         timer = setTimeout(() => finish('Passenger Continue response was not confirmed. No automatic retry was sent.', true), 45000);
         inspect();
-        if (!finished) debuggerClick('#ocean-psg-continue-btn',50,50).then(inspect).catch(() => finish('Passenger Continue click failed. Check the page manually.', true));
+        if (!finished) debuggerClick('#lexus-psg-continue-btn',50,50).then(inspect).catch(() => finish('Passenger Continue click failed. Check the page manually.', true));
     });
 }
 // ==============================================================================
@@ -2795,12 +2668,12 @@ if (payModeVal === "2") {
 // ==================================================================
 // --- Login phase + verify helpers (stops form open/close loop) ---
 // ==================================================================
-function oceanGetLoginPhase() {
-    return window.__OCEAN_LOGIN_PHASE__ || 'idle';
+function lexusGetLoginPhase() {
+    return window.__LEXUS_LOGIN_PHASE__ || 'idle';
 }
-function oceanSetLoginPhase(phase, why) {
-    window.__OCEAN_LOGIN_PHASE__ = phase;
-    oceanLog('phase=' + phase + (why ? ' (' + why + ')' : ''));
+function lexusSetLoginPhase(phase, why) {
+    window.__LEXUS_LOGIN_PHASE__ = phase;
+    lexusLog('phase=' + phase + (why ? ' (' + why + ')' : ''));
 }
 function isLoginFormOpen() {
     return Boolean(
@@ -2809,16 +2682,16 @@ function isLoginFormOpen() {
         )
     );
 }
-function oceanLoginUiBusy() {
-    const p = oceanGetLoginPhase();
+function lexusLoginUiBusy() {
+    const p = lexusGetLoginPhase();
     return p === 'form_open' || p === 'filling' || p === 'signed_in_wait' || p === 'done' || isLoginFormOpen();
 }
-function oceanPanelStatus(msg) {
+function lexusPanelStatus(msg) {
     const text = String(msg || '').trim();
     if (!text) return;
     try {
-        if (typeof window.__oceanPushPanelStatus === 'function') {
-            window.__oceanPushPanelStatus(text);
+        if (typeof window.__lexusPushPanelStatus === 'function') {
+            window.__lexusPushPanelStatus(text);
             return;
         }
     } catch (_) {}
@@ -2831,52 +2704,52 @@ function oceanPanelStatus(msg) {
         }
     } catch (_) {}
 }
-function oceanLog(msg, level) {
-    const line = '[OCEAN nget] ' + msg;
+function lexusLog(msg, level) {
+    const line = '[LEXUS nget] ' + msg;
     if (level === 'error') console.error(line);
     else if (level === 'warn') console.warn(line);
     else console.log(line);
-    oceanPanelStatus(msg);
+    lexusPanelStatus(msg);
 }
-async function oceanVerifyClick(el, label) {
+async function lexusVerifyClick(el, label) {
     if (!el) {
-        oceanLog('VERIFY click FAIL  -  missing: ' + label, 'error');
+        lexusLog('VERIFY click FAIL  -  missing: ' + label, 'error');
         return false;
     }
-    const sel = markTempId(el, 'ocean-v-' + String(label || 'btn').replace(/\W+/g, '').slice(0, 12));
-    oceanLog('VERIFY click -> ' + label + ' sel=' + sel);
+    const sel = markTempId(el, 'lexus-v-' + String(label || 'btn').replace(/\W+/g, '').slice(0, 12));
+    lexusLog('VERIFY click -> ' + label + ' sel=' + sel);
     try {
         el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         await debuggerClick(sel, 50, 55);
         try {
             el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         } catch (_) {}
-        oceanLog('VERIFY click OK  -  ' + label);
+        lexusLog('VERIFY click OK  -  ' + label);
         return true;
     } catch (e) {
-        oceanLog('VERIFY click ERR  -  ' + label + ': ' + (e && e.message ? e.message : e), 'error');
+        lexusLog('VERIFY click ERR  -  ' + label + ': ' + (e && e.message ? e.message : e), 'error');
         try {
             el.click();
-            oceanLog('VERIFY click fallback DOM OK  -  ' + label, 'warn');
+            lexusLog('VERIFY click fallback DOM OK  -  ' + label, 'warn');
             return true;
         } catch (_) {
-            oceanLog('VERIFY click FAIL  -  ' + label, 'error');
+            lexusLog('VERIFY click FAIL  -  ' + label, 'error');
             return false;
         }
     }
 }
-async function oceanVerifyFill(selector, expected, label) {
-    oceanLog('VERIFY fill -> ' + label);
+async function lexusVerifyFill(selector, expected, label) {
+    lexusLog('VERIFY fill -> ' + label);
     if (label === 'username' && await lexusDirectFill(selector, expected)) return true;
     await debuggerType(selector, expected);
     await new Promise((r) => setTimeout(r, 150));
     const el = document.querySelector(selector);
     const got = el ? String(el.value || '') : '';
     if (got === String(expected)) {
-        oceanLog('VERIFY fill OK  -  ' + label + ' len=' + got.length);
+        lexusLog('VERIFY fill OK  -  ' + label + ' len=' + got.length);
         return true;
     }
-    oceanLog('VERIFY fill mismatch  -  ' + label + ' gotLen=' + got.length + ' retry', 'warn');
+    lexusLog('VERIFY fill mismatch  -  ' + label + ' gotLen=' + got.length + ' retry', 'warn');
     if (el) {
         try {
             el.focus();
@@ -2893,13 +2766,13 @@ async function oceanVerifyFill(selector, expected, label) {
     const el2 = document.querySelector(selector);
     const got2 = el2 ? String(el2.value || '') : '';
     if (got2 === String(expected)) {
-        oceanLog('VERIFY fill OK after retry  -  ' + label);
+        lexusLog('VERIFY fill OK after retry  -  ' + label);
         return true;
     }
-    oceanLog('VERIFY fill FAIL  -  ' + label, 'error');
+    lexusLog('VERIFY fill FAIL  -  ' + label, 'error');
     return false;
 }
-function oceanReadIrTokens() {
+function lexusReadIrTokens() {
     try {
         return JSON.parse(localStorage.getItem('ir:tokens') || '{}');
     } catch (_) {
@@ -2907,43 +2780,43 @@ function oceanReadIrTokens() {
     }
 }
 
-function oceanHasIrTokens() {
-    const t = oceanReadIrTokens();
+function lexusHasIrTokens() {
+    const t = lexusReadIrTokens();
     return Boolean(t && t.access_token);
 }
 
-function oceanFirePostLoginOnce(reason) {
-    if (window.__OCEAN_POST_LOGIN_FIRED__) {
-        oceanLog('post-login already fired  -  skip (' + reason + ')');
+function lexusFirePostLoginOnce(reason) {
+    if (window.__LEXUS_POST_LOGIN_FIRED__) {
+        lexusLog('post-login already fired  -  skip (' + reason + ')');
         return;
     }
     try {
-        Object.defineProperty(window, '__OCEAN_LOGIN_OK__', {
+        Object.defineProperty(window, '__LEXUS_LOGIN_OK__', {
             value: true,
             writable: true,
             configurable: true,
             enumerable: false,
         });
     } catch (_) {
-        window.__OCEAN_LOGIN_OK__ = true;
+        window.__LEXUS_LOGIN_OK__ = true;
     }
     const startDirect = () => {
-        if (!window.__OCEAN_DIRECT_BOOK__) return 'classic';
-        if (window.__OCEAN_DIRECT_PIPELINE_DONE__) return 'done';
-        if (typeof window.__oceanTryStartDirect === 'function') {
-            window.__oceanTryStartDirect('post-login');
+        if (!window.__LEXUS_DIRECT_BOOK__) return 'classic';
+        if (window.__LEXUS_DIRECT_PIPELINE_DONE__) return 'done';
+        if (typeof window.__lexusTryStartDirect === 'function') {
+            window.__lexusTryStartDirect('post-login');
             return 'ok';
         }
-        if (typeof window.__oceanStartDirectBook === 'function') {
-            window.__oceanStartDirectBook();
+        if (typeof window.__lexusStartDirectBook === 'function') {
+            window.__lexusStartDirectBook();
             return 'ok';
         }
         return 'wait';
     };
     const finish = () => {
-        window.__OCEAN_POST_LOGIN_FIRED__ = true;
-        oceanSetLoginPhase('done', reason);
-        oceanLog('post-login -> ' + reason);
+        window.__LEXUS_POST_LOGIN_FIRED__ = true;
+        lexusSetLoginPhase('done', reason);
+        lexusLog('post-login -> ' + reason);
         try {
             statusUpdate('directApiStart');
         } catch (_) {}
@@ -2960,7 +2833,7 @@ function oceanFirePostLoginOnce(reason) {
         }, 400);
         return;
     }
-    oceanLog('post-login waiting for Direct boot… (' + reason + ')');
+    lexusLog('post-login waiting for Direct boot… (' + reason + ')');
     let tries = 0;
     const iv = setInterval(() => {
         tries++;
@@ -2970,12 +2843,12 @@ function oceanFirePostLoginOnce(reason) {
             finish();
         } else if (m === 'classic' || tries > 40) {
             clearInterval(iv);
-            if (tries > 40) oceanLog('Direct boot timeout', 'error');
+            if (tries > 40) lexusLog('Direct boot timeout', 'error');
         }
     }, 250);
 }
 
-function isOceanVisible(el) {
+function isLexusVisible(el) {
     if (!el) return false;
     const r = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
@@ -2984,8 +2857,8 @@ function isOceanVisible(el) {
 
 /** Dismiss IRCTC overlays that block LOGIN (beta banner, OK alerts, etc.). */
 async function dismissIrctcBlockingOverlays() {
-    if (oceanLoginUiBusy()) {
-        oceanLog('skip overlays  -  login UI busy (' + oceanGetLoginPhase() + ')');
+    if (lexusLoginUiBusy()) {
+        lexusLog('skip overlays  -  login UI busy (' + lexusGetLoginPhase() + ')');
         return false;
     }
     let acted = false;
@@ -3011,7 +2884,7 @@ async function dismissIrctcBlockingOverlays() {
         }
         try {
             const clickable = el.closest('a, button') || el;
-            oceanLog('closing beta banner');
+            lexusLog('closing beta banner');
             clickable.click();
             acted = true;
             await new Promise((r) => setTimeout(r, 200));
@@ -3028,9 +2901,9 @@ async function dismissIrctcBlockingOverlays() {
         const ok = [...dialog.querySelectorAll('button')].find((b) =>
             /^(ok|okay|continue|close)$/i.test(((b.innerText || '') + '').trim())
         );
-        if (ok && isOceanVisible(ok)) {
+        if (ok && isLexusVisible(ok)) {
             try {
-                await oceanVerifyClick(ok, 'alert-ok');
+                await lexusVerifyClick(ok, 'alert-ok');
                 acted = true;
                 await new Promise((r) => setTimeout(r, 200));
             } catch (_) {
@@ -3047,7 +2920,7 @@ async function dismissIrctcBlockingOverlays() {
 }
 
 /** Compact IRCTC UI: side panel has Logout (logged in) or LOGIN / REGISTER (logged out). */
-function oceanNormText(el) {
+function lexusNormText(el) {
     return ((el && (el.innerText || el.textContent)) || '').replace(/\s+/g, ' ').trim();
 }
 
@@ -3055,7 +2928,7 @@ function findUserIconBtn() {
     const icon = document.querySelector('i.fa.fa-user, i.fa-user, .fa-user');
     if (icon) {
         const clickable = icon.closest('a, button, span, div') || icon;
-        if (isOceanVisible(clickable) || clickable.offsetParent !== null) return clickable;
+        if (isLexusVisible(clickable) || clickable.offsetParent !== null) return clickable;
     }
     // Header right user affordance
     const header = document.querySelector('app-header, .h_head1, .navbar');
@@ -3072,7 +2945,7 @@ function findSidePanelRoot() {
     // Panel block with Welcome... or LOGIN / REGISTER (user HTML)
     const labels = [...document.querySelectorAll('label, button.search_btn, a.search_btn.loginText')];
     for (const el of labels) {
-        const t = oceanNormText(el).toUpperCase();
+        const t = lexusNormText(el).toUpperCase();
         if (
             t.includes('WELCOME,') ||
             t.includes('LOGIN / REGISTER') ||
@@ -3094,16 +2967,16 @@ function findPanelLogoutBtn() {
     // a.search_btn.loginText > ... > Logout  (panel)
     const links = [...document.querySelectorAll('a.search_btn.loginText, a.loginText, a.search_btn')];
     for (const a of links) {
-        const t = oceanNormText(a).toUpperCase();
+        const t = lexusNormText(a).toUpperCase();
         if (t === 'LOGOUT' || t === 'LOG OUT' || /^LOGOUT\b/.test(t)) {
-            if (isOceanVisible(a) || a.offsetParent !== null) return a;
+            if (isLexusVisible(a) || a.offsetParent !== null) return a;
         }
     }
     // nested <b>Logout</b>
     for (const b of document.querySelectorAll('a.search_btn b, a.loginText b, label b')) {
-        if (oceanNormText(b).toUpperCase() === 'LOGOUT') {
+        if (lexusNormText(b).toUpperCase() === 'LOGOUT') {
             const a = b.closest('a');
-            if (a && (isOceanVisible(a) || a.offsetParent !== null)) return a;
+            if (a && (isLexusVisible(a) || a.offsetParent !== null)) return a;
         }
     }
     return null;
@@ -3112,25 +2985,25 @@ function findPanelLogoutBtn() {
 function findPanelLoginRegisterBtn() {
     const buttons = [...document.querySelectorAll('button.search_btn, button')];
     for (const btn of buttons) {
-        const t = oceanNormText(btn).toUpperCase();
+        const t = lexusNormText(btn).toUpperCase();
         if (t === 'LOGIN / REGISTER' || t.includes('LOGIN / REGISTER') || t.replace(/\s/g, '') === 'LOGIN/REGISTER') {
-            if (isOceanVisible(btn) || btn.offsetParent !== null) return btn;
+            if (isLexusVisible(btn) || btn.offsetParent !== null) return btn;
         }
     }
     return null;
 }
 
-function oceanIsLoggedIn() {
+function lexusIsLoggedIn() {
     if (findPanelLogoutBtn()) return true;
     // Welcome, Name (user) in panel even if Logout momentarily not matched
     const welcome = [...document.querySelectorAll('label')].some((el) =>
-        /^WELCOME,/i.test(oceanNormText(el))
+        /^WELCOME,/i.test(lexusNormText(el))
     );
     if (welcome && findSidePanelRoot()) return true;
     return Array.from(
         document.querySelectorAll('app-header a, .h_head1 a, .h_head1 span, a.loginText, a.search_btn')
     ).some((el) => {
-        const t = oceanNormText(el).toUpperCase();
+        const t = lexusNormText(el).toUpperCase();
         return t === 'LOGOUT' || t === 'LOG OUT';
     });
 }
@@ -3138,30 +3011,30 @@ function oceanIsLoggedIn() {
 async function openUserSidePanel(opts) {
     const force = opts && opts.force;
     if (isLoginFormOpen()) {
-        oceanLog('skip fa-user  -  login form open');
+        lexusLog('skip fa-user  -  login form open');
         return false;
     }
-    const p = oceanGetLoginPhase();
+    const p = lexusGetLoginPhase();
     if (!force && (p === 'filling' || p === 'form_open' || p === 'done')) {
-        oceanLog('skip fa-user  -  phase=' + p);
+        lexusLog('skip fa-user  -  phase=' + p);
         return false;
     }
     // Already open with Login/Logout controls
     if (findPanelLogoutBtn() || findPanelLoginRegisterBtn()) {
-        oceanLog('side panel already open');
+        lexusLog('side panel already open');
         return true;
     }
 
     const userBtn = findUserIconBtn();
     if (userBtn) {
-        if (!force) oceanSetLoginPhase('panel', 'fa-user');
-        const ok = await oceanVerifyClick(userBtn, 'fa-user');
+        if (!force) lexusSetLoginPhase('panel', 'fa-user');
+        const ok = await lexusVerifyClick(userBtn, 'fa-user');
         if (!ok) return false;
         await new Promise((r) => setTimeout(r, 500));
         if (findPanelLogoutBtn() || findPanelLoginRegisterBtn()) return true;
-        oceanLog('panel controls not found after fa-user', 'warn');
+        lexusLog('panel controls not found after fa-user', 'warn');
     } else {
-        oceanLog('fa-user icon not found', 'warn');
+        lexusLog('fa-user icon not found', 'warn');
     }
 
     // Fallback: hamburger
@@ -3171,8 +3044,8 @@ async function openUserSidePanel(opts) {
         ),
     ];
     for (const t of toggles) {
-        if (!isOceanVisible(t) && t.offsetParent === null) continue;
-        await oceanVerifyClick(t.closest('button, a') || t, 'hamburger');
+        if (!isLexusVisible(t) && t.offsetParent === null) continue;
+        await lexusVerifyClick(t.closest('button, a') || t, 'hamburger');
         await new Promise((r) => setTimeout(r, 400));
         if (findPanelLogoutBtn() || findPanelLoginRegisterBtn()) return true;
     }
@@ -3190,14 +3063,14 @@ function findClassicLoginBtnLegacy() {
         ),
     ];
     for (const el of nodes) {
-        const t = oceanNormText(el).toUpperCase();
+        const t = lexusNormText(el).toUpperCase();
         if (!t.includes('LOGIN') || t.includes('LOGOUT')) continue;
-        if (isOceanVisible(el) || el.offsetParent !== null) return el;
+        if (isLexusVisible(el) || el.offsetParent !== null) return el;
     }
     for (const el of document.querySelectorAll('a, button')) {
-        const t = oceanNormText(el).toUpperCase();
+        const t = lexusNormText(el).toUpperCase();
         if (t === 'LOGIN' || t === 'LOGIN | REGISTER' || t.startsWith('LOGIN |') || t === 'LOG IN') {
-            if (isOceanVisible(el) || el.offsetParent !== null) return el;
+            if (isLexusVisible(el) || el.offsetParent !== null) return el;
         }
     }
     return null;
@@ -3213,7 +3086,7 @@ function findClassicSignInBtn() {
     const buttons = [...scope.querySelectorAll("button")];
     for (const b of buttons) {
         const t = ((b.innerText || "") + "").replace(/\s+/g, " ").trim().toUpperCase();
-        if ((t === "SIGN IN" || t.includes("SIGN IN")) && isOceanVisible(b) && !b.disabled) {
+        if ((t === "SIGN IN" || t.includes("SIGN IN")) && isLexusVisible(b) && !b.disabled) {
             return b;
         }
     }
@@ -3223,34 +3096,34 @@ function findClassicSignInBtn() {
 async function continueScript() {
     if (window !== window.top) return;
     // API/Direct: never skip login just because Brave Default still has old ir:tokens
-    if (window.__OCEAN_DIRECT_BOOK__ && !oceanIsLoggedIn()) {
+    if (window.__LEXUS_DIRECT_BOOK__ && !lexusIsLoggedIn()) {
         try {
             localStorage.removeItem('ir:tokens');
-            oceanLog('API mode — cleared stale tokens; login first');
+            lexusLog('API mode — cleared stale tokens; login first');
         } catch (_) {}
     }
-    if (window.__OCEAN_CONTINUE_LOCK__) {
-        oceanLog("continueScript already running  -  skip lock");
+    if (window.__LEXUS_CONTINUE_LOCK__) {
+        lexusLog("continueScript already running  -  skip lock");
         return;
     }
-    if (oceanGetLoginPhase() === "done" || window.__OCEAN_POST_LOGIN_FIRED__) {
-        oceanLog("continueScript skip  -  already done");
+    if (lexusGetLoginPhase() === "done" || window.__LEXUS_POST_LOGIN_FIRED__) {
+        lexusLog("continueScript skip  -  already done");
         return;
     }
-    if (oceanGetLoginPhase() === "filling" || window.__OCEAN_LOGIN_FILLING__) {
-        oceanLog("continueScript skip  -  filling");
+    if (lexusGetLoginPhase() === "filling" || window.__LEXUS_LOGIN_FILLING__) {
+        lexusLog("continueScript skip  -  filling");
         return;
     }
     if (isLoginFormOpen()) {
-        oceanLog("continueScript  -  form already open -> fill only");
-        window.__OCEAN_CONTINUE_LOCK__ = true;
-        oceanSetLoginPhase("form_open", "pre-existing");
+        lexusLog("continueScript  -  form already open -> fill only");
+        window.__LEXUS_CONTINUE_LOCK__ = true;
+        lexusSetLoginPhase("form_open", "pre-existing");
         await loadLoginDetails();
         return;
     }
 
-    window.__OCEAN_CONTINUE_LOCK__ = true;
-    oceanLog("continueScript start");
+    window.__LEXUS_CONTINUE_LOCK__ = true;
+    lexusLog("continueScript start");
     if (typeof startLanguagePreferenceWatcher === "function") startLanguagePreferenceWatcher();
 
     try {
@@ -3259,13 +3132,13 @@ async function continueScript() {
             await new Promise((r) => setTimeout(r, 400));
             urlWaitCount++;
             if (urlWaitCount > 40) {
-                oceanLog("train-search URL timeout", "error");
+                lexusLog("train-search URL timeout", "error");
                 return;
             }
         }
 
         for (let i = 0; i < 10; i++) {
-            if (oceanLoginUiBusy()) break;
+            if (lexusLoginUiBusy()) break;
             try {
                 const did = await dismissIrctcBlockingOverlays();
                 if (!did && i > 1) break;
@@ -3273,44 +3146,44 @@ async function continueScript() {
             await new Promise((r) => setTimeout(r, 250));
         }
 
-        oceanSetLoginPhase("panel", "open once");
+        lexusSetLoginPhase("panel", "open once");
         let loginBtn = null;
         for (let i = 0; i < 8; i++) {
             if (isLoginFormOpen()) break;
-            if (oceanIsLoggedIn()) break;
+            if (lexusIsLoggedIn()) break;
             try { await openUserSidePanel(); } catch (_) {}
             loginBtn = findPanelLoginRegisterBtn() || findClassicLoginBtnLegacy();
             if (loginBtn) break;
             await new Promise((r) => setTimeout(r, 400));
         }
 
-        if (oceanIsLoggedIn()) {
-            oceanLog("already logged in (panel Logout)");
+        if (lexusIsLoggedIn()) {
+            lexusLog("already logged in (panel Logout)");
             if (typeof startKeepAlivePing === "function") startKeepAlivePing();
-            oceanFirePostLoginOnce("already-logged-in");
+            lexusFirePostLoginOnce("already-logged-in");
             return;
         }
 
         if (isLoginFormOpen()) {
-            oceanSetLoginPhase("form_open", "appeared during panel");
+            lexusSetLoginPhase("form_open", "appeared during panel");
             await loadLoginDetails();
             return;
         }
 
         if (!loginBtn) {
-            oceanLog("LOGIN / REGISTER not found", "error");
-            window.__OCEAN_CONTINUE_LOCK__ = false;
-            oceanSetLoginPhase("idle", "no login btn");
+            lexusLog("LOGIN / REGISTER not found", "error");
+            window.__LEXUS_CONTINUE_LOCK__ = false;
+            lexusSetLoginPhase("idle", "no login btn");
             return;
         }
 
-        oceanLog("LOGIN / REGISTER once: " + oceanNormText(loginBtn));
-        const clicked = await oceanVerifyClick(loginBtn, "LOGIN-REGISTER");
+        lexusLog("LOGIN / REGISTER once: " + lexusNormText(loginBtn));
+        const clicked = await lexusVerifyClick(loginBtn, "LOGIN-REGISTER");
         if (!clicked) {
-            window.__OCEAN_CONTINUE_LOCK__ = false;
+            window.__LEXUS_CONTINUE_LOCK__ = false;
             return;
         }
-        oceanSetLoginPhase("form_open", "after LOGIN click");
+        lexusSetLoginPhase("form_open", "after LOGIN click");
 
         let loginWait = 25;
         while (loginWait > 0 && !isLoginFormOpen()) {
@@ -3319,65 +3192,65 @@ async function continueScript() {
         }
 
         if (isLoginFormOpen()) {
-            oceanLog("login form open  -  fill once");
+            lexusLog("login form open  -  fill once");
             await loadLoginDetails();
         } else {
-            oceanLog("login form did not open after LOGIN / REGISTER", "error");
-            window.__OCEAN_CONTINUE_LOCK__ = false;
-            oceanSetLoginPhase("idle", "form not opened");
+            lexusLog("login form did not open after LOGIN / REGISTER", "error");
+            window.__LEXUS_CONTINUE_LOCK__ = false;
+            lexusSetLoginPhase("idle", "form not opened");
         }
     } catch (e) {
-        oceanLog("continueScript error: " + (e && e.message ? e.message : e), "error");
-        window.__OCEAN_CONTINUE_LOCK__ = false;
+        lexusLog("continueScript error: " + (e && e.message ? e.message : e), "error");
+        window.__LEXUS_CONTINUE_LOCK__ = false;
     }
 }
 
-function oceanNgetBoot() {
-    if (window.__OCEAN_NGET_BOOTED__) {
-        oceanLog("boot skip  -  already booted");
+function lexusNgetBoot() {
+    if (window.__LEXUS_NGET_BOOTED__) {
+        lexusLog("boot skip  -  already booted");
         return;
     }
-    window.__OCEAN_NGET_BOOTED__ = true;
-    oceanLog("boot");
+    window.__LEXUS_NGET_BOOTED__ = true;
+    lexusLog("boot");
     if (typeof injectAnimationAssets === "function") injectAnimationAssets();
     if (typeof startLanguagePreferenceWatcher === "function") startLanguagePreferenceWatcher();
 
     try {
         const obs = new MutationObserver(() => {
-            if (window.__OCEAN_POST_LOGIN_FIRED__) {
+            if (window.__LEXUS_POST_LOGIN_FIRED__) {
                 obs.disconnect();
                 return;
             }
             if (isLoginFormOpen()) return;
-            if (typeof oceanIsLoggedIn === "function" && oceanIsLoggedIn()) {
+            if (typeof lexusIsLoggedIn === "function" && lexusIsLoggedIn()) {
                 obs.disconnect();
                 if (typeof startKeepAlivePing === "function") startKeepAlivePing();
-                oceanFirePostLoginOnce("mutation-Logout");
+                lexusFirePostLoginOnce("mutation-Logout");
             }
         });
         obs.observe(document.body || document.documentElement, { childList: true, subtree: true });
         setTimeout(() => obs.disconnect(), 180000);
     } catch (_) {}
 
-    if (typeof startSystemTimeEmitter === "function" && !window.__OCEAN_DIRECT_BOOK__) startSystemTimeEmitter();
+    if (typeof startSystemTimeEmitter === "function" && !window.__LEXUS_DIRECT_BOOK__) startSystemTimeEmitter();
 
     chrome.storage.local.get(null, (data) => {
         user_data = data;
         if (typeof dispatchInitialData === "function") dispatchInitialData(user_data);
         const href = String(location.href || "");
         if (href.includes("nget/train-search") && !href.includes("/booking/")) {
-            oceanLog("boot -> continueScript");
+            lexusLog("boot -> continueScript");
             continueScript();
         } else {
-            oceanLog("boot skip continueScript URL=" + href);
+            lexusLog("boot skip continueScript URL=" + href);
         }
     });
 }
 
 if (document.readyState === "complete" || document.readyState === "interactive") {
-    setTimeout(oceanNgetBoot, 300);
+    setTimeout(lexusNgetBoot, 300);
 } else {
-    window.addEventListener("load", oceanNgetBoot);
+    window.addEventListener("load", lexusNgetBoot);
 }
 
 } // /nget guard

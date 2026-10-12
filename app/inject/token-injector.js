@@ -14,7 +14,7 @@
   }
 
   const LS_KEY = 'ir:tokens';
-  const debug = Boolean(window.__OCEAN_DEBUG__);
+  const debug = Boolean(window.__LEXUS_DEBUG__);
 
   const loadLS = () => {
     try {
@@ -30,19 +30,19 @@
       localStorage.setItem(LS_KEY, JSON.stringify(merged));
       try {
         window.dispatchEvent(
-          new CustomEvent('ocean-tokens-updated', { detail: { keys: Object.keys(obj || {}) } })
+          new CustomEvent('lexus-tokens-updated', { detail: { keys: Object.keys(obj || {}) } })
         );
       } catch (_) {}
-      if (window.__OCEAN_DIRECT_BOOK__ && merged.access_token) {
-        if (window.__OCEAN_DIRECT_PIPELINE_DONE__) return;
-        if (!window.__OCEAN_LOGIN_OK__) {
+      if (window.__LEXUS_DIRECT_BOOK__ && merged.access_token) {
+        if (window.__LEXUS_DIRECT_PIPELINE_DONE__) return;
+        if (!window.__LEXUS_LOGIN_OK__) {
           try {
-            window.__OCEAN_PENDING_DIRECT__ = true;
+            window.__LEXUS_PENDING_DIRECT__ = true;
           } catch (_) {}
-        } else if (typeof window.__oceanTryStartDirect === 'function') {
-          window.__oceanTryStartDirect('injector');
-        } else if (typeof window.__oceanStartDirectBook === 'function') {
-          window.__oceanStartDirectBook();
+        } else if (typeof window.__lexusTryStartDirect === 'function') {
+          window.__lexusTryStartDirect('injector');
+        } else if (typeof window.__lexusStartDirectBook === 'function') {
+          window.__lexusStartDirectBook();
         }
       }
     } catch (_) {}

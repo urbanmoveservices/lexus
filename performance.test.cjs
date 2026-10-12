@@ -9,7 +9,7 @@ test('UI settings persist once per change and unchanged settings do not write', 
   const m = new Module(filename, module); m.filename = filename; m.paths = Module._nodeModulePaths(path.dirname(filename));
   const real = m.require.bind(m);
   m.require = name => name === 'electron' ? { app: { isPackaged: false, getPath: () => root } } : name === 'fs' ? {
-    ...fs, writeFileSync: (...args) => { if (String(args[0]).endsWith('ocean.sqlite')) writes++; return fs.writeFileSync(...args); },
+    ...fs, writeFileSync: (...args) => { if (String(args[0]).endsWith('lexus.sqlite')) writes++; return fs.writeFileSync(...args); },
   } : real(name);
   m._compile(fs.readFileSync(filename, 'utf8'), filename);
   const store = m.exports; await store.init(); writes = 0;

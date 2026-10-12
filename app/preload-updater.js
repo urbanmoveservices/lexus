@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('oceanUpdater', {
+contextBridge.exposeInMainWorld('lexusUpdater', {
   getInfo: () => ipcRenderer.invoke('updater:get-info'),
   check: () => ipcRenderer.invoke('updater:check'),
   start: (payload) => ipcRenderer.invoke('updater:start', payload || {}),

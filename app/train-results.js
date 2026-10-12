@@ -7,12 +7,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const globalCheckBtn = document.getElementById('global-check-availability-btn');
   const titleEl = document.getElementById('title');
 
-  if (!window.oceanTrains) {
+  if (!window.lexusTrains) {
     titleEl.textContent = 'Bridge missing';
     return;
   }
 
-  const query = await window.oceanTrains.getQuery();
+  const query = await window.lexusTrains.getQuery();
   searchQuery = query;
   if (!query || !query.from || !query.to || !query.date) {
     titleEl.textContent = 'Missing From / To / Date';
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function pushSelectionToBook({ closeResults = false } = {}) {
     if (!lastCheckedTrain) return;
     const selectedQuota = document.querySelector('input[name="global_quota"]:checked').value;
-    await window.oceanTrains.applySelection({
+    await window.lexusTrains.applySelection({
       trainNo: `${lastCheckedTrain.trainNumber}- ${lastCheckedTrain.trainName}`,
       trainClass: lastCheckedTrain.classCode,
       actualDestination: lastCheckedTrain.actualDestination,
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const res = await window.oceanTrains.fetchList(query);
+    const res = await window.lexusTrains.fetchList(query);
     if (!res.ok) throw new Error(res.error || 'Fetch failed');
     parseAndDisplayErailTrains(res.trains || [], selectedDate);
   } catch (e) {
@@ -208,7 +208,7 @@ async function fetchSeatAvailability(trainNo, classCode, from, to, date, quota, 
   ).padStart(2, '0')}-${dateObj.getFullYear()}`;
 
   try {
-    const response = await window.oceanTrains.fetchAvailability({
+    const response = await window.lexusTrains.fetchAvailability({
       trainNo,
       classCode,
       fromCode: from,

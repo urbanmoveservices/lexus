@@ -27,8 +27,8 @@ function candidates() {
 }
 
 function findChromePath() {
-  if (process.env.OCEAN_CHROME_PATH && fs.existsSync(process.env.OCEAN_CHROME_PATH)) {
-    return process.env.OCEAN_CHROME_PATH;
+  if ((process.env.LEXUS_CHROME_PATH || process.env.OCEAN_CHROME_PATH) && fs.existsSync((process.env.LEXUS_CHROME_PATH || process.env.OCEAN_CHROME_PATH))) {
+    return (process.env.LEXUS_CHROME_PATH || process.env.OCEAN_CHROME_PATH);
   }
   const paths = candidates();
   for (const p of paths.filter(p => /Google[\\/]Chrome[\\/]Application[\\/]chrome\.exe$/i.test(p))) {

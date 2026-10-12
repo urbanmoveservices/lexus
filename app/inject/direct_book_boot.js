@@ -3,24 +3,24 @@
  * Flow (HAR-matched): validateUser → altAvlEnq/TC → avlFarenquiry → boardingStationEnq → …
  */
 (function () {
-  if (window.__OCEAN_DIRECT_BOOT__) return;
+  if (window.__LEXUS_DIRECT_BOOT__) return;
   try {
-    Object.defineProperty(window, '__OCEAN_DIRECT_BOOT__', {
+    Object.defineProperty(window, '__LEXUS_DIRECT_BOOT__', {
       value: true,
       writable: false,
       configurable: true,
       enumerable: false,
     });
   } catch (_) {
-    window.__OCEAN_DIRECT_BOOT__ = true;
+    window.__LEXUS_DIRECT_BOOT__ = true;
   }
 
   function log(msg) {
     const line = String(msg);
-    console.log('[OCEAN Direct]', line);
+    console.log('[LEXUS Direct]', line);
     try {
-      if (typeof window.__oceanPushPanelStatus === 'function') {
-        window.__oceanPushPanelStatus(line);
+      if (typeof window.__lexusPushPanelStatus === 'function') {
+        window.__lexusPushPanelStatus(line);
         return;
       }
       const rt = window.__ocRt && window.__ocRt.runtime;
@@ -41,7 +41,7 @@
     const msg = String(statusMsg || '').trim();
     if (!msg) return;
     try {
-      window.__OCEAN_DIRECT_SEAT_STOP__ = msg;
+      window.__LEXUS_DIRECT_SEAT_STOP__ = msg;
     } catch (_) {}
     log(msg);
   }
@@ -115,10 +115,10 @@
 
   function readStorage() {
     try {
-      const d = Object.getOwnPropertyDescriptor(window, '__OCEAN_STORAGE__');
+      const d = Object.getOwnPropertyDescriptor(window, '__LEXUS_STORAGE__');
       if (d && d.value) return d.value;
     } catch (_) {}
-    return window.__OCEAN_STORAGE__ || {};
+    return window.__LEXUS_STORAGE__ || {};
   }
 
   function readTokens() {
@@ -137,7 +137,7 @@
   /** Set by content_script after real UI login — never start mapps1 from stale profile tokens. */
   function loginGateOk() {
     try {
-      if (window.__OCEAN_LOGIN_OK__) return true;
+      if (window.__LEXUS_LOGIN_OK__) return true;
     } catch (_) {}
     return false;
   }
@@ -491,13 +491,13 @@
       const maxPt = parseFloat(String(allDetails.fare_limit || '').replace(/,/g, ''));
       if (quotaNow === 'PT' && Number.isFinite(maxPt) && maxPt > 0 && payAmountNum > maxPt) {
         log('PT FARE HIGH: addon ₹' + payAmountNum + ' > max ₹' + maxPt);
-        if (typeof window.__oceanPushPanelStatus === 'function') {
+        if (typeof window.__lexusPushPanelStatus === 'function') {
           try {
-            window.__oceanPushPanelStatus('PT FARE HIGH');
+            window.__lexusPushPanelStatus('PT FARE HIGH');
           } catch (_) {}
         }
-        if (typeof window.__oceanWaitPtFareProceed === 'function') {
-          const go = await window.__oceanWaitPtFareProceed({
+        if (typeof window.__lexusWaitPtFareProceed === 'function') {
+          const go = await window.__lexusWaitPtFareProceed({
             amount: payAmountNum,
             maxFare: maxPt,
           });
@@ -514,8 +514,8 @@
       );
 
       // Same ticket: dusra pair pehle init payment OK → rukao + Proceed anyway
-      if (typeof window.__oceanWaitIfSiblingInit === 'function') {
-        const goSib = await window.__oceanWaitIfSiblingInit();
+      if (typeof window.__lexusWaitIfSiblingInit === 'function') {
+        const goSib = await window.__lexusWaitIfSiblingInit();
         if (!goSib) throw new Error('Another pair already proceed — stopped');
       }
 
@@ -528,9 +528,9 @@
       });
       if (!injPayment || injPayment.status !== 200) throw new Error('Payment init failed');
 
-      if (typeof window.__oceanMarkInitPaymentSuccess === 'function') {
+      if (typeof window.__lexusMarkInitPaymentSuccess === 'function') {
         try {
-          await window.__oceanMarkInitPaymentSuccess();
+          await window.__lexusMarkInitPaymentSuccess();
         } catch (_) {}
       }
 
@@ -557,17 +557,17 @@
         if (finalResult && finalResult.status === 'BOOKED') {
           runNote = 'BOOKED PNR=' + finalResult.pnr;
           try {
-            window.__OCEAN_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
+            window.__LEXUS_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
           } catch (_) {}
-          if (finalResult.full_data && typeof window.__oceanReportBookingFull === 'function') {
+          if (finalResult.full_data && typeof window.__lexusReportBookingFull === 'function') {
             try {
-              await window.__oceanReportBookingFull(finalResult.full_data);
+              await window.__lexusReportBookingFull(finalResult.full_data);
             } catch (_) {}
           }
           log('BOOKED! PNR: ' + finalResult.pnr);
           try {
-            if (typeof window.__oceanPushPanelStatus === 'function') {
-              window.__oceanPushPanelStatus(runNote);
+            if (typeof window.__lexusPushPanelStatus === 'function') {
+              window.__lexusPushPanelStatus(runNote);
             }
           } catch (_) {}
           return {
@@ -590,10 +590,10 @@
 
       // Gateway = Direct Host (PaymentRedirect off IRCTC browser)
       log(`Payment init OK — handing off ${payGate.label} to Direct Host…`);
-      if (typeof window.__oceanNativeDirectBook !== 'function') {
+      if (typeof window.__lexusNativeDirectBook !== 'function') {
         throw new Error('Direct Host bridge missing — restart API run');
       }
-      const hostResult = await window.__oceanNativeDirectBook({
+      const hostResult = await window.__lexusNativeDirectBook({
         mode: payGate.mode,
         tokens: T,
         wsUser: allDetails.wsUser,
@@ -613,17 +613,17 @@
       if (finalResult && finalResult.status === 'BOOKED') {
         runNote = 'BOOKED PNR=' + finalResult.pnr;
         try {
-          window.__OCEAN_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
+          window.__LEXUS_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
         } catch (_) {}
-        if (finalResult.full_data && typeof window.__oceanReportBookingFull === 'function') {
+        if (finalResult.full_data && typeof window.__lexusReportBookingFull === 'function') {
           try {
-            await window.__oceanReportBookingFull(finalResult.full_data);
+            await window.__lexusReportBookingFull(finalResult.full_data);
           } catch (_) {}
         }
         log('BOOKED! PNR: ' + finalResult.pnr);
         try {
-          if (typeof window.__oceanPushPanelStatus === 'function') {
-            window.__oceanPushPanelStatus(runNote);
+          if (typeof window.__lexusPushPanelStatus === 'function') {
+            window.__lexusPushPanelStatus(runNote);
           }
         } catch (_) {}
         return {
@@ -636,17 +636,17 @@
       if (finalResult && finalResult.pnr) {
         runNote = 'BOOKED PNR=' + finalResult.pnr;
         try {
-          window.__OCEAN_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
+          window.__LEXUS_DIRECT_BOOKED_PNR__ = String(finalResult.pnr || '');
         } catch (_) {}
-        if (finalResult.full_data && typeof window.__oceanReportBookingFull === 'function') {
+        if (finalResult.full_data && typeof window.__lexusReportBookingFull === 'function') {
           try {
-            await window.__oceanReportBookingFull(finalResult.full_data);
+            await window.__lexusReportBookingFull(finalResult.full_data);
           } catch (_) {}
         }
         log('BOOKED! PNR: ' + finalResult.pnr);
         try {
-          if (typeof window.__oceanPushPanelStatus === 'function') {
-            window.__oceanPushPanelStatus(runNote);
+          if (typeof window.__lexusPushPanelStatus === 'function') {
+            window.__lexusPushPanelStatus(runNote);
           }
         } catch (_) {}
         return {
@@ -662,7 +662,7 @@
         ).trim();
         runNote = failMsg;
         try {
-          window.__OCEAN_DIRECT_SEAT_STOP__ = failMsg;
+          window.__LEXUS_DIRECT_SEAT_STOP__ = failMsg;
         } catch (_) {}
         markSeatStop(failMsg);
         return { ok: false, pnr: null, note: failMsg, error: failMsg };
@@ -706,7 +706,7 @@
 
   function isDirectPipelineFinished() {
     try {
-      if (window.__OCEAN_DIRECT_PIPELINE_DONE__) return true;
+      if (window.__LEXUS_DIRECT_PIPELINE_DONE__) return true;
     } catch (_) {}
     return pipelineDone;
   }
@@ -714,14 +714,14 @@
   function markDirectPipelineFinished() {
     pipelineDone = true;
     try {
-      window.__OCEAN_DIRECT_PIPELINE_DONE__ = true;
+      window.__LEXUS_DIRECT_PIPELINE_DONE__ = true;
     } catch (_) {}
     try {
-      clearTimeout(window.__OCEAN_DIRECT_START_T);
+      clearTimeout(window.__LEXUS_DIRECT_START_T);
     } catch (_) {}
-    if (window.__OCEAN_DIRECT_TOKEN_WATCH_ID__) {
-      clearInterval(window.__OCEAN_DIRECT_TOKEN_WATCH_ID__);
-      window.__OCEAN_DIRECT_TOKEN_WATCH_ID__ = null;
+    if (window.__LEXUS_DIRECT_TOKEN_WATCH_ID__) {
+      clearInterval(window.__LEXUS_DIRECT_TOKEN_WATCH_ID__);
+      window.__LEXUS_DIRECT_TOKEN_WATCH_ID__ = null;
     }
   }
 
@@ -738,8 +738,8 @@
     running = true;
     try {
       try {
-        window.__OCEAN_DIRECT_SEAT_STOP__ = '';
-        window.__OCEAN_DIRECT_BOOKED_PNR__ = '';
+        window.__LEXUS_DIRECT_SEAT_STOP__ = '';
+        window.__LEXUS_DIRECT_BOOKED_PNR__ = '';
       } catch (_) {}
       log('Login OK + tokens — starting in-page API (TC → mapps1)…');
       const TOK = await waitForTokens(30000);
@@ -765,12 +765,12 @@
         (e && e.code === 'NO_SEAT' && raw) ||
         (e && e.code === 'CLIENT_IP_510' && (e.panelStatus || raw)) ||
         seatStopFromMessage(raw) ||
-        (typeof window !== 'undefined' && window.__OCEAN_DIRECT_SEAT_STOP__);
+        (typeof window !== 'undefined' && window.__LEXUS_DIRECT_SEAT_STOP__);
       if (seat) {
         markSeatStop(seat);
       } else {
         log('Direct Book Error: ' + raw);
-        console.error('[OCEAN Direct]', e);
+        console.error('[LEXUS Direct]', e);
       }
     } finally {
       running = false;
@@ -778,13 +778,13 @@
       // PNR / no-seat → keep panel status; don't overwrite with SCRIPT END
       try {
         if (
-          !window.__OCEAN_DIRECT_BOOKED_PNR__ &&
-          !window.__OCEAN_DIRECT_SEAT_STOP__
+          !window.__LEXUS_DIRECT_BOOKED_PNR__ &&
+          !window.__LEXUS_DIRECT_SEAT_STOP__
         ) {
           log('SCRIPT END');
         }
       } catch (_) {
-        if (!window.__OCEAN_DIRECT_SEAT_STOP__) log('SCRIPT END');
+        if (!window.__LEXUS_DIRECT_SEAT_STOP__) log('SCRIPT END');
       }
     }
   }
@@ -798,10 +798,10 @@
   }
 
   function debouncedDirectStart(reason) {
-    if (isDirectPipelineFinished() || running || window.__OCEAN_DIRECT_START_T) return;
-    window.__OCEAN_DIRECT_START_T = setTimeout(
+    if (isDirectPipelineFinished() || running || window.__LEXUS_DIRECT_START_T) return;
+    window.__LEXUS_DIRECT_START_T = setTimeout(
       () => {
-        window.__OCEAN_DIRECT_START_T = null;
+        window.__LEXUS_DIRECT_START_T = null;
         scheduleDirectStart(reason || 'debounced');
       },
       400
@@ -809,27 +809,27 @@
   }
 
   try {
-    Object.defineProperty(window, '__oceanTryStartDirect', {
+    Object.defineProperty(window, '__lexusTryStartDirect', {
       value: debouncedDirectStart,
       writable: true,
       configurable: true,
       enumerable: false,
     });
   } catch (_) {
-    window.__oceanTryStartDirect = debouncedDirectStart;
+    window.__lexusTryStartDirect = debouncedDirectStart;
   }
 
   function startTokenWatcher() {
-    if (window.__OCEAN_DIRECT_TOKEN_WATCH__) return;
-    window.__OCEAN_DIRECT_TOKEN_WATCH__ = true;
+    if (window.__LEXUS_DIRECT_TOKEN_WATCH__) return;
+    window.__LEXUS_DIRECT_TOKEN_WATCH__ = true;
     log('API mode — login first, then watch tokens…');
     const tick = () => {
-      if (!window.__OCEAN_DIRECT_BOOK__ || isDirectPipelineFinished() || running) return;
+      if (!window.__LEXUS_DIRECT_BOOK__ || isDirectPipelineFinished() || running) return;
       if (!loginGateOk()) return;
       if (hasAuthTokens()) debouncedDirectStart('poll');
     };
-    window.__OCEAN_DIRECT_TOKEN_WATCH_ID__ = setInterval(tick, 500);
-    window.addEventListener('ocean-tokens-updated', () => tick());
+    window.__LEXUS_DIRECT_TOKEN_WATCH_ID__ = setInterval(tick, 500);
+    window.addEventListener('lexus-tokens-updated', () => tick());
     try {
       window.addEventListener('storage', (ev) => {
         if (ev && ev.key === 'ir:tokens') tick();
@@ -838,23 +838,23 @@
   }
 
   try {
-    Object.defineProperty(window, '__oceanStartDirectBook', {
+    Object.defineProperty(window, '__lexusStartDirectBook', {
       value: runDirectAfterLogin,
       writable: true,
       configurable: true,
       enumerable: false,
     });
   } catch (_) {
-    window.__oceanStartDirectBook = runDirectAfterLogin;
+    window.__lexusStartDirectBook = runDirectAfterLogin;
   }
 
   setTimeout(() => {
     startTokenWatcher();
     // Never auto-start from stale Brave/Default localStorage tokens alone.
-    // content_script sets __OCEAN_LOGIN_OK__ after real login (or already-logged-in UI).
+    // content_script sets __LEXUS_LOGIN_OK__ after real login (or already-logged-in UI).
     try {
-      if (window.__OCEAN_PENDING_DIRECT__ && loginGateOk()) {
-        window.__OCEAN_PENDING_DIRECT__ = false;
+      if (window.__LEXUS_PENDING_DIRECT__ && loginGateOk()) {
+        window.__LEXUS_PENDING_DIRECT__ = false;
         debouncedDirectStart('pending-cdp');
       }
     } catch (_) {}

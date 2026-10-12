@@ -47,7 +47,7 @@ const ipcRenderer={
   }
 };
 document.addEventListener('DOMContentLoaded',()=>{
-  window.ocean.webBackup=async(action)=>{
+  window.lexus.webBackup=async(action)=>{
     if(action==='settings-export'){
       const data=await ipcRenderer.invoke('web:export');const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='lexus-profiles.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);showError('Profiles exported without passwords or payment secrets');
     }else{

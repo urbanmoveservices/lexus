@@ -14,5 +14,5 @@ test('frequent token signals cannot postpone the pending Direct start', () => {
   assert.equal(timers, 1);
   callback();
   assert.equal(starts, 1);
-  assert.equal(context.window.__OCEAN_DIRECT_START_T, null);
+  assert.equal(context.window.__LEXUS_DIRECT_START_T, null);
 });

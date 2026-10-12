@@ -10,7 +10,7 @@ body{color:#18304e}.panel{background:#fff;border:1px solid #a9c0df;border-radius
 .field-pill select:focus,.field-pill input:focus{outline:2px solid #8fb5ee;outline-offset:-2px}.field-pill--ip .field-pill-icon path{fill:#2458c4!important}.field-pill--pay .field-pill-icon path,.field-pill--quota .field-pill-icon path{fill:#2458c4!important}
 .eng{border:1px solid transparent;box-shadow:none;color:#fff}.eng.web2{background:#2458c4}.eng.web3{background:#087f8c}.eng.app{background:#18304e}.eng:hover{filter:brightness(.92)}.eng:focus-visible{outline:2px solid #2458c4;outline-offset:2px}.eng:disabled{background:#e7edf5;color:#52657b;border-color:#c2cfdf;opacity:1}
 .run-clock-box{background:#2458c4;border-color:#1748aa}.run-clock{color:white}.run-clock-label{color:#fff}.run-metrics-box{background:#e5f5f1;border-color:#91cabb}.run-metrics{color:#11634f}
-.badge,.success-badge{background:#e5f5f1!important;color:#11634f!important;border-color:#91cabb!important}.ocean-brand-text{background:none!important;-webkit-text-fill-color:#2458c4!important;color:#2458c4!important}
+.badge,.success-badge{background:#e5f5f1!important;color:#11634f!important;border-color:#91cabb!important}.lexus-brand-text{background:none!important;-webkit-text-fill-color:#2458c4!important;color:#2458c4!important}
 .qr-card{background:#fff;border:1px solid #c8d8eb}.qr-close,.panel-close{background:#fff0f0;color:#a02c35;border-color:#dba7ad}.panel-toast{background:#18304e;color:white;border-color:#a9c0df}
 .pt-fare-proceed{background:#087f8c!important;color:white!important;border-color:#096653!important}
 

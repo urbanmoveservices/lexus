@@ -5,5 +5,5 @@ test('desktop workspace switching keeps A two tickets and B one, and preserves l
  const a=path.join(root,'clients','user-a'),b=path.join(root,'clients','user-b');await store.useWorkspace(a);assert.equal(store.listSummaries('journeys').length,0);for(let n=0;n<2;n++)store.saveJourney({name:'A '+n,from:'BSB',to:'PRYJ'});const account=store.saveCredential({name:'A account',username:'a-only',password:'private-test-secret'});
  await store.useWorkspace(b);assert.equal(store.listSummaries('journeys').length,0);store.saveJourney({name:'B only',from:'BSB',to:'PRYJ'});assert.equal(store.listSummaries('journeys').length,1);assert.equal(store.getCredential(account.id,{includeSecrets:true}),null);
  await store.useWorkspace(a);assert.equal(store.listSummaries('journeys').length,2);assert.equal(store.getCredential(account.id,{includeSecrets:true}).password,'private-test-secret');
- await store.useWorkspace(b);assert.equal(store.listSummaries('journeys').length,1);assert(fs.existsSync(legacyPath));assert(!fs.readFileSync(path.join(a,'ocean-data','ocean.sqlite')).includes(Buffer.from('private-test-secret')));
+ await store.useWorkspace(b);assert.equal(store.listSummaries('journeys').length,1);assert(fs.existsSync(legacyPath));assert(!fs.readFileSync(path.join(a,'lexus-data','lexus.sqlite')).includes(Buffer.from('private-test-secret')));
 });

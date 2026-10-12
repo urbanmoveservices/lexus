@@ -21,7 +21,7 @@
     if (kind === 'ok') msgEl.classList.add('is-ok');
   }
 
-  window.oceanUpdater?.onState?.((data) => {
+  window.lexusUpdater?.onState?.((data) => {
     if (!data) return;
     if (data.current != null && curEl) curEl.textContent = String(data.current);
     if (data.latest != null && newEl) newEl.textContent = String(data.latest);
@@ -36,17 +36,17 @@
     }
   });
 
-  window.oceanUpdater?.onProgress?.((data) => {
+  window.lexusUpdater?.onProgress?.((data) => {
     if (!data) return;
     if (data.percent != null) setProgress(data.percent);
     if (data.message) setMsg(data.message);
   });
 
   btnClose?.addEventListener('click', () => {
-    window.oceanUpdater?.close?.();
+    window.lexusUpdater?.close?.();
   });
 
-  window.oceanUpdater?.getInfo?.().then((info) => {
+  window.lexusUpdater?.getInfo?.().then((info) => {
     if (info?.current && curEl) curEl.textContent = String(info.current);
   });
 })();

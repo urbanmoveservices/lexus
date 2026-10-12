@@ -1,6 +1,6 @@
 /**
- * OCEAN ticket PDF — STAR-style ERS from bookingResponseDTO / bookingData JSON.
- * Direct API + APP only. Uses Electron printToPDF → Desktop/ocean print/
+ * LEXUS ticket PDF — STAR-style ERS from bookingResponseDTO / bookingData JSON.
+ * Direct API + APP only. Uses Electron printToPDF → Desktop/lexus print/
  */
 const { BrowserWindow, app } = require('electron');
 const path = require('path');
@@ -110,7 +110,7 @@ async function generateQrBase64(qrText) {
     const buf = await fetchBuffer(url);
     return `data:image/png;base64,${buf.toString('base64')}`;
   } catch (e) {
-    console.warn('[Ocean Print] QR failed', e?.message || e);
+    console.warn('[LEXUS Print] QR failed', e?.message || e);
     return '';
   }
 }
@@ -122,7 +122,7 @@ function getDesktopPrintFolder() {
   } catch {
     desktop = path.join(process.env.USERPROFILE || process.env.HOME || '.', 'Desktop');
   }
-  const folder = path.join(desktop, 'ocean print');
+  const folder = path.join(desktop, 'lexus print');
   fs.mkdirSync(folder, { recursive: true });
   return folder;
 }
@@ -556,11 +556,11 @@ async function printTicket(fullApiResponse) {
     const pdfPath = path.join(folder, `${baseName}.pdf`);
 
     await htmlToPdf(html, pdfPath);
-    console.log('[Ocean Print] PDF saved', pdfPath);
+    console.log('[LEXUS Print] PDF saved', pdfPath);
     return { ok: true, path: pdfPath };
   } catch (e) {
     const msg = e?.message || String(e);
-    console.warn('[Ocean Print] failed', msg);
+    console.warn('[LEXUS Print] failed', msg);
     return { ok: false, error: msg };
   }
 }

@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('oceanTrains', {
+contextBridge.exposeInMainWorld('lexusTrains', {
   getQuery: () => ipcRenderer.invoke('train:get-query'),
   fetchList: (query) => ipcRenderer.invoke('train:fetch-list', query),
   fetchAvailability: (payload) => ipcRenderer.invoke('train:fetch-availability', payload),

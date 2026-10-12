@@ -1,5 +1,5 @@
 /**
- * Writes a stealth-only preload (no Ocean globals) for session.registerPreloadScript.
+ * Writes a stealth-only preload (no Lexus globals) for session.registerPreloadScript.
  * Called once at app ready — must exist before any IRCTC window opens.
  */
 const fs = require('fs');

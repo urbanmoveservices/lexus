@@ -94,14 +94,14 @@ function pageSaveTokensSource(obj) {
  * System Chrome: DNR-like header rewrite + Network token harvest.
  */
 async function attachChromeIrctcNetwork(page) {
-  if (!page || page.__oceanIrctcNet) return;
-  page.__oceanIrctcNet = true;
+  if (!page || page.__lexusIrctcNet) return;
+  page.__lexusIrctcNet = true;
 
   let client;
   try {
     client = await page.createCDPSession();
   } catch (e) {
-    console.warn('[Ocean Net] CDP session failed:', e.message || e);
+    console.warn('[LEXUS Net] CDP session failed:', e.message || e);
     return;
   }
 
@@ -142,24 +142,24 @@ async function attachChromeIrctcNetwork(page) {
           });
           localStorage.setItem(LS, JSON.stringify(next));
 
-          if (!window.__OCEAN_DIRECT_BOOK__ || !next.access_token) return false;
-          if (window.__OCEAN_DIRECT_PIPELINE_DONE__) return false;
-          if (!window.__OCEAN_LOGIN_OK__) {
+          if (!window.__LEXUS_DIRECT_BOOK__ || !next.access_token) return false;
+          if (window.__LEXUS_DIRECT_PIPELINE_DONE__) return false;
+          if (!window.__LEXUS_LOGIN_OK__) {
             try {
-              window.__OCEAN_PENDING_DIRECT__ = true;
+              window.__LEXUS_PENDING_DIRECT__ = true;
             } catch (_) {}
             return false;
           }
-          if (typeof window.__oceanTryStartDirect === 'function') {
-            window.__oceanTryStartDirect('cdp');
+          if (typeof window.__lexusTryStartDirect === 'function') {
+            window.__lexusTryStartDirect('cdp');
             return true;
           }
-          if (typeof window.__oceanStartDirectBook === 'function') {
-            window.__oceanStartDirectBook();
+          if (typeof window.__lexusStartDirectBook === 'function') {
+            window.__lexusStartDirectBook();
             return true;
           }
           try {
-            window.__OCEAN_PENDING_DIRECT__ = true;
+            window.__LEXUS_PENDING_DIRECT__ = true;
           } catch (_) {}
           return false;
         } catch (_) {
@@ -167,19 +167,19 @@ async function attachChromeIrctcNetwork(page) {
         }
       }, partial);
       if (triggered) {
-        console.log('[Ocean Net] Direct API trigger queued (access_token ready)');
+        console.log('[LEXUS Net] Direct API trigger queued (access_token ready)');
       } else if (partial.access_token) {
-        console.log('[Ocean Net] access_token saved — waiting for Direct boot hook');
+        console.log('[LEXUS Net] access_token saved — waiting for Direct boot hook');
       }
     } catch (e2) {
-      console.warn('[Ocean Net] push tokens failed', e2.message || e2);
+      console.warn('[LEXUS Net] push tokens failed', e2.message || e2);
     }
   };
 
   try {
     await client.send('Network.enable');
   } catch (e) {
-    console.warn('[Ocean Net] Network.enable failed', e.message || e);
+    console.warn('[LEXUS Net] Network.enable failed', e.message || e);
   }
 
   client.on('Network.requestWillBeSent', (ev) => {
@@ -189,7 +189,7 @@ async function attachChromeIrctcNetwork(page) {
       if (!/mapps1|authprovider\/webtoken/i.test(url)) return;
       const toks = extractTokensFromHeaders(ev.request.headers);
       if (Object.keys(toks).length) {
-        console.log('[Ocean Net] request tokens', Object.keys(toks).join(','));
+        console.log('[LEXUS Net] request tokens', Object.keys(toks).join(','));
         pushTokens(toks);
       }
     } catch (_) {}
@@ -214,7 +214,7 @@ async function attachChromeIrctcNetwork(page) {
         } catch (_) {}
       }
       if (Object.keys(partial).length) {
-        console.log('[Ocean Net] response tokens', Object.keys(partial).join(','));
+        console.log('[LEXUS Net] response tokens', Object.keys(partial).join(','));
         await pushTokens(partial);
       }
     } catch (_) {}
@@ -229,9 +229,9 @@ async function attachChromeIrctcNetwork(page) {
         { urlPattern: '*://www.irctcipay.com/*', requestStage: 'Request' },
       ],
     });
-    console.log('[Ocean Net] DNR-like Fetch rules enabled (mapps1/wps/ipay)');
+    console.log('[LEXUS Net] DNR-like Fetch rules enabled (mapps1/wps/ipay)');
   } catch (e) {
-    console.warn('[Ocean Net] Fetch.enable failed', e.message || e);
+    console.warn('[LEXUS Net] Fetch.enable failed', e.message || e);
     return;
   }
 
@@ -281,8 +281,8 @@ async function attachChromeIrctcNetwork(page) {
  * Electron session: webRequest header rewrite (DNR parity).
  */
 function attachElectronIrctcNetwork(ses) {
-  if (!ses || ses.__oceanIrctcNet) return;
-  ses.__oceanIrctcNet = true;
+  if (!ses || ses.__lexusIrctcNet) return;
+  ses.__lexusIrctcNet = true;
 
   let acceptLanguage = 'en-US,en;q=0.9';
   try {
@@ -315,7 +315,7 @@ function attachElectronIrctcNetwork(ses) {
     callback({ requestHeaders: headers });
   });
 
-  console.log('[Ocean Net] Electron webRequest DNR-like rules attached');
+  console.log('[LEXUS Net] Electron webRequest DNR-like rules attached');
 }
 
 module.exports = {
