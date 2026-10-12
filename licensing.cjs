@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function createLicensing({ directory = path.join(__dirname, 'license-data'), adminPassword, port = 8081 } = {}) {
+function createLicensing({ directory = path.join(__dirname, 'license-data'), adminPassword, port = 8081, desktopPolicy = null } = {}) {
   fs.mkdirSync(directory, { recursive: true });
   const file = path.join(directory, 'registry.json');
   let registry;
@@ -113,10 +113,11 @@ function createLicensing({ directory = path.join(__dirname, 'license-data'), adm
         case '/api/license/request': json(403,{error:'An administrator must issue your first key. Activate it, then personalize your key.'}); break;
         case '/api/license/change': {const result=limitedLicenseCheck(req.socket.remoteAddress,()=>changeKey(body,cookies(req).lexus_license));res.setHeader('Set-Cookie',`lexus_license=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`);json(200,{ok:true,key:result.key,license:result.license});break;}
         case '/api/license/activate': {
+          const required=require('./desktop-version-policy.cjs').desktopUpdateRequirement(req,body,typeof desktopPolicy==='function'?desktopPolicy():desktopPolicy);if(required){json(426,required);break;}
           const result=limitedLicenseCheck(req.socket.remoteAddress,()=>activate(body.key,String(body.device||'')));
           res.setHeader('Set-Cookie', `lexus_license=${result.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`); json(200, { ok: true, license: result.license }); break;
         }
-        case '/api/license/verify': { const item = limitedLicenseCheck(req.socket.remoteAddress,()=>check(body.key, String(body.device || ''), false)); json(200, { ok: true, license: publicKey(item) }); break; }
+        case '/api/license/verify': { const required=require('./desktop-version-policy.cjs').desktopUpdateRequirement(req,body,typeof desktopPolicy==='function'?desktopPolicy():desktopPolicy);if(required){json(426,required);break;}const item = limitedLicenseCheck(req.socket.remoteAddress,()=>check(body.key, String(body.device || ''), false)); json(200, { ok: true, license: publicKey(item) }); break; }
         default: json(404, { error: 'Unknown endpoint' });
       }
     } catch (error) { json(400, { error: error.message }); }

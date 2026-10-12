@@ -24,8 +24,10 @@ updater=releases/f'LEXUS-Updater-{version}.zip'
 with zipfile.ZipFile(updater,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
  for file in stage.rglob('*'):
   if file.is_file() and file.relative_to(stage).parts[0] not in {'runtime','browsers'}: z.write(file,file.relative_to(stage).as_posix())
+updater_exe=releases/f'LEXUS-Updater-{version}.exe'
+subprocess.run([str(csc),'/nologo','/target:winexe','/platform:x64','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll','/reference:System.IO.Compression.dll','/reference:System.IO.Compression.FileSystem.dll','/reference:System.Web.Extensions.dll','/out:'+str(updater_exe),'/win32icon:'+str(root/'installer/lexus.ico'),'/resource:'+str(root/'app/assets/lexus-logo.jpeg')+',lexus.logo','/resource:'+str(root/'installer/lexus.ico')+',lexus.icon',str(root/'installer/InstallerTheme.cs'),str(root/'installer/Updater.cs')],check=True)
 manifest={'version':version,'distribution':'windows-installer'}
-for name,file in [('setup',setup),('updater',updater)]:
+for name,file in [('setup',setup),('updater',updater),('updaterExe',updater_exe)]:
  h=hashlib.sha256()
  with file.open('rb') as f:
   for chunk in iter(lambda:f.read(1024*1024),b''):h.update(chunk)

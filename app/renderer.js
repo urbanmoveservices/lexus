@@ -685,7 +685,7 @@ function formatAboutDays(leftDays) {
   return String(leftDays);
 }
 
-function applyAboutInfo({ key = '', leftDays = null, version = '' } = {}) {
+function applyAboutInfo({ key = '', leftDays = null, version = '', web2Browser = null, runtimeChrome = '' } = {}) {
   const licenseKey = String(key || '').trim() || '—';
   const daysText = formatAboutDays(leftDays);
   const versionText = String(version || '').trim() || '—';
@@ -700,6 +700,9 @@ function applyAboutInfo({ key = '', leftDays = null, version = '' } = {}) {
   document.querySelectorAll('.about-app-version').forEach((el) => {
     el.textContent = versionText;
   });
+  document.querySelectorAll('.about-browser-version').forEach(el=>{el.textContent=web2Browser?.version||'Desktop only';el.title=web2Browser?.path||'';});
+  document.querySelectorAll('.about-browser-source').forEach(el=>{el.textContent=web2Browser?.source||'Desktop app';});
+  document.querySelectorAll('.about-runtime-version').forEach(el=>{el.textContent=runtimeChrome?'Chromium '+runtimeChrome:'Browser';});
   document.querySelectorAll('.about-license-subtitle').forEach((el) => {
     el.textContent = subtitle;
   });

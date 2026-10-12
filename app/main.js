@@ -54,6 +54,7 @@ let pendingTrainQuery = null;
 let pendingTrainSelection = null;
 let pendingNewBookDraft = false;
 let chromeUA = '';
+let web2BrowserInfo = null;
 /** @type {import('electron').BrowserWindow | null} */
 let phonePeTestWindow = null;
 /** @type {import('electron').BrowserWindow | null} */
@@ -929,6 +930,7 @@ app.whenReady().then(async () => {
   app.setName('LEXUS');
   // MUST run before preload generate — UA/sec-ch-ua must match installed Chrome
   const ver = syncChromeVersionFromSystem();
+  web2BrowserInfo = {version:ver.detected?ver.full:'Not detected',path:ver.path||'',source:ver.path&&/[\\/]browsers[\\/]chrome[\\/]/i.test(ver.path)?'Bundled Chrome':process.env.OCEAN_CHROME_PATH?'Custom Chrome':'Installed Chrome'};
   try {
     require('./stealth-preload-build').writeStealthPreload();
     console.log('[Ocean Stealth] frame preload generated for Chrome', ver.full || SPOOF_CHROME_MAJOR);
@@ -947,7 +949,7 @@ app.whenReady().then(async () => {
   console.log(
     '[Ocean] Spoof Chrome UA:',
     chromeUA,
-    `| engine Chromium ${process.versions.chrome} → public v${SPOOF_CHROME_MAJOR}`
+    `| engine Chromium ${process.versions.chrome} → public v${require('./stealth').SPOOF_CHROME_MAJOR}`
   );
   console.log('[Ocean] System Chrome path:', sessionManager.findChromePath() || '(not found — Electron fallback)');
   console.log('[Ocean] Brave path:', sessionManager.findBravePath() || '(not found)');
@@ -965,7 +967,8 @@ app.whenReady().then(async () => {
   oceanUpdater.registerUpdaterIpc({canUpdate:()=>bookingScheduler.pendingCount()===0});
 
   // Updates never delay opening the app or a booking window.
-  if(require('../distribution-config.cjs').installed)setTimeout(() => oceanUpdater.checkAndOfferUpdate().catch(() => {}), 5000).unref();
+  const mandatoryUpdate=await oceanUpdater.enforceRequiredUpdate();
+  if(mandatoryUpdate.required)return;
 
   console.log('[Ocean] License gate…');
   await runLicenseGate();
@@ -990,6 +993,7 @@ ipcMain.handle('license:get-about', () => {
     key: saved.key || '',
     leftDays: saved.leftDays,
     version: app.getVersion(),
+    web2Browser:web2BrowserInfo, runtimeChrome:process.versions.chrome,
   };
 });
 
@@ -1009,6 +1013,7 @@ ipcMain.handle('license:refresh-about', async () => {
     key: refreshed.key || saved.key,
     leftDays,
     version: app.getVersion(),
+    web2Browser:web2BrowserInfo, runtimeChrome:process.versions.chrome,
     reason: result.reason || null,
   };
 });
@@ -1033,9 +1038,10 @@ ipcMain.handle('app:open-support-link', async (_e, kind) => {
 ipcMain.handle('app:get-info', () => ({
   name: app.getName(),
   version: app.getVersion(),
+    web2Browser:web2BrowserInfo, runtimeChrome:process.versions.chrome,
   electron: process.versions.electron,
   chrome: process.versions.chrome,
-  chromeSpoof: SPOOF_CHROME_MAJOR,
+  chromeSpoof: require('./stealth').SPOOF_CHROME_MAJOR,
   node: process.versions.node,
   platform: process.platform,
   userAgent: chromeUA || getChromeUserAgent(),

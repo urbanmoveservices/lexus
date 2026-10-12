@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, 'app');
 const port = Number(process.env.LEXUS_WEB_PORT || 8081);
 const allowedOrigins = new Set([`http://127.0.0.1:${port}`, `http://localhost:${port}`,
   ...String(process.env.LEXUS_ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean)]);
-const licenseService = require('./licensing.cjs').createLicensing({directory:process.env.LEXUS_LICENSE_DATA || path.join(__dirname,'license-data'),adminPassword:process.env.LEXUS_ADMIN_PASSWORD,port});
+const licenseService = require('./licensing.cjs').createLicensing({directory:process.env.LEXUS_LICENSE_DATA || path.join(__dirname,'license-data'),adminPassword:process.env.LEXUS_ADMIN_PASSWORD,port,desktopPolicy:()=>{if(process.env.LEXUS_REQUIRE_LATEST_DESKTOP!=='true')return null;const file=path.join(process.env.LEXUS_RELEASES_DIR||path.join(__dirname,'releases'),'manifest.json');if(!fs.existsSync(file))throw Error('Release metadata unavailable');const release=JSON.parse(fs.readFileSync(file,'utf8'));return{version:release.version,downloadUrl:(process.env.LEXUS_PUBLIC_URL||'https://lexus.vaidya-gpt.com')+'/downloads'};}});
 setInterval(()=>licenseService.pollPayments().catch(()=>{}),30000).unref();
 const storeFile = path.join(root, 'profile-store.js');
 const workspaceRoot=path.resolve(process.env.LEXUS_WEB_DATA || path.join(__dirname,'web-data'));
@@ -66,7 +66,7 @@ Promise.resolve().then(()=>http.createServer(async(req,res)=>{
     if(req.method==='GET'&&(url.pathname==='/api/portal/downloads'||url.pathname.startsWith('/downloads/'))){
       const manifest=fs.existsSync(downloadManifestPath)?JSON.parse(fs.readFileSync(downloadManifestPath,'utf8')):{version:'0.1.0'};
       if(url.pathname==='/api/portal/downloads'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(manifest));}
-      const item=[manifest.setup,manifest.updater,manifest.offlineSetup].filter(Boolean).find(item=>item.url===url.pathname) || (/^\/downloads\/LEXUS-(?:Offline-)?Setup-\d+\.\d+\.\d+\.exe$/.test(url.pathname) ? {url:url.pathname} : null);
+      const item=[manifest.setup,manifest.updater,manifest.updaterExe,manifest.offlineSetup].filter(Boolean).find(item=>item.url===url.pathname) || (/^\/downloads\/LEXUS-(?:Offline-)?Setup-\d+\.\d+\.\d+\.exe$/.test(url.pathname) ? {url:url.pathname} : null);
       if(!item){res.writeHead(404);return res.end('Download not found');}
       const name=path.basename(item.url);const archive=path.join(process.env.LEXUS_RELEASES_DIR || path.join(__dirname,'releases'),name);
       if(!fs.existsSync(archive)){res.writeHead(404);return res.end('Package unavailable');}

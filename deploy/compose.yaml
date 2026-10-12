@@ -9,6 +9,7 @@ services:
       LEXUS_ALLOWED_ORIGINS: https://lexus.vaidya-gpt.com
       LEXUS_PUBLIC_URL: https://lexus.vaidya-gpt.com
       LEXUS_RELEASES_DIR: /downloads
+      LEXUS_REQUIRE_LATEST_DESKTOP: "true"
     volumes:
       - /srv/lexus-data:/data
       - /srv/lexus-releases:/downloads:ro
