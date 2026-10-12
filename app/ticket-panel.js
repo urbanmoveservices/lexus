@@ -402,7 +402,8 @@ function applyInit(data) {
     payments,
     'id',
     (p) => {
-      const method = String(p.paymentMethod || 'PAY').trim();
+      const rawMethod = String(p.paymentMethod || 'PAY').trim();
+      const method = rawMethod.toUpperCase() === 'RAZORPAYUPI' ? 'Razorpay UPI ID' : rawMethod;
       const extra = String(p.vpa || '').trim();
       // Only show UPI/VPA when present and different from method (avoid "IRCUPIQR · IRCUPIQR")
       if (extra && extra.toUpperCase() !== method.toUpperCase()) {

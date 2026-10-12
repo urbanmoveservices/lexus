@@ -464,7 +464,7 @@ class RazorpayUPIHandlerJS {
       'user-agent': navigator.userAgent,
     };
 
-    this.panelStatus('Waiting for UPI payment…');
+    this.panelStatus('UPI collect: approve in your UPI app (no QR)');
     const start = Date.now();
     const timeoutMs = 5 * 60 * 1000;
 
@@ -487,14 +487,14 @@ class RazorpayUPIHandlerJS {
             return false;
           }
         }
-        this.panelStatus('Waiting for UPI payment…');
+        this.panelStatus('UPI collect: approve in your UPI app (no QR)');
         await new Promise((r) => setTimeout(r, 2000));
       } catch (e) {
         this.log(`⚠️ Poll Error: ${e.message}`);
         await new Promise((r) => setTimeout(r, 2000));
       }
     }
-    this.panelStatus('UPI payment timeout');
+    this.panelStatus('UPI collect timed out — check your UPI app');
     this.log('❌ Poll timeout (5 min)');
     return false;
   }
