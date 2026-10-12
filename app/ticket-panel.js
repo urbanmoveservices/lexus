@@ -516,12 +516,23 @@ function setPanelStatus(message) {
   }
 }
 
-function showPanelQr(_qrBase64) {
-  /* QR opens as separate always-on-top window from main — panel size stays fixed */
+function showPanelQr(data) {
+  const overlay=document.getElementById('qrOverlay'),image=document.getElementById('qrImage');
+  const value=String(typeof data==='string'?data:data?.qrBase64||'').trim();
+  if(!overlay||!image||!value)return;
+  const src=value.startsWith('data:')?value:'data:image/png;base64,'+value;
+  if(!/^data:image\/(png|jpeg|jpg|webp);base64,/i.test(src))return;
+  image.src=src;
+  document.body?.classList.add('has-panel-qr');
+  document.getElementById('qrCaption').textContent=data?.caption||'Scan & Pay';
+  overlay.classList.remove('hidden');overlay.setAttribute('aria-hidden','false');
 }
 
 function hidePanelQr() {
-  /* no in-panel overlay */
+  const overlay=document.getElementById('qrOverlay');
+  document.body?.classList.remove('has-panel-qr');
+  overlay?.classList.add('hidden');overlay?.setAttribute('aria-hidden','true');
+  document.getElementById('qrImage')?.removeAttribute('src');
 }
 
 function showPtFareProceed(sessionId) {
@@ -570,6 +581,7 @@ async function launch(engineKey) {
   if (running) return;
   if (!ctx?.journey?.id) return;
   hidePtFareProceed();
+  hidePanelQr();
   clearSuccessUi();
   const credId = document.getElementById('credSelect').value;
   const payId = document.getElementById('paySelect').value;
@@ -681,8 +693,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showPtFareProceed(data.sessionId);
     }
   });
-  window.panel.onPanelQr(() => {});
-  window.panel.onPanelQrHide(() => {});
+  window.panel.onPanelQr(showPanelQr);
+  window.panel.onPanelQrHide(hidePanelQr);
   if (typeof window.panel.onPrivacyMask === 'function') {
     window.panel.onPrivacyMask(() => {
       // Screenshot prep: clock −7s (STAR), then mask ID
@@ -695,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
       restoreCredIdLabel();
     });
   }
-  document.getElementById('qrClose')?.addEventListener('click', () => {});
+  document.getElementById('qrClose')?.addEventListener('click', hidePanelQr);
   document.getElementById('ptFareProceed')?.addEventListener('click', () => {
     onPtFareProceedClick();
   });

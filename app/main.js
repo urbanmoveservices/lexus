@@ -468,96 +468,21 @@ function emitPanelQr(journeyId, pairIndex, qrBase64, opts = {}) {
   if (!journeyId || !qrBase64) return;
   const key = panelKey(journeyId, pairIndex);
   const panel = ticketPanelWindows.get(key);
-
-  let src = String(qrBase64 || '').trim();
+  if (!panel || panel.isDestroyed()) return;
+  let src = String(qrBase64).trim();
   if (!src) return;
-  if (!src.startsWith('data:')) {
-    src = `data:image/png;base64,${src.replace(/^data:image\/[a-zA-Z+]+;base64,/, '')}`;
-  }
-
+  if (!src.startsWith('data:')) src = 'data:image/png;base64,' + src;
   closePanelQrPopup(key);
-
-  const caption = buildQrPayCaption(journeyId, pairIndex, opts);
-  const size = LAYOUT.qrPopup || { width: 280, height: 332 };
-  const wa = getWorkArea(screen.getPrimaryDisplay());
-  let x = Math.round(wa.x + (wa.width - size.width) / 2);
-  let y = Math.round(wa.y + (wa.height - size.height) / 2);
-  if (panel && !panel.isDestroyed()) {
-    const b = panel.getBounds();
-    x = Math.round(b.x + (b.width - size.width) / 2);
-    y = Math.round(b.y + (b.height - size.height) / 2);
-    x = Math.max(wa.x, Math.min(x, wa.x + wa.width - size.width));
-    y = Math.max(wa.y, Math.min(y, wa.y + wa.height - size.height));
-  }
-
-  const win = new BrowserWindow({
-    width: size.width,
-    height: size.height,
-    x,
-    y,
-    resizable: false,
-    maximizable: false,
-    minimizable: true,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    autoHideMenuBar: true,
-    title: 'Scan & Pay',
-    backgroundColor: '#ffffff',
-    parent: panel && !panel.isDestroyed() ? panel : undefined,
-    modal: false,
-    show: false,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-  panelQrWindows.set(key, win);
-  win.on('closed', () => {
-    panelQrWindows.delete(key);
-  });
-
-  const safeSrc = src.replace(/"/g, '&quot;');
-  const safeCap = String(caption || 'Pay Using QR')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
-<title>Scan &amp; Pay</title>
-<style>
-  html,body{margin:0;height:100%;background:#fff;display:flex;flex-direction:column;
-    align-items:stretch;justify-content:flex-start;font-family:Segoe UI,Arial,sans-serif;}
-  .qr-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 8px 4px;}
-  img{width:240px;height:240px;object-fit:contain;background:#fff;}
-  .cap{flex-shrink:0;background:#e8e8e8;color:#111;font-size:12px;font-weight:600;
-    line-height:1.25;padding:8px 10px;border-top:1px solid #d0d0d0;text-align:left;}
-</style></head><body>
-  <div class="qr-wrap"><img alt="QR" src="${safeSrc}"/></div>
-  <div class="cap">${safeCap}</div>
-</body></html>`;
-
-  win
-    .loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html))
-    .catch((e) => console.warn('[Ocean] QR popup load failed', e.message || e));
-  win.once('ready-to-show', () => {
-    try {
-      win.show();
-      win.focus();
-    } catch (_) {}
-  });
-
-  if (panel && !panel.isDestroyed()) {
-    try {
-      panel.show();
-    } catch (_) {}
-  }
+  panel.webContents.send('panel:qr', {qrBase64:src, caption:buildQrPayCaption(journeyId,pairIndex,opts)});
+  panel.show();
 }
 
 function emitPanelQrHide(journeyId, pairIndex) {
   if (!journeyId) return;
-  closePanelQrPopup(panelKey(journeyId, pairIndex));
+  const key = panelKey(journeyId,pairIndex);
+  closePanelQrPopup(key);
+  const panel = ticketPanelWindows.get(key);
+  if (panel && !panel.isDestroyed()) panel.webContents.send('panel:qr-hide', {});
 }
 
 function resolvePanelFromRunSession(sessionId) {
