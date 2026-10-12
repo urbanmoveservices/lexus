@@ -222,7 +222,7 @@ function emitPanelStatus(journeyId, pairIndex, message) {
   }
 }
 
-/** Direct API / APP: pair screenshot + POST oceanxsoft success (no Classic animation). */
+/** Direct API: pair screenshot + POST oceanxsoft success (no Classic animation). */
 async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
   const entry = sessionManager.getRun(sessionId);
   if (!entry?.meta) return;
@@ -309,7 +309,6 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
     licenceKey: licence.key,
     base64image,
     uiEngine: entry.meta.uiEngine,
-    appLogin: entry.meta.appLogin,
     pnrTime,
   });
 
@@ -345,7 +344,7 @@ async function handleOceanApiBookingSuccess(sessionId, pnr, fullData) {
     broadcastBookingHistory(row);
     console.log('[Ocean History] saved', row.pnr, row.ticketName, row.fare);
 
-    // STAR-style ERS PDF (Direct / APP full_data only)
+    // STAR-style ERS PDF (Direct full_data only)
     if (dtoData && dtoData.bookingResponseDTO) {
       setImmediate(() => {
         try {
@@ -465,6 +464,10 @@ function buildQrPayCaption(journeyId, pairIndex, opts = {}) {
   return parts.join(' ');
 }
 
+ipcMain.on('panel:qr-closed', (e) => {
+  try { shrinkPanelAfterQr(BrowserWindow.fromWebContents(e.sender)); } catch (_) {}
+});
+
 function emitPanelQr(journeyId, pairIndex, qrBase64, opts = {}) {
   if (!journeyId || !qrBase64) return;
   const key = panelKey(journeyId, pairIndex);
@@ -474,8 +477,38 @@ function emitPanelQr(journeyId, pairIndex, qrBase64, opts = {}) {
   if (!src) return;
   if (!src.startsWith('data:')) src = 'data:image/png;base64,' + src;
   closePanelQrPopup(key);
+  growPanelForQr(panel);
   panel.webContents.send('panel:qr', {qrBase64:src, caption:buildQrPayCaption(journeyId,pairIndex,opts)});
   panel.show();
+}
+
+/** QR sits in an extra strip below the ticket panel (window grows downward, panel stays visible). */
+const PANEL_QR_EXTRA_HEIGHT = 300;
+function growPanelForQr(panel) {
+  try {
+    if (!panel || typeof panel.getBounds !== 'function' || panel.__qrBaseHeight) return;
+    const b = panel.getBounds();
+    const wa = typeof screen !== 'undefined' && screen.getDisplayMatching
+      ? screen.getDisplayMatching(b).workArea
+      : null;
+    let y = b.y;
+    if (wa && y + b.height + PANEL_QR_EXTRA_HEIGHT > wa.y + wa.height) {
+      y = Math.max(wa.y, wa.y + wa.height - b.height - PANEL_QR_EXTRA_HEIGHT);
+    }
+    panel.__qrBaseHeight = b.height;
+    if (typeof panel.setMinimumSize === 'function') panel.setMinimumSize(0, 0);
+    panel.setBounds({ x: b.x, y, width: b.width, height: b.height + PANEL_QR_EXTRA_HEIGHT });
+  } catch (_) {}
+}
+
+function shrinkPanelAfterQr(panel) {
+  try {
+    if (!panel || panel.isDestroyed() || !panel.__qrBaseHeight) return;
+    const b = panel.getBounds();
+    const h = panel.__qrBaseHeight;
+    panel.__qrBaseHeight = 0;
+    panel.setBounds({ x: b.x, y: b.y, width: b.width, height: h });
+  } catch (_) {}
 }
 
 function emitPanelQrHide(journeyId, pairIndex) {
@@ -483,7 +516,10 @@ function emitPanelQrHide(journeyId, pairIndex) {
   const key = panelKey(journeyId,pairIndex);
   closePanelQrPopup(key);
   const panel = ticketPanelWindows.get(key);
-  if (panel && !panel.isDestroyed()) panel.webContents.send('panel:qr-hide', {});
+  if (panel && !panel.isDestroyed()) {
+    panel.webContents.send('panel:qr-hide', {});
+    shrinkPanelAfterQr(panel);
+  }
 }
 
 function resolvePanelFromRunSession(sessionId) {
@@ -1390,7 +1426,6 @@ ipcMain.handle('panels:launch-run', async (_e, opts) => {
     ipMode: opts?.ipMode || null,
     proxyId: opts?.proxyId || null,
     quota: opts?.quota || null,
-    appLogin: Boolean(opts?.appLogin),
     uiEngine: opts?.uiEngine || null,
   })
   );

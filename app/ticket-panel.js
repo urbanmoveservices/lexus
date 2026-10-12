@@ -535,6 +535,11 @@ function hidePanelQr() {
   document.getElementById('qrImage')?.removeAttribute('src');
 }
 
+function closePanelQr() {
+  hidePanelQr();
+  try { window.panel?.qrClosed?.(); } catch (_) {}
+}
+
 function showPtFareProceed(sessionId) {
   pendingPtFareSessionId = sessionId || pendingPtFareSessionId;
   const wrap = document.getElementById('ptFareWrap');
@@ -567,10 +572,10 @@ function getRunOptions(engineKey) {
     journeyId: ctx?.journey?.id, pairIndex: ctx?.pairIndex,
     credentialId: document.getElementById('credSelect').value,
     paymentId: document.getElementById('paySelect').value,
-    engine: ({ web2: 'system-chrome', web3: 'brave', app: 'system-chrome', headless: 'headless' })[engineKey],
+    engine: ({ web2: 'system-chrome', web3: 'brave', headless: 'headless' })[engineKey],
     mode: resolveRunMode(getPanelMethod()), ipMode: choice.ipMode, proxyId: choice.proxyId,
     quota: document.getElementById('quotaSelect')?.value || null,
-    appLogin: engineKey === 'app', uiEngine: engineKey,
+    uiEngine: engineKey,
   };
 }
 function showSchedule(text, armed = false) {
@@ -609,9 +614,6 @@ async function launch(engineKey) {
       } else {
         setPanelStatus(`BOOKED PNR=${result.pnr}`);
       }
-    } else if (result.appLoginOnly || result.run?.appAuth) {
-      setRunning(false);
-      setPanelStatus(result.run?.statusMessage || 'APP LOGIN OK');
     } else {
       setPanelStatus('RUNNING · waiting login…');
     }
@@ -707,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       restoreCredIdLabel();
     });
   }
-  document.getElementById('qrClose')?.addEventListener('click', hidePanelQr);
+  document.getElementById('qrClose')?.addEventListener('click', closePanelQr);
   document.getElementById('ptFareProceed')?.addEventListener('click', () => {
     onPtFareProceedClick();
   });
@@ -815,8 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (data.state === 'finished' && !data.result?.ok) {
       stopElapsedTimer(); setRunning(false); setPanelStatus(data.result?.error || 'Auto-start failed');
       showSchedule('Auto-start failed · schedule again');
-    } else if (data.state === 'finished' && data.result?.appLoginOnly) {
-      stopElapsedTimer(); setRunning(false);
+
     }
   });
 });

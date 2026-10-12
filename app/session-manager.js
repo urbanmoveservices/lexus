@@ -17,11 +17,7 @@ const braveRunner = require('./brave-runner');
 const { attachElectronIrctcNetwork } = require('./irctc-network');
 const { applyProxyToSession } = require('./proxy-session');
 const { resolveProxyForIpMode } = require('./proxy-util');
-const { attachAppProxyForRun } = require('./app-proxy');
 const { LAYOUT, centerBounds, clampSize, getWorkArea } = require('./window-layout');
-const appPairSession = require('./app-pair-session');
-const { performAppLogin } = require('./app-login');
-const { performAppBook } = require('./app-book');
 const oceanSuccess = require('./ocean-success');
 
 const IRCTC_URLS = {
@@ -76,16 +72,15 @@ function pushRunStatus(sessionId, message) {
   let msg = String(message).trim();
   if (!msg) return;
 
-  // After Direct/APP PNR success: lock Success status (STAR-style) — ignore all later lines
+  // After Direct PNR success: lock Success status (STAR-style) — ignore all later lines
   if (entry.meta.oceanSuccessDone) return;
 
   const pnr = oceanSuccess.extractPnr(msg);
-  if (pnr && oceanSuccess.isDirectOrAppRun(entry.meta)) {
+  if (pnr && oceanSuccess.isDirectRun(entry.meta)) {
     entry.meta.oceanSuccessDone = true;
     entry.meta.pnr = pnr;
     entry.meta.status = 'booked';
     msg = oceanSuccess.formatSuccessStatus(entry.meta.uiEngine, {
-      appLogin: entry.meta.appLogin,
       pnr,
     });
     if (onOceanApiSuccess) {
@@ -103,6 +98,11 @@ function pushRunStatus(sessionId, message) {
   }
 
   entry.meta.statusMessage = msg;
+  // Mirror status to desktop.stdout.log; the ms countdown is throttled to ~1/s.
+  if (!/^Passenger Submit in /i.test(msg) || Date.now() - (entry.meta._lastCountdownLog || 0) > 1000) {
+    if (/^Passenger Submit in /i.test(msg)) entry.meta._lastCountdownLog = Date.now();
+    console.log(`[Ocean Status] ${String(sessionId).slice(0, 8)} ${msg}`);
+  }
   const fareM = String(msg || '').match(
     /(?:Available|AVL|RAC|WL)-\d+\s*\|\s*([\d.]+)/i
   );
@@ -169,8 +169,6 @@ function publicMeta(meta, win, chromeHandle) {
     lastFare: meta.lastFare || '',
     error: meta.error || null,
     createdAt: meta.createdAt,
-    appLogin: Boolean(meta.appLogin),
-    appAuth: Boolean(meta.appAuth?.access_token),
   };
 }
 
@@ -192,7 +190,7 @@ function getRun(sessionId) {
   return runs.get(sessionId) || null;
 }
 
-/** Attach IRCTC bookingData / verifyPayment JSON before BOOKED status (Direct + APP). */
+/** Attach IRCTC bookingData / verifyPayment JSON before BOOKED status (Direct). */
 function setBookingFullData(sessionId, fullData) {
   const entry = runs.get(sessionId);
   if (!entry || !entry.meta) return false;
@@ -279,9 +277,11 @@ async function createRun({
   ipMode = null,
   proxyId = null,
   quota = null,
-  appLogin = false,
   uiEngine = null,
 }) {
+  if (String(uiEngine || '').toLowerCase() === 'app') {
+    return { ok: false, error: 'APP mode has been removed. Choose WEB 2, WEB 3 or HEADLESS.' };
+  }
   if (runs.size >= MAX_PARALLEL_RUNS) {
     return { ok: false, error: `Max ${MAX_PARALLEL_RUNS} parallel runs` };
   }
@@ -326,15 +326,9 @@ async function createRun({
       ? String(proxyId || bundle.journey?.options?.proxyId || '').trim() || null
       : null;
 
-  const wantAppLogin = Boolean(appLogin);
-  const resolvedUiEngine = wantAppLogin
-    ? 'app'
-    : eng === 'headless' ? 'headless'
+  const resolvedUiEngine = eng === 'headless' ? 'headless'
     : String(uiEngine || '').toLowerCase() === 'web3' || eng === 'brave'
-      ? 'web3'
-      : String(uiEngine || '').toLowerCase() === 'app'
-        ? 'app'
-        : 'web2';
+      ? 'web3' : 'web2';
 
   const meta = {
     sessionId,
@@ -354,7 +348,6 @@ async function createRun({
     pairIndex: safePair,
     ipMode: resolvedIpMode,
     proxyId: resolvedProxyId,
-    appLogin: wantAppLogin,
     statusMessage: 'LAUNCHING…',
     error: null,
     oceanSuccessDone: false,
@@ -362,147 +355,8 @@ async function createRun({
     createdAt: new Date().toISOString(),
   };
 
-  // Per-pair mock mup/uid + cookie jar (locked for whole run)
-  try {
-    appPairSession.createAppSession({
-      sessionId,
-      journeyId,
-      pairIndex: meta.pairIndex,
-    });
-  } catch (e) {
-    console.warn('[Ocean] APP session create failed', e.message || e);
-  }
-
-  // Register run early so APP login status reaches the ticket panel
   runs.set(sessionId, { meta, chrome: null, window: null, bundle });
-
   const onStatusMessage = makeRunStatusCallback(sessionId);
-
-  // Panel APP → HTTP login (appVersion → webmtoken → validateUser) before browser
-  if (wantAppLogin) {
-    pushRunStatus(sessionId, 'APP LOGIN…');
-    try {
-      const appSess = appPairSession.getAppSession(sessionId);
-      if (!appSess) {
-        runs.delete(sessionId);
-        broadcast();
-        return { ok: false, error: 'APP session missing' };
-      }
-      const proxyAttach = await attachAppProxyForRun(
-        appSess,
-        meta.ipMode || 'auto',
-        profileStore.getProxyConfig({ proxyId: meta.proxyId })
-      );
-      if (!proxyAttach.ok) {
-        console.error('[Ocean APP] PROXY FAIL', proxyAttach.reason);
-        try {
-          appPairSession.destroyAppSession(sessionId);
-        } catch (_) {}
-        runs.delete(sessionId);
-        broadcast();
-        return { ok: false, error: proxyAttach.reason || 'APP proxy fail' };
-      }
-      meta.proxyEnabled = Boolean(proxyAttach.enabled);
-      if (proxyAttach.enabled) {
-        pushRunStatus(sessionId, `APP · Proxy ${proxyAttach.via || 'on'}`);
-      } else {
-        pushRunStatus(sessionId, 'APP · Home IP');
-      }
-
-      const login = await performAppLogin({
-        sessionId,
-        username: bundle.credential?.username,
-        password: bundle.credential?.password,
-        onStatus: onStatusMessage,
-      });
-      if (!login.ok) {
-        console.error('[Ocean APP] LOGIN FAIL', login.reason, login.raw || '');
-        try {
-          appPairSession.destroyAppSession(sessionId);
-        } catch (_) {}
-        runs.delete(sessionId);
-        broadcast();
-        return { ok: false, error: login.reason || 'APP LOGIN FAIL' };
-      }
-      meta.appAuth = appPairSession.getBrowserAuthBag(sessionId);
-      meta.status = 'app-booking';
-      meta.statusMessage = 'APP LOGIN OK';
-      pushRunStatus(sessionId, meta.statusMessage);
-      console.log(
-        `[Ocean APP] login OK session=${sessionId.slice(0, 8)}… → booking chain`
-      );
-
-      const book = await performAppBook({
-        sessionId,
-        bundle,
-        onStatus: onStatusMessage,
-        waitForPtFareProceed: (info) =>
-          waitForPtFareProceed(sessionId, info || {}),
-        waitIfSiblingInitPayment: () => waitIfSiblingInitPayment(sessionId),
-        markInitPaymentSuccess: () =>
-          markInitPaymentSuccess(meta.journeyId, meta.pairIndex, sessionId),
-        onQr: (qr, extra) => {
-          if (extra?.amount != null && Number(extra.amount) > 0) {
-            meta.lastFare = String(extra.amount);
-          }
-          if (panelQrEmitter && meta.journeyId) {
-            panelQrEmitter(meta.journeyId, meta.pairIndex || 1, qr, {
-              amount: meta.lastFare || extra?.amount,
-            });
-          }
-        },
-        onQrHide: () => {
-          if (panelQrHideEmitter && meta.journeyId) {
-            panelQrHideEmitter(meta.journeyId, meta.pairIndex || 1);
-          }
-        },
-      });
-
-      if (!book.ok) {
-        console.error('[Ocean APP] BOOK FAIL', book.reason);
-        meta.status = 'app-failed';
-        meta.error = book.reason || 'APP BOOK FAIL';
-        pushRunStatus(sessionId, meta.error);
-        broadcast();
-        return { ok: false, error: book.reason || 'APP BOOK FAIL', run: publicMeta(meta) };
-      }
-
-      meta.appBook = {
-        clientTxnId: book.clientTxnId,
-        amount: book.amount,
-        bankId: book.bankId,
-        pnr: book.pnr || null,
-      };
-      if (book.pnr) {
-        meta.status = 'booked';
-        meta.pnr = book.pnr;
-        meta.bookingFullData =
-          book.ipay?.verifyPayment ||
-          book.verifyPayment ||
-          book.full_data ||
-          null;
-        // pushRunStatus formats → "Success By Ocean APP · PNR …" (do not overwrite with BOOKED)
-        pushRunStatus(sessionId, `BOOKED PNR=${book.pnr}`);
-        broadcast();
-        return { ok: true, run: publicMeta(meta, null, null), pnr: book.pnr };
-      }
-
-      meta.status = 'app-init-ok';
-      meta.statusMessage = book.captured
-        ? 'APP · PAYMENT CAPTURED (PNR pending)'
-        : 'APP · INIT PAYMENT OK';
-      pushRunStatus(sessionId, meta.statusMessage);
-      broadcast();
-      return { ok: true, run: publicMeta(meta, null, null), appLoginOnly: true };
-    } catch (e) {
-      try {
-        appPairSession.destroyAppSession(sessionId);
-      } catch (_) {}
-      runs.delete(sessionId);
-      broadcast();
-      return { ok: false, error: e.message || 'APP LOGIN FAIL' };
-    }
-  }
 
   // --- Preferred: System Chrome or Brave host (real TLS + CDP stealth + Direct API) ---
   if (wantHost) {
@@ -519,7 +373,7 @@ async function createRun({
       onStatusMessage,
     });
     if (!result.ok) {
-      if(eng==='headless'){runs.delete(sessionId);appPairSession.destroyAppSession(sessionId);broadcast();return {ok:false,error:result.error||'Headless launch failed'};}
+      if(eng==='headless'){runs.delete(sessionId);broadcast();return {ok:false,error:result.error||'Headless launch failed'};}
       console.warn(
         `[Ocean] ${eng === 'brave' ? 'Brave' : 'System Chrome'} failed, falling back to Electron:`,
         result.error
@@ -536,9 +390,6 @@ async function createRun({
           entry.chrome = null;
         }
         pushRunStatus(sessionId, 'SCRIPT END · browser closed');
-        try {
-          appPairSession.destroyAppSession(sessionId);
-        } catch (_) {}
         runs.delete(sessionId);
         maybeClearInitPaymentFlag(jid);
         broadcast();
@@ -768,9 +619,6 @@ async function stopRun(sessionId) {
   const journeyId = entry.meta?.journeyId;
   rejectPtFareWait(sessionId, false);
   pushRunStatus(sessionId, 'SCRIPT END · stopped');
-  try {
-    appPairSession.destroyAppSession(sessionId);
-  } catch (_) {}
   if (entry.chrome) {
     entry.meta.status = 'done';
     if(entry.chrome.engine==='headless')await headlessRunner.closeHeadlessHandle(entry.chrome);else await chromeRunner.closeChromeHandle(entry.chrome);
@@ -987,8 +835,4 @@ module.exports = {
   pushRunStatus,
   findChromePath: chromeRunner.findChromePath,
   findBravePath: braveRunner.findBravePath,
-  getAppSession: appPairSession.getAppSession,
-  ensureSessionSensor: appPairSession.ensureSessionSensor,
-  buildAppHeaders: appPairSession.buildAppHeaders,
-  getBrowserAuthBag: appPairSession.getBrowserAuthBag,
 };

@@ -1,5 +1,5 @@
 /**
- * Direct API + APP booking success — panel status, server upload payload.
+ * Direct API booking success — panel status, server upload payload.
  * Classic / Beta WEB use their own inject flow (not this module).
  */
 const SUCCESS_URL =
@@ -26,8 +26,7 @@ function formatJourneyDate(iso) {
   return String(iso);
 }
 
-function uiEngineLabel(uiEngine, { appLogin } = {}) {
-  if (appLogin || String(uiEngine || '').toLowerCase() === 'app') return 'APP';
+function uiEngineLabel(uiEngine) {
   const e = String(uiEngine || '').toLowerCase();
   if (e === 'web3' || e === 'brave' || e === 'system-brave') return 'WEB-3';
   return 'WEB-2';
@@ -40,9 +39,9 @@ function formatSuccessStatus(uiEngine, opts = {}) {
   return `Success By Ocean ${mode}`;
 }
 
-function isDirectOrAppRun(meta) {
+function isDirectRun(meta) {
   if (!meta) return false;
-  return Boolean(meta.appLogin) || meta.mode === 'direct';
+  return meta.mode === 'direct';
 }
 
 function extractPnr(message) {
@@ -73,11 +72,10 @@ function buildSuccessPayload({
   licenceKey,
   base64image,
   uiEngine,
-  appLogin,
   pnrTime,
 }) {
   const pay = payment || {};
-  const mode = uiEngineLabel(uiEngine, { appLogin });
+  const mode = uiEngineLabel(uiEngine);
   return {
     PNR_Time: pnrTime || new Date().toLocaleTimeString('en-GB', { hour12: false }),
     Gateway: String(pay.name || pay.paymentMethod || '').trim(),
@@ -106,7 +104,7 @@ module.exports = {
   trainNumberOnly,
   uiEngineLabel,
   formatSuccessStatus,
-  isDirectOrAppRun,
+  isDirectRun,
   extractPnr,
   buildSrcDest,
   buildSuccessPayload,

@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('panel', {
     ipcRenderer.on('panel:qr', handler);
     return () => ipcRenderer.removeListener('panel:qr', handler);
   },
+  qrClosed: () => ipcRenderer.send('panel:qr-closed'),
   onPanelQrHide: (callback) => {
     const handler = (_e, data) => callback(data);
     ipcRenderer.on('panel:qr-hide', handler);

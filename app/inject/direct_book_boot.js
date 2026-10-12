@@ -347,23 +347,44 @@
   }
 
   async function solveCaptcha(b64, captchaCreds) {
-    const userId = captchaCreds.userId || '';
-    const apiKey = captchaCreds.apiKey || '';
-    if (!userId || !apiKey) {
-      throw new Error('TrueCaptcha missing (save in Tokens tab)');
-    }
-    let data = String(b64 || '');
-    const comma = data.indexOf(',');
-    if (data.startsWith('data:') && comma !== -1) data = data.slice(comma + 1);
-    const response = await fetch('https://api.apitruecaptcha.org/one/gettext', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userid: userId, apikey: apiKey, data }),
+    const source = String(b64 || '');
+    const imageUrl = source.startsWith('data:') ? source : 'data:image/png;base64,' + source;
+    if (!/^data:image\/(png|jpeg|jpg);base64,[a-z0-9+/=\s]+$/i.test(imageUrl)) throw new Error('Invalid CAPTCHA image');
+    log('Enter booking CAPTCHA in the browser');
+    return new Promise((resolve, reject) => {
+      const dialog = document.createElement('dialog');
+      const form = document.createElement('form');
+      const label = document.createElement('label');
+      label.textContent = 'Enter booking CAPTCHA';
+      const image = document.createElement('img');
+      image.src = imageUrl;
+      image.alt = 'Booking CAPTCHA';
+      const input = document.createElement('input');
+      input.required = true;
+      input.autocomplete = 'off';
+      input.setAttribute('aria-label', 'CAPTCHA answer');
+      const submit = document.createElement('button');
+      submit.type = 'submit';
+      submit.textContent = 'Continue';
+      const cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.textContent = 'Cancel';
+      const abort = () => { dialog.remove(); reject(new Error('Booking CAPTCHA cancelled')); };
+      cancel.addEventListener('click', abort);
+      dialog.addEventListener('cancel', event => { event.preventDefault(); abort(); });
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const answer = input.value.trim();
+        if (!answer) return;
+        dialog.remove();
+        resolve(answer);
+      });
+      form.append(label, document.createElement('br'), image, document.createElement('br'), input, submit, cancel);
+      dialog.append(form);
+      document.body.append(dialog);
+      dialog.showModal();
+      input.focus();
     });
-    if (!response.ok) throw new Error('TrueCaptcha HTTP ' + response.status);
-    const json = await response.json();
-    if (!json || !json.result) throw new Error('TrueCaptcha empty');
-    return String(json.result).replace(/\s/g, '').replace(')', 'J').replace(']', 'J');
   }
 
   /** HAR-matched pipeline — fetch from this IRCTC tab (same cookies / Akamai session). */
@@ -777,11 +798,12 @@
   }
 
   function debouncedDirectStart(reason) {
-    try {
-      clearTimeout(window.__OCEAN_DIRECT_START_T);
-    } catch (_) {}
+    if (isDirectPipelineFinished() || running || window.__OCEAN_DIRECT_START_T) return;
     window.__OCEAN_DIRECT_START_T = setTimeout(
-      () => scheduleDirectStart(reason || 'debounced'),
+      () => {
+        window.__OCEAN_DIRECT_START_T = null;
+        scheduleDirectStart(reason || 'debounced');
+      },
       400
     );
   }

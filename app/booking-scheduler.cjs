@@ -15,6 +15,7 @@ function createScheduler({ launch, notify, now = Date.now, timer = setTimeout, c
     jobs.delete(id);
   }
   function arm(id, hour, opts) {
+    if (String(opts?.uiEngine || '').toLowerCase() === 'app') throw Error('APP mode has been removed. Choose another engine.');
     if (!opts?.journeyId || !opts.credentialId || !opts.paymentId) throw Error('Select ID and Bank first');
     const due = nextStart(hour, now());
     cancel(id);

@@ -1,6 +1,6 @@
 /**
  * STAR-style booking history mapping from IRCTC bookingResponseDTO / bookingData JSON.
- * Used by Direct API + APP success only (not Classic/Beta).
+ * Used by Direct API success only (not Classic/Beta).
  */
 
 function stationCode(raw) {

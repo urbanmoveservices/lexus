@@ -523,29 +523,10 @@ async function injectAutomationOnPage(page, bundle, mode = 'nget', runCtx = {}) 
   // Direct/API: mapps1 in IRCTC tab; PhonePe on Direct Host (not in browser)
   if (isDirect) {
     // Warm Brave Default often has stale ir:tokens — wipe unless UI already logged in
-    // or APP HTTP login already produced tokens.
-    const appAuthJson = JSON.stringify(runCtx.appAuth || null);
     await evaluateSource(
       page,
       `(() => {
         try {
-          const appAuth = ${appAuthJson};
-          if (appAuth && appAuth.access_token) {
-            try {
-              Object.defineProperty(window, '__OCEAN_APP_AUTH__', {
-                value: appAuth, writable: true, configurable: true, enumerable: false
-              });
-            } catch (_) { window.__OCEAN_APP_AUTH__ = appAuth; }
-            try {
-              localStorage.setItem('ir:tokens', JSON.stringify(appAuth));
-            } catch (_) {}
-            try {
-              Object.defineProperty(window, '__OCEAN_LOGIN_OK__', {
-                value: true, writable: true, configurable: true, enumerable: false
-              });
-            } catch (_) { window.__OCEAN_LOGIN_OK__ = true; }
-            return;
-          }
           const loggedIn = Array.from(
             document.querySelectorAll('a.search_btn.loginText, a.loginText, a.search_btn, app-header a, label b')
           ).some((el) => {
@@ -1084,7 +1065,6 @@ async function launchSystemChromeRun({
         ipMode: meta.ipMode || bundle?.journey?.options?.ipMode || 'auto',
         proxyId: meta.proxyId || bundle?.journey?.options?.proxyId || null,
         onStatusMessage,
-        appAuth: meta.appAuth || null,
       });
       meta.status = 'automating';
       if (onStatus) onStatus();
@@ -1152,7 +1132,6 @@ function wireChromeUrlRouter(handle, meta, onStatus, onStatusMessage) {
         await injectAutomationOnPage(page, handle.bundle, handle.mode || 'nget', {
           sessionId: handle.sessionId,
           onStatusMessage: statusMsg,
-          appAuth: handle.meta?.appAuth || null,
         });
       }
     } catch (_) {}

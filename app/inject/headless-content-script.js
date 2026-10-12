@@ -3222,32 +3222,6 @@ function findClassicSignInBtn() {
 
 async function continueScript() {
     if (window !== window.top) return;
-    // APP HTTP login already done in main — reuse tokens, skip UI login
-    if (
-        window.__OCEAN_DIRECT_BOOK__ &&
-        window.__OCEAN_APP_AUTH__ &&
-        window.__OCEAN_APP_AUTH__.access_token
-    ) {
-        try {
-            localStorage.setItem('ir:tokens', JSON.stringify(window.__OCEAN_APP_AUTH__));
-        } catch (_) {}
-        try {
-            Object.defineProperty(window, '__OCEAN_LOGIN_OK__', {
-                value: true, writable: true, configurable: true, enumerable: false
-            });
-        } catch (_) {
-            window.__OCEAN_LOGIN_OK__ = true;
-        }
-        oceanSetLoginPhase('done', 'app-http');
-        window.__OCEAN_POST_LOGIN_FIRED__ = true;
-        oceanLog('APP HTTP auth — skip UI login, start Direct');
-        if (typeof window.__oceanStartDirectBook === 'function') {
-            window.__oceanStartDirectBook();
-        } else if (typeof window.__oceanTryStartDirect === 'function') {
-            window.__oceanTryStartDirect('app-http');
-        }
-        return;
-    }
     // API/Direct: never skip login just because Brave Default still has old ir:tokens
     if (window.__OCEAN_DIRECT_BOOK__ && !oceanIsLoggedIn()) {
         try {

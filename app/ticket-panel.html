@@ -508,7 +508,6 @@
       }
       .eng.web2 { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
       .eng.web3 { background: linear-gradient(135deg, #ea580c, #c2410c); }
-      .eng.app { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
       .eng:hover { filter: brightness(1.08); }
 
       /* After click: clock (blue) + available (green) — reference style */
@@ -610,10 +609,9 @@
       body.is-success .engines { display: none; }
       body.is-success .run-slot { display: flex; }
 
-      .qr-overlay {position:fixed;inset:36px 4px 38px;z-index:15;display:flex;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;-webkit-app-region:no-drag;}
+      .qr-overlay {position:fixed;left:0;right:0;bottom:0;height:296px;z-index:15;display:flex;background:#fff;border:2px solid #0d2a4f;border-radius:8px;overflow:hidden;-webkit-app-region:no-drag;}
       .qr-overlay.hidden{display:none;}
-      body.has-panel-qr .run-slot{position:fixed;left:4px;right:4px;bottom:3px;z-index:16;display:flex;height:30px;min-height:30px;margin:0;}
-      body.has-panel-qr .run-clock-box,body.has-panel-qr .run-metrics{padding-top:3px;padding-bottom:3px;}
+      body.has-panel-qr .panel{height:calc(100% - 300px);}
       .qr-card{position:relative;display:flex;flex-direction:column;width:100%;height:100%;padding:22px 8px 7px;min-height:0;}
       .qr-card img{display:block;width:100%;height:0;flex:1;min-height:0;object-fit:contain;background:#fff;}
       .qr-caption{flex-shrink:0;text-align:center;font-weight:700;font-size:11px;line-height:1.3;padding-top:6px;overflow-wrap:anywhere;}
@@ -789,7 +787,6 @@
       <div class="engines" id="engines">
         <button type="button" class="eng web2" data-engine="web2">WEB 2</button>
         <button type="button" class="eng web3" data-engine="web3">WEB 3</button>
-        <button type="button" class="eng app" data-engine="app">APP</button>
         <button type="button" class="eng headless" data-engine="headless" title="Classic in background; visible browser for manual steps">HEADLESS</button>
         <button type="button" class="eng headless-view" id="headless-view" title="Open the current headless run for manual interaction">OPEN VIEW</button>
       </div>
@@ -799,7 +796,7 @@
           <option value="8">8:00 AM IST</option><option value="10">10:00 AM IST</option><option value="11">11:00 AM IST</option>
         </select>
         <select id="autoStartEngine" aria-label="Auto-start engine">
-          <option value="web2">WEB 2</option><option value="web3">WEB 3</option><option value="app">APP</option><option value="headless">HEADLESS</option>
+          <option value="web2">WEB 2</option><option value="web3">WEB 3</option><option value="headless">HEADLESS</option>
         </select>
         <button type="button" id="autoStartArm">Schedule</button>
         <button type="button" id="autoStartCancel" disabled>Cancel</button>

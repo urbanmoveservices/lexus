@@ -1,8 +1,11 @@
 from pathlib import Path
 import shutil,zipfile,json,subprocess,hashlib
 root=Path(__file__).resolve().parent.parent
-releases=root/'releases'; stage=releases/'windows-package'; stage.mkdir(parents=True,exist_ok=True)
+releases=root/'releases'
 version=json.loads((root/'package.json').read_text(encoding='utf-8-sig'))['version']
+stage=releases/('windows-package-'+version)
+if stage.exists(): raise RuntimeError('Build stage already exists; use a fresh release version or archive the previous stage.')
+stage.mkdir(parents=True)
 for name in ['package.json','desktop.cjs','launch.cjs','licensing-client.cjs','distribution-config.cjs','Launch LEXUS.cmd','start-desktop.ps1']:
  shutil.copy2(root/name,stage/name)
 for name in ['app','runtime','node_modules']:
