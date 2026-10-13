@@ -2580,7 +2580,7 @@ body.view-modal .modal-panel .accounts-stats > span {
 .history-row {
   display: grid;
   grid-template-columns:
-    36px minmax(90px, 1.2fr) minmax(80px, 1fr) 52px 52px 88px minmax(90px, 1.1fr) 96px 64px 92px;
+    30px minmax(0, 1.2fr) minmax(0, 1fr) 44px 44px 76px minmax(0, 1.1fr) 88px 56px 84px;
   gap: 4px;
   align-items: center;
   padding: 8px 10px;
@@ -2598,7 +2598,8 @@ body.view-modal .modal-panel .accounts-stats > span {
 .history-list {
   display: grid;
   gap: 2px;
-  max-height: 360px;
+  /* shrink with the window so the footer button never leaves the screen (min modal 760x480) */
+  max-height: min(360px, max(120px, calc(100vh - 290px)));
   overflow: auto;
 }
 

@@ -40,14 +40,14 @@ const SHELL = {
   modal: new URLSearchParams(window.location.search).get('modal') || '',
 };
 
-function toast(message) {
+function toast(message, ms = 1800) {
   const el = document.getElementById('toast');
   el.textContent = message;
   el.hidden = false;
   clearTimeout(toast._t);
   toast._t = setTimeout(() => {
     el.hidden = true;
-  }, 1800);
+  }, ms);
 }
 
 function sanitizePassengerNameValue(raw) {
@@ -721,55 +721,7 @@ async function refreshAboutInfo(refreshFromServer = false) {
 }
 
 function enableDropdownDrag(card) {
-  if (!card || card.dataset.dragBound === '1') return;
-  card.dataset.dragBound = '1';
-  let dragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  const onMove = (e) => {
-    if (!dragging) return;
-    const w = card.offsetWidth;
-    const h = card.offsetHeight;
-    let left = e.clientX - offsetX;
-    let top = e.clientY - offsetY;
-    left = Math.max(4, Math.min(left, window.innerWidth - w - 4));
-    top = Math.max(4, Math.min(top, window.innerHeight - h - 4));
-    card.style.left = `${left}px`;
-    card.style.top = `${top}px`;
-  };
-
-  const onUp = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    card.classList.remove('is-dragging');
-    try {
-      card.releasePointerCapture(e.pointerId);
-    } catch (_) {}
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-  };
-
-  card.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    if (e.target.closest('button, a, input, select, textarea, label')) return;
-    const rect = card.getBoundingClientRect();
-    dragging = true;
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-    card.style.position = 'fixed';
-    card.style.left = `${rect.left}px`;
-    card.style.top = `${rect.top}px`;
-    card.style.right = 'auto';
-    card.style.bottom = 'auto';
-    card.style.width = `${rect.width}px`;
-    card.classList.add('is-dragging', 'is-dragged');
-    try {
-      card.setPointerCapture(e.pointerId);
-    } catch (_) {}
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-  });
+  // Side-rail menus stay inside the viewport so touch and scrollbar dragging work.
 }
 
 function wireToolbarMenus() {
@@ -2261,10 +2213,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (action === 'check-updates') {
-        toast('Checking for updates…');
+        toast('Checking for updates…', 20000);
         const result = await window.lexus.checkForUpdates();
         if(result?.hosted){location.assign('/downloads');return;}
-        toast(result?.error || (result?.started ? 'Update downloading…' : result?.update ? 'Update available; choose Install update to continue' : 'LEXUS is up to date'));
+        toast(result?.error || (result?.started ? 'Update downloading…' : result?.update ? 'Update available; choose Install update to continue' : 'LEXUS is up to date' + (result?.current ? ' (v' + result.current + ')' : '')), 4000);
         return;
       }
       if (action === 'support-whatsapp') {

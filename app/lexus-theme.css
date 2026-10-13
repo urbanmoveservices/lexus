@@ -1,5 +1,9 @@
 /* LEXUS right rail: distinct layout and blue / white / teal palette. */
 :root{--lexus-blue:#2458c4;--lexus-teal:#087f8c;--lexus-ink:#18304e;--lexus-border:#d2dfef;--shadow:0 12px 34px rgba(34,69,110,.12)}
+body .tb-actions{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;touch-action:pan-y;-webkit-app-region:no-drag}
+body .tb-brand-menu,body .tb-meta{flex-shrink:0}
+body .lexus-toolbar{backdrop-filter:none!important;filter:none!important;transform:none!important}
+body:not(.view-toolbar) .lexus-toolbar .dropdown-card{position:fixed!important;right:244px!important;top:12px!important;bottom:auto!important;max-height:calc(100vh - 24px)!important;overflow-y:auto;touch-action:pan-y;cursor:default;-webkit-app-region:no-drag}
 body{background:#edf3fa;color:var(--lexus-ink)}
 .lexus-toolbar,body.view-toolbar .lexus-toolbar{position:fixed;left:auto;right:12px;top:12px;bottom:12px;width:208px;height:auto;max-height:none;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:22px;padding:18px 12px;background:#fff;border:1px solid var(--lexus-border);border-radius:16px;box-shadow:var(--shadow);overflow:visible}
 .tb-main{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px;width:100%;flex:1;min-height:0}
@@ -15,7 +19,7 @@ body{background:#edf3fa;color:var(--lexus-ink)}
 body.view-toolbar{background:transparent;display:block;-webkit-app-region:drag}body.view-toolbar .lexus-app,body.view-toolbar .lexus-form{display:block;overflow:visible;height:100%;min-height:0}body.view-toolbar .lexus-toolbar{right:0;top:0;bottom:0;width:220px;border-radius:16px}
 .dropdown-card{background:#fff!important;color:var(--lexus-ink)!important;border:1px solid var(--lexus-border)!important;box-shadow:var(--shadow)!important}.dropdown-card button,.dropdown-card strong,.dropdown-card label,.dropdown-card span{color:var(--lexus-ink)!important}.dropdown-card button:hover{background:#e8f2ff!important}
 body:not(.view-toolbar) .lexus-toolbar .dropdown-card{left:auto;right:calc(100% + 14px);top:0;bottom:auto;width:290px;max-height:calc(100vh - 40px);overflow:auto}
-body.view-toolbar .dropdown-card{position:absolute!important;left:auto!important;right:calc(100% + 14px)!important;top:0!important;bottom:auto!important;width:290px!important;max-height:620px;overflow:auto}.dropdown-item{background:transparent!important}
+body.view-toolbar .dropdown-card{position:fixed!important;left:8px!important;right:auto!important;top:8px!important;bottom:auto!important;width:290px!important;max-height:calc(100vh - 16px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;cursor:default;-webkit-app-region:no-drag}.dropdown-item{background:transparent!important}
 body:not(.view-toolbar):not(.view-modal) .modal-layer{right:244px;bottom:16px;top:16px;left:16px;width:auto;height:auto;max-height:none}
 .modal-panel{background:#fff!important;color:var(--lexus-ink)!important;border:1px solid var(--lexus-border)!important;box-shadow:var(--shadow)!important}.modal-panel h2,.modal-panel h3,.modal-panel label,.modal-panel .modal-head,.modal-panel .modal-title,.modal-panel .section-title{color:var(--lexus-ink)!important}.modal-panel input,.modal-panel select,.modal-panel textarea{background:#f4f8fd!important;color:var(--lexus-ink)!important;border-color:#c8d8eb!important}.modal-panel input::placeholder{color:#7f93ad!important}.modal-panel button{box-shadow:none!important}.modal-close{background:#eaf1fa!important;color:var(--lexus-ink)!important}
 body.view-modal{background:#eef4fb}.toast{background:#164f72!important;color:#fff!important;border:1px solid #72b2c5!important;box-shadow:var(--shadow)!important;right:244px!important;left:auto!important;bottom:20px!important}body.view-toolbar .toast{right:12px!important;bottom:24px!important}
@@ -58,3 +62,12 @@ body.view-modal .modal-panel .table-head,body.view-modal .modal-panel .list-head
 body .modal-panel .table-head span,body .modal-panel .list-header span{color:#18304e!important}
 
 body .tb-brand-mark.lexus-logo-mark,body .modal-panel .modal-logo.lexus-logo-mark{background:#fff url("assets/lexus-logo.jpeg") 53% 39% / 265% auto no-repeat!important;color:transparent!important;border-radius:7px!important;box-shadow:none!important}
+
+/* History table is dark: the generic modal-span colour (#18304e !important) made it unreadable */
+html body .modal-panel.modal-history .history-table-head span{color:#38bdf8!important}
+html body .modal-panel.modal-history .history-row span{color:#f8fafc!important}
+html body .modal-panel.modal-history .history-row span.col-pnr{color:#4ade80!important}
+
+/* Toast was shifted half its width off-screen in the 220px toolbar window (transform from base .toast was kept) */
+.toast,body.view-toolbar .toast{transform:none!important;max-width:calc(100vw - 24px)!important}
+body.view-toolbar .toast{left:12px!important;right:12px!important;bottom:24px!important;text-align:center}

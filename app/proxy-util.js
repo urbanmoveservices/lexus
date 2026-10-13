@@ -214,6 +214,52 @@ function resolveProxyForIpMode(ipMode, proxyCfg) {
  * @param {object} rawCfg — { host, port, username, password, type } or string paste in host
  * @returns {Promise<{ ok:boolean, ip?:string, ms?:number, status?:number, error?:string, url?:string }>}
  */
+/**
+ * undici only says "fetch failed" when the proxy refuses the tunnel. Ask the proxy directly
+ * (CONNECT www.irctc.co.in:443) so the user sees the real reason (407 = wrong login, etc.).
+ */
+function diagnoseProxyFailure(stored, err) {
+  const net = require('net');
+  const code = err && (err.code || (err.cause && err.cause.code));
+  const friendly = {
+    ECONNREFUSED: 'Proxy host:port connect nahi hua (ECONNREFUSED) — IP/port check karo',
+    ENOTFOUND: 'Proxy host nahi mila (ENOTFOUND) — host spelling check karo',
+    ETIMEDOUT: 'Proxy timeout (ETIMEDOUT) — IP/port ya firewall check karo',
+    ECONNRESET: 'Proxy ne connection reset kiya (ECONNRESET)',
+  };
+  return new Promise((resolve) => {
+    let done = false;
+    let sock = null;
+    const finish = (v) => {
+      if (done) return;
+      done = true;
+      try { sock.destroy(); } catch (_) {}
+      resolve(v);
+    };
+    const auth = stored.username
+      ? 'Proxy-Authorization: Basic ' +
+        Buffer.from(stored.username + ':' + (stored.password || ''), 'utf8').toString('base64') +
+        '\r\n'
+      : '';
+    sock = net.connect({ host: stored.host, port: stored.port });
+    sock.setTimeout(8000, () => finish(friendly.ETIMEDOUT));
+    sock.on('error', (e2) => finish(friendly[e2.code] || friendly[code] || null));
+    sock.on('connect', () => {
+      sock.write('CONNECT www.irctc.co.in:443 HTTP/1.1\r\nHost: www.irctc.co.in:443\r\n' + auth + '\r\n');
+    });
+    sock.once('data', (d) => {
+      const m = /^HTTP\/\d\.\d\s+(\d{3})/.exec(String(d));
+      const st = m ? Number(m[1]) : 0;
+      if (st === 407 || st === 401) return finish('Proxy login galat (HTTP ' + st + ') — username/password check karo');
+      if (st === 403) return finish('Proxy ne IRCTC block kiya (HTTP 403) — dusra proxy/IP try karo');
+      if (st >= 500) return finish('Proxy error (HTTP ' + st + ') — proxy provider/IP check karo');
+      if (st >= 400) return finish('Proxy ne request reject ki (HTTP ' + st + ')');
+      finish(friendly[code] || null);
+    });
+    sock.on('close', () => finish(friendly[code] || null));
+  });
+}
+
 async function testProxyConnectivity(rawCfg = {}) {
   const expanded = expandStarProxyPaste(rawCfg);
   const stored = parseStoredProxy(expanded);
@@ -309,7 +355,11 @@ async function testProxyConnectivity(rawCfg = {}) {
       error: `IRCTC Check fail — HTTP ${status}`,
     };
   } catch (e) {
-    const msg = e && e.name === 'AbortError' ? 'Proxy timeout (25s)' : e?.message || String(e);
+    let msg = e && e.name === 'AbortError' ? 'Proxy timeout (25s)' : e?.message || String(e);
+    if (!(e && e.name === 'AbortError')) {
+      const why = await diagnoseProxyFailure(stored, e);
+      if (why) msg = why;
+    }
     return { ok: false, error: msg, ms: Date.now() - t0, url: checkUrl };
   }
 }
